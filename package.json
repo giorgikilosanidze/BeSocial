@@ -1,0 +1,28 @@
+{
+	"name": "besocial",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"private": true,
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev:client": "npm --prefix client run dev",
+		"dev:server": "npm --prefix server run dev",
+		"dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/giorgikilosanidze/BeSocial.git"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"type": "module",
+	"bugs": {
+		"url": "https://github.com/giorgikilosanidze/BeSocial/issues"
+	},
+	"homepage": "https://github.com/giorgikilosanidze/BeSocial#readme",
+	"devDependencies": {
+		"concurrently": "^9.2.1"
+	}
+}
