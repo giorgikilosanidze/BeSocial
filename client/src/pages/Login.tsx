@@ -1,4 +1,13 @@
+import routes from '@/constants/routes';
+import { useNavigate } from 'react-router-dom';
+
 const Login = () => {
+	const navigate = useNavigate();
+
+	const handleSignUpClick = () => {
+		navigate(routes.signup);
+	};
+
 	return (
 		<div className="min-h-screen w-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4 relative overflow-hidden">
 			{/* Animated background elements */}
@@ -11,12 +20,12 @@ const Login = () => {
 			{/* Login Card */}
 			<div className="relative w-full max-w-md">
 				{/* Glassmorphic card */}
-				<div className="backdrop-blur-xl bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-8 md:p-10 transform transition-all duration-500 hover:scale-[1.02]">
+				<div className="backdrop-blur-xl bg-white/10 rounded-3xl shadow-2xl border border-white/20 p-6 md:p-8 transform transition-all duration-500">
 					{/* Logo/Brand Section */}
-					<div className="text-center mb-8">
-						<div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-white/20 to-white/5 rounded-2xl backdrop-blur-sm border border-white/30 mb-4 shadow-lg">
+					<div className="text-center mb-6">
+						<div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-white/20 to-white/5 rounded-xl backdrop-blur-sm border border-white/30 mb-3 shadow-lg">
 							<svg
-								className="w-8 h-8 text-white"
+								className="w-6 h-6 text-white"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -29,28 +38,28 @@ const Login = () => {
 								/>
 							</svg>
 						</div>
-						<h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+						<h1 className="text-2xl md:text-3xl font-bold text-white mb-1.5">
 							Welcome To BeSocial
 						</h1>
-						<p className="text-white/80 text-sm md:text-base">
+						<p className="text-white/80 text-xs md:text-sm">
 							Sign in to continue to BeSocial
 						</p>
 					</div>
 
 					{/* Login Form */}
-					<form className="space-y-5">
+					<form className="space-y-4">
 						{/* Email Input */}
 						<div className="group">
 							<label
 								htmlFor="email"
-								className="block text-white/90 text-sm font-medium mb-2 ml-1"
+								className="block text-white/90 text-xs font-medium mb-1.5 ml-1"
 							>
 								Email Address
 							</label>
 							<div className="relative">
 								<div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
 									<svg
-										className="w-5 h-5 text-white/50 group-focus-within:text-white/80 transition-colors"
+										className="w-4 h-4 text-white/50 group-focus-within:text-white/80 transition-colors"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -66,7 +75,7 @@ const Login = () => {
 								<input
 									type="email"
 									id="email"
-									className="w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/40 transition-all duration-300 hover:bg-white/15"
+									className="w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm placeholder-white/50 rounded-xl pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/40 transition-all duration-300 hover:bg-white/15"
 									placeholder="you@example.com"
 								/>
 							</div>
@@ -76,14 +85,14 @@ const Login = () => {
 						<div className="group">
 							<label
 								htmlFor="password"
-								className="block text-white/90 text-sm font-medium mb-2 ml-1"
+								className="block text-white/90 text-xs font-medium mb-1.5 ml-1"
 							>
 								Password
 							</label>
 							<div className="relative">
 								<div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
 									<svg
-										className="w-5 h-5 text-white/50 group-focus-within:text-white/80 transition-colors"
+										className="w-4 h-4 text-white/50 group-focus-within:text-white/80 transition-colors"
 										fill="none"
 										stroke="currentColor"
 										viewBox="0 0 24 24"
@@ -99,7 +108,7 @@ const Login = () => {
 								<input
 									type="password"
 									id="password"
-									className="w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/50 rounded-xl pl-12 pr-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/40 transition-all duration-300 hover:bg-white/15"
+									className="w-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm placeholder-white/50 rounded-xl pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-white/40 transition-all duration-300 hover:bg-white/15"
 									placeholder="••••••••"
 								/>
 							</div>
@@ -118,22 +127,22 @@ const Login = () => {
 						{/* Sign In Button */}
 						<button
 							type="submit"
-							className="w-full bg-white text-purple-600 font-semibold py-3.5 rounded-xl hover:bg-white/95 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+							className="w-full bg-white text-purple-600 font-semibold py-2.5 text-sm rounded-xl hover:bg-white/95 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
 						>
 							Sign In
 						</button>
 					</form>
 
 					{/* Sign Up Link */}
-					<div className="mt-8 text-center">
+					<div className="mt-6 text-center">
 						<p className="text-white/80 text-sm">
 							Don't have an account?{' '}
-							<a
-								href="#"
-								className="text-white font-semibold hover:underline transition-all"
+							<span
+								onClick={handleSignUpClick}
+								className="text-white font-semibold cursor-pointer hover:underline transition-all"
 							>
 								Sign up
-							</a>
+							</span>
 						</p>
 					</div>
 				</div>
