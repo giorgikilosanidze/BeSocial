@@ -2,7 +2,7 @@ import routes from '@/constants/routes';
 import { signupUser } from '@/features/auth/authThunks';
 import type { AppDispatch } from '@/store';
 import type { UserSignup } from '@/types/auth';
-import { useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,7 +20,8 @@ const Signup = () => {
 		navigate(routes.login);
 	};
 
-	const handleSignUp = () => {
+	const handleSignUp = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
 		dispatch(signupUser(user));
 	};
 
@@ -56,7 +57,10 @@ const Signup = () => {
 					</div>
 
 					{/* Signup Form */}
-					<form onSubmit={handleSignUp} className="space-y-4">
+					<form
+						onSubmit={(e: FormEvent<HTMLFormElement>) => handleSignUp(e)}
+						className="space-y-4"
+					>
 						{/* Username Input */}
 						<div>
 							<label

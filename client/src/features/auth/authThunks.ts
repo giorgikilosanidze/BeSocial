@@ -10,10 +10,13 @@ export const signupUser = createAsyncThunk(
 			const response = await fetch('http://localhost:3000/auth/signup', {
 				method: 'POST',
 				body: JSON.stringify(user),
+				headers: {
+					'Content-Type': 'application/json',
+				},
 			});
 			return response;
-		} catch (error) {
-			rejectWithValue(error);
+		} catch (error: unknown) {
+			return rejectWithValue((error as Error).message || 'Something went wrong');
 		}
 	}
 );
