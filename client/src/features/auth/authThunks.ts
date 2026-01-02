@@ -14,7 +14,9 @@ export const signupUser = createAsyncThunk(
 					'Content-Type': 'application/json',
 				},
 			});
-			return response;
+
+			const res = await response.json();
+			return res;
 		} catch (error: unknown) {
 			return rejectWithValue((error as Error).message || 'Something went wrong');
 		}
