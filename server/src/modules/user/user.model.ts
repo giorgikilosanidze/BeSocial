@@ -1,0 +1,23 @@
+import mongoose, { Document } from 'mongoose';
+import { UserSignUp } from './user.types.js';
+
+const Schema = mongoose.Schema;
+
+const userSchema = new Schema({
+	username: {
+		required: true,
+		type: String,
+	},
+	email: {
+		required: true,
+		type: String,
+	},
+	password: {
+		required: true,
+		type: String,
+	},
+});
+
+const User = mongoose.model<UserSignUp & Document>('User', userSchema);
+
+export default User;

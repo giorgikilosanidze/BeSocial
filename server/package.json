@@ -21,6 +21,7 @@
 		"mongoose": "^9.0.2"
 	},
 	"devDependencies": {
+		"@types/bcrypt": "^6.0.0",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.6",
 		"@types/mongoose": "^5.11.96",
