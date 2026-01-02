@@ -24,3 +24,17 @@ export async function createUser(
 		throw new Error('Failed to create user!');
 	}
 }
+
+export async function checkUserExistence(email: string): Promise<UserSignUp | null> {
+	try {
+		const existedUser = await User.findOne({ email });
+		return existedUser;
+	} catch (error) {
+		if (error instanceof Error) {
+			console.error(error.message);
+			throw new Error(error.message);
+		}
+
+		throw new Error('User with this email already exists!');
+	}
+}

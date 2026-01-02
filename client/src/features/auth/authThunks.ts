@@ -15,6 +15,11 @@ export const signupUser = createAsyncThunk(
 				},
 			});
 
+			if (!response.ok) {
+				const error = await response.json();
+				return rejectWithValue(error.message || 'Signup failed');
+			}
+
 			const res = await response.json();
 			return res;
 		} catch (error: unknown) {

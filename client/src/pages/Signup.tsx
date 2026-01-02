@@ -20,9 +20,15 @@ const Signup = () => {
 		navigate(routes.login);
 	};
 
-	const handleSignUp = (event: FormEvent<HTMLFormElement>) => {
+	const handleSignUp = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		dispatch(signupUser(user));
+
+		try {
+			await dispatch(signupUser(user)).unwrap();
+			navigate(routes.login);
+		} catch (error) {
+			console.error('Signup failed:', error);
+		}
 	};
 
 	const handleUserCredentials = (credential: string, value: string) => {
