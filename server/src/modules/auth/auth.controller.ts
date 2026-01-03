@@ -12,6 +12,9 @@ export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Resp
 		return res.status(400).json({ message: 'User with this email already exists!' });
 	}
 
+	console.log(password);
+	console.log(confirmPassword);
+
 	if (password !== confirmPassword) {
 		return res.status(400).json({ message: "Passwords don't match!" });
 	}

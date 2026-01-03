@@ -1,10 +1,12 @@
 import routes from '@/constants/routes';
 import { signupUser } from '@/features/auth/authThunks';
+import { signUpSchema } from '@/schemas/authValidation';
 import type { AppDispatch } from '@/store';
 import type { UserSignup } from '@/types/auth';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
 
 const Signup = () => {
 	const [user, setUser] = useState<UserSignup>({
@@ -22,6 +24,14 @@ const Signup = () => {
 
 	const handleSignUp = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
+
+		const validationResult = signUpSchema.safeParse(user);
+
+		if (!validationResult.success) {
+			const validationError = z.treeifyError(validationResult.error);
+			console.log(validationError);
+			return;
+		}
 
 		try {
 			await dispatch(signupUser(user)).unwrap();

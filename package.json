@@ -24,5 +24,8 @@
 	"homepage": "https://github.com/giorgikilosanidze/BeSocial#readme",
 	"devDependencies": {
 		"concurrently": "^9.2.1"
+	},
+	"dependencies": {
+		"zod": "^4.3.4"
 	}
 }
