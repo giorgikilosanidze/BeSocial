@@ -1,6 +1,7 @@
 import { hash } from 'bcrypt';
 import { createUser } from '../user/user.repository.js';
 import { UserSignUp } from '../user/user.types.js';
+import jwt from 'jsonwebtoken';
 
 export async function signUpUser(
 	username: string,
@@ -31,4 +32,15 @@ export async function signUpUser(
 
 		throw new Error('Failed to create a user!');
 	}
+}
+
+export function createJWT(id: string, username: string) {
+	const token = jwt.sign(
+		{
+			id,
+			username,
+		},
+		process.env.JWT_SECRET_KEY as string,
+		{ expiresIn: '1h' }
+	);
 }
