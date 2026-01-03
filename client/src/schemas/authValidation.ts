@@ -13,3 +13,10 @@ export const signUpSchema = z.object({
 		.min(8, 'Password must be at least 8 characters long')
 		.regex(/\d/, 'Password must contain at least one number'),
 });
+
+export const logInSchema = z.object({
+	email: z.email('Please enter a valid email address'),
+	password: string()
+		.min(8, 'Password must be at least 8 characters long')
+		.regex(/\d/, 'Password must contain at least one number'),
+});

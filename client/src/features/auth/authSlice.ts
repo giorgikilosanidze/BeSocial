@@ -1,14 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { loginUser, signupUser } from './authThunks';
+import type { AuthSliceState } from '@/types/auth';
 
-interface AuthState {
-	isLoggedIn: boolean;
-	jwt: null | string;
-	isLoading: boolean;
-	error: string;
-}
-
-const initialState: AuthState = {
+const initialState: AuthSliceState = {
 	isLoggedIn: false,
 	jwt: null,
 	isLoading: false,
@@ -26,7 +20,6 @@ const authSlice = createSlice({
 			})
 			.addCase(signupUser.fulfilled, (state) => {
 				state.isLoading = false;
-				// state.jwt = action.payload;
 			})
 			.addCase(signupUser.rejected, (state, action) => {
 				state.isLoading = false;
