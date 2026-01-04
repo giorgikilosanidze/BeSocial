@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { PostSignUpBody } from './auth.types.js';
-import { signUpUser } from './auth.service.js';
+import { comparePasswords, createJWT, signUpUser } from './auth.service.js';
 import { checkUserExistence } from '../user/user.repository.js';
 
 export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Response) {
@@ -35,12 +35,12 @@ export async function postLogIn(req: Request<{}, {}, PostSignUpBody>, res: Respo
 		return res.status(400).json({ message: 'User with this email does not exist!' });
 	}
 
-	// const user = await signUpUser(username, email, password);
+	const isEqual = await comparePasswords(password, existedUser.password);
 
-	// if (user) {
-	// 	return res.status(200).json({ username: user.username, email: user.email });
-	// } else {
-	// 	console.error('Failed to create user!');
-	// 	throw new Error('Failed to create user!');
-	// }
+	if (isEqual) {
+		const token = createJWT(existedUser._id.toString(), existedUser.username);
+		return res.status(200).json({ token, username: existedUser.username });
+	} else {
+		return res.status(400).json({ message: 'User with this password does not exist!' });
+	}
 }
