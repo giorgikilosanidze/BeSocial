@@ -13,7 +13,7 @@ export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Resp
 	}
 
 	if (password !== confirmPassword) {
-		return res.status(400).json({ message: "Passwords don't match!" });
+		return res.status(400).json({ message: "Passwords don't match" });
 	}
 
 	const user = await signUpUser(username, email, password);
@@ -25,8 +25,7 @@ export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Resp
 			user: { id: user._id.toString(), username: user.username },
 		});
 	} else {
-		console.error('Failed to create user!');
-		throw new Error('Failed to create user!');
+		return res.status(400).json({ message: 'Could not create user!' });
 	}
 }
 

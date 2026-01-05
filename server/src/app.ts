@@ -1,5 +1,6 @@
 import express from 'express';
 import authRoutes from './modules/auth/auth.routes.js';
+import feedRoutes from './modules/feed/feed.routes.js';
 import cors from 'cors';
 import helmet from 'helmet';
 
@@ -16,5 +17,6 @@ app.use(
 app.use(helmet());
 
 app.use('/auth', authRoutes);
+app.use('/feed', feedRoutes);
 
 export default app;
