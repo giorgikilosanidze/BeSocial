@@ -1,9 +1,9 @@
-import type { UserLogin, UserSignup } from '@/types/auth';
+import type { AuthResponse, UserLogin, UserSignup } from '@/types/auth';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-export const signupUser = createAsyncThunk(
+export const signupUser = createAsyncThunk<AuthResponse, UserSignup>(
 	'auth/signupUser',
-	async (user: UserSignup, { rejectWithValue }) => {
+	async (user, { rejectWithValue }) => {
 		try {
 			const response = await fetch('http://localhost:3000/auth/signup', {
 				method: 'POST',
@@ -26,9 +26,9 @@ export const signupUser = createAsyncThunk(
 	}
 );
 
-export const loginUser = createAsyncThunk(
+export const loginUser = createAsyncThunk<AuthResponse, UserLogin>(
 	'auth/loginUser',
-	async (user: UserLogin, { rejectWithValue }) => {
+	async (user, { rejectWithValue }) => {
 		try {
 			const response = await fetch('http://localhost:3000/auth/login', {
 				method: 'POST',
@@ -44,8 +44,6 @@ export const loginUser = createAsyncThunk(
 			}
 
 			const res = await response.json();
-			console.log(res);
-
 			return res;
 		} catch (error: unknown) {
 			return rejectWithValue((error as Error).message || 'Something went wrong');

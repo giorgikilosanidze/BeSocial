@@ -3,8 +3,9 @@ import { loginUser, signupUser } from './authThunks';
 import type { AuthSliceState } from '@/types/auth';
 
 const initialState: AuthSliceState = {
-	isLoggedIn: false,
+	user: { id: '', username: '' },
 	jwt: null,
+	isLoggedIn: false,
 	isLoading: false,
 	error: '',
 };
@@ -18,8 +19,11 @@ const authSlice = createSlice({
 			.addCase(signupUser.pending, (state) => {
 				state.isLoading = true;
 			})
-			.addCase(signupUser.fulfilled, (state) => {
+			.addCase(signupUser.fulfilled, (state, action) => {
 				state.isLoading = false;
+				state.isLoggedIn = true;
+				state.user = action.payload.user;
+				state.jwt = action.payload.token;
 			})
 			.addCase(signupUser.rejected, (state, action) => {
 				state.isLoading = false;
@@ -29,9 +33,11 @@ const authSlice = createSlice({
 			.addCase(loginUser.pending, (state) => {
 				state.isLoading = true;
 			})
-			.addCase(loginUser.fulfilled, (state) => {
+			.addCase(loginUser.fulfilled, (state, action) => {
 				state.isLoading = false;
-				// state.jwt = action.payload;
+				state.isLoggedIn = true;
+				state.user = action.payload.user;
+				state.jwt = action.payload.token;
 			})
 			.addCase(loginUser.rejected, (state, action) => {
 				state.isLoading = false;

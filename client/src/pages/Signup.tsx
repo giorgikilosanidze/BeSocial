@@ -37,7 +37,7 @@ const Signup = () => {
 
 		try {
 			await dispatch(signupUser(user)).unwrap();
-			navigate(routes.login);
+			navigate(routes.feed);
 		} catch (error) {
 			console.error('Signup failed:', error);
 		}

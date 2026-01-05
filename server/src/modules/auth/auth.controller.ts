@@ -19,7 +19,11 @@ export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Resp
 	const user = await signUpUser(username, email, password);
 
 	if (user) {
-		return res.status(200).json({ username: user.username, email: user.email });
+		const token = createJWT(user._id.toString(), user.username);
+		return res.status(200).json({
+			token,
+			user: { id: user._id.toString(), username: user.username },
+		});
 	} else {
 		console.error('Failed to create user!');
 		throw new Error('Failed to create user!');
@@ -39,7 +43,10 @@ export async function postLogIn(req: Request<{}, {}, PostSignUpBody>, res: Respo
 
 	if (isEqual) {
 		const token = createJWT(existedUser._id.toString(), existedUser.username);
-		return res.status(200).json({ token, username: existedUser.username });
+		return res.status(200).json({
+			token,
+			user: { id: existedUser._id.toString(), username: existedUser.username },
+		});
 	} else {
 		return res.status(400).json({ message: 'User with this password does not exist!' });
 	}
