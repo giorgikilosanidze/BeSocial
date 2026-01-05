@@ -1,10 +1,9 @@
 import routes from '@/constants/routes';
 import { signupUser } from '@/features/auth/authThunks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
 import { signUpSchema } from '@/schemas/authValidation';
-import type { AppDispatch } from '@/store';
 import type { UserSignup } from '@/types/auth';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
@@ -18,7 +17,7 @@ const Signup = () => {
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const navigate = useNavigate();
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 
 	const handleLoginClick = () => {
 		navigate(routes.login);

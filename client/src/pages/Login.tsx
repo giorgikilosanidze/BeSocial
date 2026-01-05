@@ -1,17 +1,16 @@
 import routes from '@/constants/routes';
 import { loginUser } from '@/features/auth/authThunks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
 import { logInSchema } from '@/schemas/authValidation';
-import type { AppDispatch } from '@/store';
 import type { UserLogin } from '@/types/auth';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
-import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 const Login = () => {
 	const navigate = useNavigate();
 	const [showPassword, setShowPassword] = useState(false);
-	const dispatch = useDispatch<AppDispatch>();
+	const dispatch = useAppDispatch();
 
 	const [user, setUser] = useState<UserLogin>({
 		email: '',
