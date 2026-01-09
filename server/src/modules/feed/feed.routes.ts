@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { createPost, getFeed } from './feed.controller.js';
+import { postCreation, getFeed } from './feed.controller.js';
 
 const router = Router();
 
 router.get('/posts', getFeed);
 
-router.post('/posts', createPost);
+router.post('/posts', postCreation);
 
 export default router;
