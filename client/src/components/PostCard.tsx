@@ -1,22 +1,5 @@
+import type { PostCardProps } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
-
-export interface PostCardProps {
-	post: {
-		id: string;
-		author: {
-			username: string;
-			_id: string;
-		};
-		createdAt: string;
-		text: string;
-		updatedAt?: string;
-		imageUrl?: string;
-		likes?: number;
-		loves?: number;
-		comments?: number;
-		isLiked?: boolean;
-	};
-}
 
 const PostCard = ({ post }: PostCardProps) => {
 	const postCreatedAgo = timeAgo(post.createdAt);

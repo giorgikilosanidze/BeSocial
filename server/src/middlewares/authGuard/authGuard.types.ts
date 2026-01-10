@@ -4,7 +4,7 @@ export interface AuthGuardRequest extends Request {
 	cookies: {
 		access_token?: string;
 	};
-	userId: string;
+	userId?: string;
 }
 
 export interface DecodedAccessToken {
