@@ -5,7 +5,7 @@ export interface PostModel extends Document {
 	imageUrl?: string;
 }
 
-export interface Post {
+export interface PostType {
 	text: string;
 	imageUrl?: string;
 }
