@@ -11,6 +11,7 @@ export const signupUser = createAsyncThunk<AuthResponse, UserSignup>(
 				headers: {
 					'Content-Type': 'application/json',
 				},
+				credentials: 'include',
 			});
 
 			if (!response.ok) {
@@ -36,6 +37,7 @@ export const loginUser = createAsyncThunk<AuthResponse, UserLogin>(
 				headers: {
 					'Content-Type': 'application/json',
 				},
+				credentials: 'include',
 			});
 
 			if (!response.ok) {

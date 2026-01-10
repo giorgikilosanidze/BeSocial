@@ -27,7 +27,7 @@ export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Resp
 			.cookie('access_token', token, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
-				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
+				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
 				maxAge: 60 * 60 * 1000,
 			})
 			.status(200)
@@ -57,7 +57,7 @@ export async function postLogIn(req: Request<{}, {}, PostSignUpBody>, res: Respo
 			.cookie('access_token', token, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
-				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
+				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
 				maxAge: 60 * 60 * 1000,
 			})
 			.status(200)
