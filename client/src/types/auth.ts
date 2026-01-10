@@ -12,16 +12,12 @@ export interface UserLogin {
 
 export interface AuthSliceState {
 	user: { id: string; username: string };
-	jwt: null | string;
 	isLoggedIn: boolean;
 	isLoading: boolean;
 	error: string;
 }
 
 export interface AuthResponse {
-	token: string;
-	user: {
-		id: string;
-		username: string;
-	};
+	id: string;
+	username: string;
 }

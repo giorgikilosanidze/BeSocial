@@ -4,7 +4,6 @@ import type { AuthSliceState } from '@/types/auth';
 
 const initialState: AuthSliceState = {
 	user: { id: '', username: '' },
-	jwt: null,
 	isLoggedIn: false,
 	isLoading: false,
 	error: '',
@@ -22,8 +21,8 @@ const authSlice = createSlice({
 			.addCase(signupUser.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.isLoggedIn = true;
-				state.user = action.payload.user;
-				state.jwt = action.payload.token;
+				state.user.id = action.payload.id;
+				state.user.username = action.payload.username;
 			})
 			.addCase(signupUser.rejected, (state, action) => {
 				state.isLoading = false;
@@ -36,8 +35,8 @@ const authSlice = createSlice({
 			.addCase(loginUser.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.isLoggedIn = true;
-				state.user = action.payload.user;
-				state.jwt = action.payload.token;
+				state.user.id = action.payload.id;
+				state.user.username = action.payload.username;
 			})
 			.addCase(loginUser.rejected, (state, action) => {
 				state.isLoading = false;

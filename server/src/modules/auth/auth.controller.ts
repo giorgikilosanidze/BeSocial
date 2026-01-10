@@ -2,6 +2,9 @@ import { Request, Response } from 'express';
 import { PostSignUpBody } from './auth.types.js';
 import { comparePasswords, createJWT, signUpUser } from './auth.service.js';
 import { checkUserExistence } from '../user/user.repository.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Response) {
 	const { username, email, password, confirmPassword } = req.body;
@@ -20,10 +23,18 @@ export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Resp
 
 	if (user) {
 		const token = createJWT(user._id.toString(), user.username);
-		return res.status(200).json({
-			token,
-			user: { id: user._id.toString(), username: user.username },
-		});
+		return res
+			.cookie('access_token', token, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
+				maxAge: 60 * 60 * 1000,
+			})
+			.status(200)
+			.json({
+				id: user._id.toString(),
+				username: user.username,
+			});
 	} else {
 		return res.status(400).json({ message: 'Could not create user!' });
 	}
@@ -42,10 +53,18 @@ export async function postLogIn(req: Request<{}, {}, PostSignUpBody>, res: Respo
 
 	if (isEqual) {
 		const token = createJWT(existedUser._id.toString(), existedUser.username);
-		return res.status(200).json({
-			token,
-			user: { id: existedUser._id.toString(), username: existedUser.username },
-		});
+		return res
+			.cookie('access_token', token, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'none',
+				maxAge: 60 * 60 * 1000,
+			})
+			.status(200)
+			.json({
+				id: existedUser._id.toString(),
+				username: existedUser.username,
+			});
 	} else {
 		return res.status(400).json({ message: 'User with this password does not exist!' });
 	}
