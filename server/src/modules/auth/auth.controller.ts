@@ -34,6 +34,7 @@ export async function postSignUp(req: Request<{}, {}, PostSignUpBody>, res: Resp
 			.json({
 				id: user._id.toString(),
 				username: user.username,
+				email: user.email,
 			});
 	} else {
 		return res.status(400).json({ message: 'Could not create user!' });
@@ -64,6 +65,7 @@ export async function postLogIn(req: Request<{}, {}, PostSignUpBody>, res: Respo
 			.json({
 				id: existedUser._id.toString(),
 				username: existedUser.username,
+				email: existedUser.email,
 			});
 	} else {
 		return res.status(400).json({ message: 'User with this password does not exist!' });

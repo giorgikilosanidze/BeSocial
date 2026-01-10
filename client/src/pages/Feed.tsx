@@ -3,8 +3,11 @@ import CreatePost from '@/components/CreatePost';
 import PostCard from '@/components/PostCard';
 import ProfileSidebar from '@/components/ProfileSidebar';
 import SuggestionsSidebar from '@/components/SuggestionsSidebar';
+import { useAppSelector } from '@/hooks/reduxHooks';
 
 const Feed = () => {
+	const posts = useAppSelector((state) => state.feed.posts);
+
 	return (
 		<div className="min-h-screen bg-gray-50">
 			<Navbar />
@@ -20,9 +23,9 @@ const Feed = () => {
 
 						{/* Posts Feed - Multiple PostCard components for demo */}
 						<div className="space-y-6">
-							<PostCard />
-							<PostCard />
-							<PostCard />
+							{posts.map((post) => (
+								<PostCard key={post.id} post={post} />
+							))}
 						</div>
 					</main>
 

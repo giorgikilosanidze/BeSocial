@@ -3,7 +3,7 @@ import { loginUser, signupUser } from './authThunks';
 import type { AuthSliceState } from '@/types/auth';
 
 const initialState: AuthSliceState = {
-	user: { id: '', username: '' },
+	user: { id: '', username: '', email: '' },
 	isLoggedIn: false,
 	isLoading: false,
 	error: '',
@@ -23,6 +23,7 @@ const authSlice = createSlice({
 				state.isLoggedIn = true;
 				state.user.id = action.payload.id;
 				state.user.username = action.payload.username;
+				state.user.email = action.payload.email;
 			})
 			.addCase(signupUser.rejected, (state, action) => {
 				state.isLoading = false;
@@ -37,6 +38,7 @@ const authSlice = createSlice({
 				state.isLoggedIn = true;
 				state.user.id = action.payload.id;
 				state.user.username = action.payload.username;
+				state.user.email = action.payload.email;
 			})
 			.addCase(loginUser.rejected, (state, action) => {
 				state.isLoading = false;

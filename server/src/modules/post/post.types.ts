@@ -8,4 +8,5 @@ export interface PostModel extends Document {
 export interface PostType {
 	text: string;
 	imageUrl?: string;
+	userId: string;
 }

@@ -13,14 +13,22 @@ const postSchema = new Schema(
 			type: String,
 			required: false,
 		},
+		author: {
+			type: Schema.Types.ObjectId,
+			ref: 'User',
+			required: true,
+		},
 	},
 	{ timestamps: true }
 );
 
 postSchema.set('toJSON', {
 	transform: (_, ret) => {
-		delete (ret as any).__v;
-		return ret;
+		const { _id, __v, ...rest } = ret;
+		return {
+			id: _id,
+			...rest,
+		};
 	},
 });
 

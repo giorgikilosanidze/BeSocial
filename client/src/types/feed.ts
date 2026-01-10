@@ -1,5 +1,5 @@
 export interface FeedSliceState {
-	posts: [];
+	posts: CreatePostResponse[];
 	isLoading: boolean;
 	error: string;
 }
@@ -10,6 +10,9 @@ export interface Post {
 }
 
 export interface CreatePostResponse {
-	user: { id: string };
-	post: { text: string };
+	author: string;
+	text: string;
+	createdAt: string;
+	updatedAt: string;
+	id: string;
 }

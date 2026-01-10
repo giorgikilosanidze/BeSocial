@@ -11,7 +11,7 @@ export interface UserLogin {
 }
 
 export interface AuthSliceState {
-	user: { id: string; username: string };
+	user: { id: string; username: string; email: string };
 	isLoggedIn: boolean;
 	isLoading: boolean;
 	error: string;
@@ -20,4 +20,5 @@ export interface AuthSliceState {
 export interface AuthResponse {
 	id: string;
 	username: string;
+	email: string;
 }

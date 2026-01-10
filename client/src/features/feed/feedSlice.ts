@@ -19,14 +19,11 @@ const feedSlice = createSlice({
 			})
 			.addCase(createPost.fulfilled, (state, action) => {
 				state.isLoading = false;
-				console.log(state);
-				console.log(action);
+				state.posts.push(action.payload);
 			})
 			.addCase(createPost.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.error.message || 'Failed to create post!';
-				console.log(state);
-				console.log(action);
 			});
 	},
 });
