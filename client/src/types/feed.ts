@@ -14,6 +14,7 @@ export interface CreatePostResponse {
 		username: string;
 		_id: string;
 	};
+	isEdited: boolean;
 	text: string;
 	createdAt: string;
 	updatedAt: string;

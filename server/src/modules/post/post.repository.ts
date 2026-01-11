@@ -6,6 +6,7 @@ export async function createPost(postData: PostType) {
 	const post = new Post({
 		text: postData.text,
 		author: postData.userId,
+		isEdited: false,
 	});
 
 	try {
@@ -25,7 +26,7 @@ export async function createPost(postData: PostType) {
 
 export async function getPostsFromDB() {
 	try {
-		const posts = await Post.find().populate('author', 'username _id');
+		const posts = await Post.find().sort({ createdAt: -1 }).populate('author', 'username _id');
 		return posts;
 	} catch (error) {
 		if (error instanceof Error) {

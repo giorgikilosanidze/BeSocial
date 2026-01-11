@@ -18,6 +18,10 @@ const postSchema = new Schema(
 			ref: 'User',
 			required: true,
 		},
+		isEdited: {
+			type: Boolean,
+			required: true,
+		},
 	},
 	{ timestamps: true }
 );

@@ -19,7 +19,7 @@ const feedSlice = createSlice({
 			})
 			.addCase(createPost.fulfilled, (state, action) => {
 				state.isLoading = false;
-				state.posts.push(action.payload);
+				state.posts.unshift(action.payload);
 			})
 			.addCase(createPost.rejected, (state, action) => {
 				state.isLoading = false;

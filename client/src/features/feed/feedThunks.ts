@@ -45,7 +45,6 @@ export const fetchPosts = createAsyncThunk<FetchPostsResponse>(
 			}
 
 			const res = await response.json();
-			console.log(res);
 
 			return res;
 		} catch (error: unknown) {
