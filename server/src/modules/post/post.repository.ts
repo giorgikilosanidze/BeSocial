@@ -39,21 +39,22 @@ export async function getPostsFromDB() {
 
 export async function editPostDB(editedPostData: EditPostDB) {
 	try {
-		const post = await Post.findById(editedPostData.postId);
+		const post = await Post.findByIdAndUpdate(
+			editedPostData.postId,
+			{
+				...(editedPostData.editedText && { text: editedPostData.editedText }),
+				...(editedPostData.editedImageUrl && { imageUrl: editedPostData.editedImageUrl }),
+				isEdited: true,
+			},
+			{
+				new: true,
+				runValidators: true,
+			}
+		);
 
 		if (!post) {
 			throw new Error('Post was not found!');
 		}
-
-		if (editedPostData.editedText) {
-			post.text = editedPostData.editedText;
-		}
-
-		if (editedPostData.editedImageUrl) {
-			post.imageUrl = editedPostData.editedImageUrl;
-		}
-
-		post.isEdited = true;
 
 		const editedPost = await post.save();
 
@@ -65,6 +66,24 @@ export async function editPostDB(editedPostData: EditPostDB) {
 			throw new Error(error.message);
 		}
 
-		throw new Error('Failed to fetch posts from database!');
+		throw new Error('Failed to edit post!');
+	}
+}
+
+export async function deletePostDB(postId: string): Promise<boolean> {
+	try {
+		const deletedPost = await Post.findByIdAndDelete(postId);
+
+		if (!deletedPost) {
+			throw new Error('Post not found!');
+		}
+
+		return true;
+	} catch (error) {
+		if (error instanceof Error) {
+			throw new Error(error.message);
+		}
+
+		throw new Error('Failed to delete post!');
 	}
 }

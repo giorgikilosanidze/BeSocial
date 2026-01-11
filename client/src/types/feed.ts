@@ -45,3 +45,7 @@ export interface EditPostResponse {
 	text?: string;
 	imageUrl?: string;
 }
+
+export interface DeletePostResponse {
+	postId: string;
+}

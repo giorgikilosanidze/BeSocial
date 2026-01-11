@@ -1,6 +1,6 @@
 import type { FeedSliceState } from '@/types/feed';
 import { createSlice } from '@reduxjs/toolkit';
-import { createPost, editPost, fetchPosts } from './feedThunks';
+import { createPost, deletePost, editPost, fetchPosts } from './feedThunks';
 
 const initialState: FeedSliceState = {
 	posts: [],
@@ -49,6 +49,18 @@ const feedSlice = createSlice({
 				);
 			})
 			.addCase(editPost.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.error.message || 'Failed to edit post!';
+			})
+
+			.addCase(deletePost.pending, (state) => {
+				state.isLoading = true;
+			})
+			.addCase(deletePost.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.posts = state.posts.filter((post) => post.id !== action.payload.postId);
+			})
+			.addCase(deletePost.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.error.message || 'Failed to edit post!';
 			});

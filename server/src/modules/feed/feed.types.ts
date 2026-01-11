@@ -5,7 +5,7 @@ export interface CreatePostRequest extends Request {
 	body: { text: string; imageUrl?: string };
 }
 
-export interface EditPostParams {
+export interface PostIdParams {
 	postId?: string;
 }
 

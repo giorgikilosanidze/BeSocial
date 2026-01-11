@@ -1,4 +1,10 @@
-import type { CreatePostResponse, EditPostData, FetchPostsResponse, Post } from '@/types/feed';
+import type {
+	CreatePostResponse,
+	DeletePostResponse,
+	EditPostData,
+	FetchPostsResponse,
+	Post,
+} from '@/types/feed';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 export const createPost = createAsyncThunk<CreatePostResponse, Post>(
@@ -72,6 +78,28 @@ export const editPost = createAsyncThunk<CreatePostResponse, EditPostData>(
 
 		const res = await response.json();
 		console.log(res);
+
+		return res;
+	}
+);
+
+export const deletePost = createAsyncThunk<DeletePostResponse, string>(
+	'feed/deletePost',
+	async (postId, { rejectWithValue }) => {
+		const response = await fetch(`http://localhost:3000/feed/posts/${postId}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'include',
+		});
+
+		if (!response.ok) {
+			const error = await response.json();
+			rejectWithValue((error as Error).message || 'Failed to delete post!');
+		}
+
+		const res = await response.json();
 
 		return res;
 	}

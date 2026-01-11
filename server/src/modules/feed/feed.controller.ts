@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { createPost, editPostDB, getPostsFromDB } from '../post/post.repository.js';
-import { CreatePostRequest, EditPostData, EditPostParams } from './feed.types.js';
+import { createPost, deletePostDB, editPostDB, getPostsFromDB } from '../post/post.repository.js';
+import { CreatePostRequest, EditPostData, PostIdParams } from './feed.types.js';
 
 export async function getPosts(req: Request, res: Response) {
 	const posts = await getPostsFromDB();
@@ -21,7 +21,7 @@ export async function postCreation(req: CreatePostRequest, res: Response) {
 	return res.status(200).json(post);
 }
 
-export async function editPost(req: Request<EditPostParams, {}, EditPostData>, res: Response) {
+export async function editPost(req: Request<PostIdParams, {}, EditPostData>, res: Response) {
 	if (!req.params.postId) {
 		return res.status(400).json({ message: 'Not enough data to edit post!' });
 	}
@@ -37,4 +37,16 @@ export async function editPost(req: Request<EditPostParams, {}, EditPostData>, r
 	const editedPost = await editPostDB({ postId, editedText, editedImageUrl });
 
 	return res.status(200).json(editedPost);
+}
+
+export async function deletePost(req: Request<PostIdParams>, res: Response) {
+	if (!req.params.postId) {
+		return res.status(400).json({ message: 'Not enough data to delete post!' });
+	}
+
+	const postId = req.params.postId;
+
+	await deletePostDB(postId);
+
+	return res.status(200).json({ postId });
 }

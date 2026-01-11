@@ -1,4 +1,4 @@
-import { editPost } from '@/features/feed/feedThunks';
+import { deletePost, editPost } from '@/features/feed/feedThunks';
 import { useAppDispatch } from '@/hooks/reduxHooks';
 import type { EditPostData, PostCardProps } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
@@ -45,6 +45,15 @@ const PostCard = ({ post }: PostCardProps) => {
 			setIsEditMode(false);
 		} catch (error) {
 			console.error('Edit post failed!', error);
+		}
+	};
+
+	const handleDelete = async () => {
+		try {
+			dispatch(deletePost(post.id)).unwrap();
+			setIsEditMode(false);
+		} catch (error) {
+			console.error('Delete post failed!', error);
 		}
 	};
 
@@ -104,7 +113,10 @@ const PostCard = ({ post }: PostCardProps) => {
 								</svg>
 								<span>Edit</span>
 							</button>
-							<button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg">
+							<button
+								onClick={handleDelete}
+								className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg"
+							>
 								<svg
 									className="w-5 h-5"
 									fill="none"
