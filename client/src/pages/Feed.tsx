@@ -10,7 +10,6 @@ import { fetchPosts } from '@/features/feed/feedThunks';
 const Feed = () => {
 	const posts = useAppSelector((state) => state.feed.posts);
 	const dispatch = useAppDispatch();
-	console.log(posts);
 
 	useEffect(() => {
 		dispatch(fetchPosts());

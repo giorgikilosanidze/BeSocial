@@ -1,14 +1,51 @@
-import type { PostCardProps } from '@/types/feed';
+import { editPost } from '@/features/feed/feedThunks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
+import type { EditPostData, PostCardProps } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
 
 const PostCard = ({ post }: PostCardProps) => {
 	const [optionsVisibility, setOptionsVisibility] = useState(false);
+	const [isEditMode, setIsEditMode] = useState(false);
+	const [editedText, setEditedText] = useState('');
+	const dispatch = useAppDispatch();
 
 	const postCreatedAgo = timeAgo(post.createdAt);
 
 	const toggleOptionsVisibility = () => {
 		setOptionsVisibility(!optionsVisibility);
+	};
+
+	const handleEditMode = (mode: boolean) => {
+		setIsEditMode(mode);
+
+		if (mode) {
+			toggleOptionsVisibility();
+		}
+	};
+
+	const handleTextEdit = (newValue: string) => {
+		setEditedText(newValue);
+	};
+
+	const handleEditSave = async () => {
+		if (post.text === editedText) {
+			return;
+		}
+
+		const editPostData: EditPostData = {
+			postId: post.id,
+			post: {
+				text: editedText,
+			},
+		};
+
+		try {
+			await dispatch(editPost(editPostData)).unwrap();
+			setIsEditMode(false);
+		} catch (error) {
+			console.error('Edit post failed!', error);
+		}
 	};
 
 	return (
@@ -32,7 +69,7 @@ const PostCard = ({ post }: PostCardProps) => {
 						<p className="text-xs text-gray-500">
 							{postCreatedAgo}
 							{/* Edited indicator */}
-							<span className="ml-1 text-gray-400">(edited)</span>
+							{post.isEdited && <span className="ml-1 text-gray-400">(edited)</span>}
 						</p>
 					</div>
 				</div>
@@ -45,10 +82,13 @@ const PostCard = ({ post }: PostCardProps) => {
 							<path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
 						</svg>
 					</button>
-					{/* Dropdown menu - hidden by default, shown when three-dots clicked */}
+
 					{optionsVisibility && (
-						<div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-							<button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-t-lg">
+						<div className="absolute right-0 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+							<button
+								onClick={() => handleEditMode(true)}
+								className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-t-lg"
+							>
 								<svg
 									className="w-5 h-5"
 									fill="none"
@@ -62,7 +102,7 @@ const PostCard = ({ post }: PostCardProps) => {
 										d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
 									/>
 								</svg>
-								<span>Edit Post</span>
+								<span>Edit</span>
 							</button>
 							<button className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg">
 								<svg
@@ -78,7 +118,7 @@ const PostCard = ({ post }: PostCardProps) => {
 										d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
 									/>
 								</svg>
-								<span>Delete Post</span>
+								<span>Delete</span>
 							</button>
 						</div>
 					)}
@@ -87,7 +127,37 @@ const PostCard = ({ post }: PostCardProps) => {
 
 			{/* Post Content */}
 			<div className="px-4 pb-3">
-				<p className="text-gray-800 text-sm leading-relaxed">{post.text}</p>
+				{!isEditMode && (
+					<p className="text-gray-800 text-sm leading-relaxed">{post.text}</p>
+				)}
+
+				{isEditMode && (
+					<div className="mt-2">
+						<textarea
+							onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+								handleTextEdit(e.target.value)
+							}
+							className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+							rows={3}
+							defaultValue={post.text}
+							placeholder="Edit your post..."
+						/>
+						<div className="flex justify-end space-x-2 mt-2">
+							<button
+								onClick={() => handleEditMode(false)}
+								className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+							>
+								Cancel
+							</button>
+							<button
+								onClick={handleEditSave}
+								className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm"
+							>
+								Save
+							</button>
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* Post Image */}

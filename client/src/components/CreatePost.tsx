@@ -8,6 +8,7 @@ const CreatePost = () => {
 
 	const handleCreatePost = () => {
 		dispatch(createPost({ text: postText }));
+		setPostText('');
 	};
 
 	const handlePostText = (text: string) => {

@@ -1,6 +1,6 @@
 import type { FeedSliceState } from '@/types/feed';
 import { createSlice } from '@reduxjs/toolkit';
-import { createPost, fetchPosts } from './feedThunks';
+import { createPost, editPost, fetchPosts } from './feedThunks';
 
 const initialState: FeedSliceState = {
 	posts: [],
@@ -36,6 +36,21 @@ const feedSlice = createSlice({
 			.addCase(fetchPosts.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.error.message || 'Failed to fetch posts!';
+			})
+
+			.addCase(editPost.pending, (state) => {
+				state.isLoading = true;
+			})
+			.addCase(editPost.fulfilled, (state, action) => {
+				state.isLoading = false;
+
+				state.posts = state.posts.map((post) =>
+					post.id === action.payload.id ? action.payload : post
+				);
+			})
+			.addCase(editPost.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.error.message || 'Failed to edit post!';
 			});
 	},
 });

@@ -1,4 +1,4 @@
-import type { CreatePostResponse, FetchPostsResponse, Post } from '@/types/feed';
+import type { CreatePostResponse, EditPostData, FetchPostsResponse, Post } from '@/types/feed';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 export const createPost = createAsyncThunk<CreatePostResponse, Post>(
@@ -50,5 +50,29 @@ export const fetchPosts = createAsyncThunk<FetchPostsResponse>(
 		} catch (error: unknown) {
 			return rejectWithValue((error as Error).message || 'Failed to fetch posts!');
 		}
+	}
+);
+
+export const editPost = createAsyncThunk<CreatePostResponse, EditPostData>(
+	'feed/editPost',
+	async (editedData, { rejectWithValue }) => {
+		const response = await fetch(`http://localhost:3000/feed/posts/${editedData.postId}`, {
+			method: 'PATCH',
+			body: JSON.stringify(editedData.post),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'include',
+		});
+
+		if (!response.ok) {
+			const error = await response.json();
+			rejectWithValue((error as Error).message || 'Failed to edit post!');
+		}
+
+		const res = await response.json();
+		console.log(res);
+
+		return res;
 	}
 );

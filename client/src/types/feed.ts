@@ -19,24 +19,29 @@ export interface CreatePostResponse {
 	createdAt: string;
 	updatedAt: string;
 	id: string;
+	imageUrl?: string;
+	likes?: number;
+	loves?: number;
+	comments?: number;
+	isLiked?: boolean;
 }
 
 export type FetchPostsResponse = CreatePostResponse[];
 
 export interface PostCardProps {
+	post: CreatePostResponse;
+}
+
+export interface EditPostData {
+	postId: string;
 	post: {
-		id: string;
-		author: {
-			username: string;
-			_id: string;
-		};
-		createdAt: string;
-		text: string;
-		updatedAt?: string;
+		text?: string;
 		imageUrl?: string;
-		likes?: number;
-		loves?: number;
-		comments?: number;
-		isLiked?: boolean;
 	};
+}
+
+export interface EditPostResponse {
+	postId: string;
+	text?: string;
+	imageUrl?: string;
 }
