@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import authRoutes from './modules/auth/auth.routes.js';
 import feedRoutes from './modules/feed/feed.routes.js';
 import cors from 'cors';
@@ -20,5 +20,12 @@ app.use(helmet());
 
 app.use('/auth', authRoutes);
 app.use('/feed', feedRoutes);
+
+app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+	const status = error.status || 500;
+	const message = error.message || 'Something went wrong!';
+
+	res.status(status).json({ message });
+});
 
 export default app;

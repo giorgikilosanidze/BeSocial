@@ -12,29 +12,11 @@ export async function createUser(
 		password: hashedPassword,
 	});
 
-	try {
-		const createdUser = await user.save();
-		return createdUser;
-	} catch (error) {
-		if (error instanceof Error) {
-			console.error(error.message);
-			throw new Error(error.message);
-		}
-
-		throw new Error('Failed to create user!');
-	}
+	const createdUser = await user.save();
+	return createdUser;
 }
 
 export async function checkUserExistence(email: string): Promise<UserSignUp | null> {
-	try {
-		const existedUser = await User.findOne({ email });
-		return existedUser;
-	} catch (error) {
-		if (error instanceof Error) {
-			console.error(error.message);
-			throw new Error(error.message);
-		}
-
-		throw new Error('User with this email already exists!');
-	}
+	const existedUser = await User.findOne({ email });
+	return existedUser;
 }

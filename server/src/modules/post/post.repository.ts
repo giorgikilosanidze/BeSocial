@@ -9,81 +9,49 @@ export async function createPost(postData: PostType) {
 		isEdited: false,
 	});
 
-	try {
-		const savedPost = await post.save();
+	const savedPost = await post.save();
 
-		await savedPost.populate('author', 'username _id');
+	await savedPost.populate('author', 'username _id');
 
-		return savedPost;
-	} catch (error) {
-		if (error instanceof Error) {
-			throw new Error(error.message);
-		}
-
-		throw new Error('Failed to create post!');
-	}
+	return savedPost;
 }
 
 export async function getPostsFromDB() {
-	try {
-		const posts = await Post.find().sort({ createdAt: -1 }).populate('author', 'username _id');
-		return posts;
-	} catch (error) {
-		if (error instanceof Error) {
-			throw new Error(error.message);
-		}
-
-		throw new Error('Failed to fetch posts from database!');
-	}
+	const posts = await Post.find().sort({ createdAt: -1 }).populate('author', 'username _id');
+	return posts;
 }
 
 export async function editPostDB(editedPostData: EditPostDB) {
-	try {
-		const post = await Post.findByIdAndUpdate(
-			editedPostData.postId,
-			{
-				...(editedPostData.editedText && { text: editedPostData.editedText }),
-				...(editedPostData.editedImageUrl && { imageUrl: editedPostData.editedImageUrl }),
-				isEdited: true,
-			},
-			{
-				new: true,
-				runValidators: true,
-			}
-		);
-
-		if (!post) {
-			throw new Error('Post was not found!');
+	const post = await Post.findByIdAndUpdate(
+		editedPostData.postId,
+		{
+			...(editedPostData.editedText && { text: editedPostData.editedText }),
+			...(editedPostData.editedImageUrl && { imageUrl: editedPostData.editedImageUrl }),
+			isEdited: true,
+		},
+		{
+			new: true,
+			runValidators: true,
 		}
+	);
 
-		const editedPost = await post.save();
-
-		await editedPost.populate('author', '_id username');
-
-		return editedPost;
-	} catch (error) {
-		if (error instanceof Error) {
-			throw new Error(error.message);
-		}
-
-		throw new Error('Failed to edit post!');
+	if (!post) {
+		throw new Error('Post was not found!');
 	}
+
+	const editedPost = await post.save();
+
+	await editedPost.populate('author', '_id username');
+
+	return editedPost;
 }
 
 export async function deletePostDB(postId: string): Promise<boolean> {
-	try {
-		const deletedPost = await Post.findByIdAndDelete(postId);
+	const deletedPost = await Post.findByIdAndDelete(postId);
 
-		if (!deletedPost) {
-			throw new Error('Post not found!');
-		}
-
-		return true;
-	} catch (error) {
-		if (error instanceof Error) {
-			throw new Error(error.message);
-		}
-
-		throw new Error('Failed to delete post!');
+	if (!deletedPost) {
+		throw new Error('Post not found!');
 	}
+
+	return true;
 }

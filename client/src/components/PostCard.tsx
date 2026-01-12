@@ -149,7 +149,7 @@ const PostCard = ({ post }: PostCardProps) => {
 							onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
 								handleTextEdit(e.target.value)
 							}
-							className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none"
+							className="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none resize-none overflow-y-hidden"
 							rows={3}
 							defaultValue={post.text}
 							placeholder="Edit your post..."

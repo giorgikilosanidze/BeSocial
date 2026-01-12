@@ -99,8 +99,6 @@ export const deletePost = createAsyncThunk<DeletePostResponse, string>(
 			rejectWithValue((error as Error).message || 'Failed to delete post!');
 		}
 
-		const res = await response.json();
-
-		return res;
+		return { postId };
 	}
 );
