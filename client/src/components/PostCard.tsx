@@ -2,7 +2,7 @@ import { deletePost, editPost } from '@/features/feed/feedThunks';
 import { useAppDispatch } from '@/hooks/reduxHooks';
 import type { EditPostData, PostCardProps } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 
 const PostCard = ({ post }: PostCardProps) => {
 	const [optionsVisibility, setOptionsVisibility] = useState(false);
@@ -10,7 +10,25 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [editedText, setEditedText] = useState('');
 	const dispatch = useAppDispatch();
 
+	const threeDotsParentRef = useRef<HTMLDivElement>(null);
+
 	const postCreatedAgo = timeAgo(post.createdAt);
+
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			const path = event.composedPath();
+
+			if (threeDotsParentRef.current && !path.includes(threeDotsParentRef.current)) {
+				setOptionsVisibility(false);
+			}
+		};
+
+		document.addEventListener('mousedown', handleClickOutside);
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [optionsVisibility]);
 
 	const toggleOptionsVisibility = () => {
 		setOptionsVisibility(!optionsVisibility);
@@ -82,7 +100,7 @@ const PostCard = ({ post }: PostCardProps) => {
 						</p>
 					</div>
 				</div>
-				<div className="relative">
+				<div className="relative" ref={threeDotsParentRef}>
 					<button
 						onClick={toggleOptionsVisibility}
 						className="text-gray-400 hover:text-gray-600 transition-colors"

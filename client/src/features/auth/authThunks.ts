@@ -52,3 +52,24 @@ export const loginUser = createAsyncThunk<AuthResponse, UserLogin>(
 		}
 	}
 );
+
+export const logOutUser = createAsyncThunk<boolean>(
+	'auth/logOutUser',
+	async (_, { rejectWithValue }) => {
+		try {
+			const response = await fetch('http://localhost:3000/auth/logout', {
+				method: 'POST',
+				credentials: 'include',
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				return rejectWithValue(error.message || 'Log out failed');
+			}
+
+			return true;
+		} catch (error: unknown) {
+			return rejectWithValue((error as Error).message || 'Something went wrong');
+		}
+	}
+);

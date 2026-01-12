@@ -4,7 +4,6 @@ import { comparePasswords, createJWT, signUpUser } from './auth.service.js';
 import { checkUserExistence } from '../user/user.repository.js';
 import dotenv from 'dotenv';
 import { UserSignUp } from '../user/user.types.js';
-import { Document } from 'mongoose';
 
 dotenv.config();
 
@@ -95,4 +94,14 @@ export async function postLogIn(
 	} else {
 		return res.status(400).json({ message: 'User with this password does not exist!' });
 	}
+}
+
+export async function logOut(req: Request, res: Response, next: NextFunction) {
+	res.clearCookie('access_token', {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+	});
+
+	return res.sendStatus(200);
 }
