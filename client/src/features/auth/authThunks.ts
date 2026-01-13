@@ -5,7 +5,7 @@ export const signupUser = createAsyncThunk<AuthResponse, UserSignup>(
 	'auth/signupUser',
 	async (user, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/auth/signup', {
+			const response = await fetch('http://localhost:3000/api/auth/signup', {
 				method: 'POST',
 				body: JSON.stringify(user),
 				headers: {
@@ -31,7 +31,7 @@ export const loginUser = createAsyncThunk<AuthResponse, UserLogin>(
 	'auth/loginUser',
 	async (user, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/auth/login', {
+			const response = await fetch('http://localhost:3000/api/auth/login', {
 				method: 'POST',
 				body: JSON.stringify(user),
 				headers: {
@@ -57,7 +57,7 @@ export const logOutUser = createAsyncThunk<boolean>(
 	'auth/logOutUser',
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/auth/logout', {
+			const response = await fetch('http://localhost:3000/api/auth/logout', {
 				method: 'POST',
 				credentials: 'include',
 			});

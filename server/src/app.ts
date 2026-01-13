@@ -18,14 +18,18 @@ app.use(
 );
 app.use(helmet());
 
-app.use('/auth', authRoutes);
-app.use('/feed', feedRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/feed', feedRoutes);
+
+app.use('/api', (req: Request, res: Response) => {
+	return res.status(404).json({ message: 'API route not found!' });
+});
 
 app.use((error: any, req: Request, res: Response, next: NextFunction) => {
 	const status = error.status || 500;
 	const message = error.message || 'Something went wrong!';
 
-	res.status(status).json({ message });
+	return res.status(status).json({ message });
 });
 
 export default app;

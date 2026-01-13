@@ -11,7 +11,7 @@ export const createPost = createAsyncThunk<CreatePostResponse, Post>(
 	'feed/createPost',
 	async (postData, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/feed/posts', {
+			const response = await fetch('http://localhost:3000/api/feed/posts', {
 				method: 'POST',
 				body: JSON.stringify(postData),
 				headers: {
@@ -38,7 +38,7 @@ export const fetchPosts = createAsyncThunk<FetchPostsResponse>(
 	'feed/fetchPosts',
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/feed/posts', {
+			const response = await fetch('http://localhost:3000/api/feed/posts', {
 				headers: {
 					'Content-Type': 'application/json',
 				},
@@ -62,7 +62,7 @@ export const fetchPosts = createAsyncThunk<FetchPostsResponse>(
 export const editPost = createAsyncThunk<CreatePostResponse, EditPostData>(
 	'feed/editPost',
 	async (editedData, { rejectWithValue }) => {
-		const response = await fetch(`http://localhost:3000/feed/posts/${editedData.postId}`, {
+		const response = await fetch(`http://localhost:3000/api/feed/posts/${editedData.postId}`, {
 			method: 'PATCH',
 			body: JSON.stringify(editedData.post),
 			headers: {
@@ -86,7 +86,7 @@ export const editPost = createAsyncThunk<CreatePostResponse, EditPostData>(
 export const deletePost = createAsyncThunk<DeletePostResponse, string>(
 	'feed/deletePost',
 	async (postId, { rejectWithValue }) => {
-		const response = await fetch(`http://localhost:3000/feed/posts/${postId}`, {
+		const response = await fetch(`http://localhost:3000/api/feed/posts/${postId}`, {
 			method: 'DELETE',
 			headers: {
 				'Content-Type': 'application/json',
