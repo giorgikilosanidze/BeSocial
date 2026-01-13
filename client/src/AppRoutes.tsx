@@ -5,7 +5,19 @@ const AppRoutes = () => {
 	return (
 		<Routes>
 			{appRoutes.map((route) => (
-				<Route key={route.path} path={route.path} element={<route.Component />} />
+				<Route
+					key={route.path}
+					path={route.path}
+					element={
+						route.Guard ? (
+							<route.Guard>
+								<route.Component />
+							</route.Guard>
+						) : (
+							<route.Component />
+						)
+					}
+				/>
 			))}
 		</Routes>
 	);

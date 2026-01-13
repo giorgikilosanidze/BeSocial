@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { logOut, postLogIn, postSignUp } from './auth.controller.js';
 import { logInValidation, signUpValidation } from './auth.validators.js';
-import authGuard from '../../middlewares/authGuard/authGuard.js';
 
 const router = Router();
 
