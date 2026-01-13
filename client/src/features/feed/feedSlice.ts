@@ -62,7 +62,7 @@ const feedSlice = createSlice({
 			})
 			.addCase(deletePost.rejected, (state, action) => {
 				state.isLoading = false;
-				state.error = action.error.message || 'Failed to edit post!';
+				state.error = action.error.message || 'Failed to delete post!';
 			});
 	},
 });

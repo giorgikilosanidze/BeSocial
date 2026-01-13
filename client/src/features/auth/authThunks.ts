@@ -73,3 +73,24 @@ export const logOutUser = createAsyncThunk<boolean>(
 		}
 	}
 );
+
+export const getUserOnRefresh = createAsyncThunk<AuthResponse>(
+	'auth/getUserOnRefresh',
+	async (_, { rejectWithValue }) => {
+		try {
+			const response = await fetch('http://localhost:3000/api/auth/me', {
+				credentials: 'include',
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				return rejectWithValue(error.message || 'Not authenticated');
+			}
+
+			const res = await response.json();
+			return res;
+		} catch (error: unknown) {
+			return rejectWithValue((error as Error).message || 'Something went wrong');
+		}
+	}
+);

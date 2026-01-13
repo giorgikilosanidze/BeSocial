@@ -1,6 +1,8 @@
 import { Error } from 'mongoose';
 import Post from './post.model.js';
 import { EditPostDB, PostType } from './post.types.js';
+import { Request } from 'express';
+import { PostIdParams } from '../feed/feed.types.js';
 
 export async function createPost(postData: PostType) {
 	const post = new Post({
@@ -54,4 +56,10 @@ export async function deletePostDB(postId: string): Promise<boolean> {
 	}
 
 	return true;
+}
+
+export async function getDeleteAuthorId(req: Request<PostIdParams>) {
+	const post = await Post.findById(req.params.postId);
+	if (!post) throw new Error('Resource not found');
+	return post.author.toString();
 }

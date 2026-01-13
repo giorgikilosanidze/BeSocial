@@ -73,7 +73,7 @@ export const editPost = createAsyncThunk<CreatePostResponse, EditPostData>(
 
 		if (!response.ok) {
 			const error = await response.json();
-			rejectWithValue((error as Error).message || 'Failed to edit post!');
+			return rejectWithValue((error as Error).message || 'Failed to edit post!');
 		}
 
 		const res = await response.json();
@@ -96,7 +96,7 @@ export const deletePost = createAsyncThunk<DeletePostResponse, string>(
 
 		if (!response.ok) {
 			const error = await response.json();
-			rejectWithValue((error as Error).message || 'Failed to delete post!');
+			return rejectWithValue((error as Error).message || 'Failed to delete post!');
 		}
 
 		return { postId };

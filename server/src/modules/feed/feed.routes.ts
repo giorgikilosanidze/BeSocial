@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { postCreation, getPosts, editPost, deletePost } from './feed.controller.js';
 import authGuard from '../../middlewares/authGuard/authGuard.js';
+import { permissionGuard } from '../../middlewares/permissionGuard/permissionGuard.js';
+import { getDeleteAuthorId } from '../post/post.repository.js';
 
 const router = Router();
 
@@ -10,6 +12,6 @@ router.post('/posts', authGuard, postCreation);
 
 router.patch('/posts/:postId', authGuard, editPost);
 
-router.delete('/posts/:postId', authGuard, deletePost);
+router.delete('/posts/:postId', authGuard, permissionGuard(getDeleteAuthorId), deletePost);
 
 export default router;

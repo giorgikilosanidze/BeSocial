@@ -20,3 +20,8 @@ export async function checkUserExistence(email: string): Promise<UserSignUp | nu
 	const existedUser = await User.findOne({ email });
 	return existedUser;
 }
+
+export async function getUserById(id: string): Promise<UserSignUp | null> {
+	const user = await User.findById(id);
+	return user;
+}

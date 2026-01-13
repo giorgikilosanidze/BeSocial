@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { loginUser, logOutUser, signupUser } from './authThunks';
+import { getUserOnRefresh, loginUser, logOutUser, signupUser } from './authThunks';
 import type { AuthSliceState } from '@/types/auth';
 
 const initialState: AuthSliceState = {
@@ -56,6 +56,21 @@ const authSlice = createSlice({
 				state.user.email = '';
 			})
 			.addCase(logOutUser.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.error.message || 'Something went wrong!';
+			})
+
+			.addCase(getUserOnRefresh.pending, (state) => {
+				state.isLoading = true;
+			})
+			.addCase(getUserOnRefresh.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.isLoggedIn = true;
+				state.user.id = action.payload.id;
+				state.user.username = action.payload.username;
+				state.user.email = action.payload.email;
+			})
+			.addCase(getUserOnRefresh.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.error.message || 'Something went wrong!';
 			});

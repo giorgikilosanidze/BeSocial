@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { PostSignUpBody } from './auth.types.js';
+import { PostSignUpBody, UserIdRequest } from './auth.types.js';
 import { comparePasswords, createJWT, signUpUser } from './auth.service.js';
-import { checkUserExistence } from '../user/user.repository.js';
+import { checkUserExistence, getUserById } from '../user/user.repository.js';
 import dotenv from 'dotenv';
 import { UserSignUp } from '../user/user.types.js';
 
@@ -104,4 +104,16 @@ export async function logOut(req: Request, res: Response, next: NextFunction) {
 	});
 
 	return res.sendStatus(200);
+}
+
+export async function sendLoggedInUser(req: UserIdRequest, res: Response, next: NextFunction) {
+	if (!req.userId) {
+		throw new Error('Not authenticated');
+	}
+	try {
+		const user = await getUserById(req.userId);
+		return res.status(200).json(user);
+	} catch (error: any) {
+		next(error);
+	}
 }
