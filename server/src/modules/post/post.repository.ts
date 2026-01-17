@@ -58,7 +58,7 @@ export async function deletePostDB(postId: string): Promise<boolean> {
 	return true;
 }
 
-export async function getDeleteAuthorId(req: Request<PostIdParams>) {
+export async function getAuthorIdByParams(req: Request<PostIdParams>) {
 	const post = await Post.findById(req.params.postId);
 	if (!post) throw new Error('Resource not found');
 	return post.author.toString();
