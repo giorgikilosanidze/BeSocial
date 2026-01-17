@@ -1,6 +1,6 @@
 import routes from '@/constants/routes';
 import { loginUser } from '@/features/auth/authThunks';
-import { useAppDispatch } from '@/hooks/reduxHooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { logInSchema } from '@/schemas/authValidation';
 import type { UserLogin } from '@/types/auth';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 const Login = () => {
+	const isLoading = useAppSelector((state) => state.auth.isLoading);
 	const navigate = useNavigate();
 	const [showPassword, setShowPassword] = useState(false);
 	const dispatch = useAppDispatch();
@@ -170,7 +171,9 @@ const Login = () => {
 						{/* Sign In Button */}
 						<button
 							type="submit"
-							className="w-full bg-blue-600 text-white font-semibold py-3 text-sm rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+							className={`w-full bg-blue-600 text-white font-semibold py-3 text-sm rounded-lg hover:bg-blue-700 ${
+								isLoading ? 'opacity-50 pointer-events-none' : ''
+							}`}
 						>
 							Sign In
 						</button>

@@ -1,6 +1,6 @@
 import routes from '@/constants/routes';
 import { signupUser } from '@/features/auth/authThunks';
-import { useAppDispatch } from '@/hooks/reduxHooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { signUpSchema } from '@/schemas/authValidation';
 import type { UserSignup } from '@/types/auth';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 const Signup = () => {
+	const isLoading = useAppSelector((state) => state.auth.isLoading);
 	const [user, setUser] = useState<UserSignup>({
 		username: '',
 		email: '',
@@ -247,7 +248,9 @@ const Signup = () => {
 						{/* Sign Up Button */}
 						<button
 							type="submit"
-							className="w-full bg-blue-600 text-white font-semibold py-3 text-sm rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all mt-2"
+							className={`w-full bg-blue-600 text-white font-semibold py-3 text-sm rounded-lg hover:bg-blue-700 mt-2 ${
+								isLoading ? 'opacity-50 pointer-events-none' : ''
+							}`}
 						>
 							Create Account
 						</button>

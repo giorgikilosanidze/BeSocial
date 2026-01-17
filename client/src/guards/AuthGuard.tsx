@@ -2,6 +2,7 @@ import routes from '@/constants/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PuffLoader } from 'react-spinners';
 
 type AuthGuardProps = {
 	children: ReactNode;
@@ -9,6 +10,7 @@ type AuthGuardProps = {
 
 const AuthGuard = ({ children }: AuthGuardProps) => {
 	const isLoggedIn = useAppSelector((state) => state.auth.isLoggedIn);
+	const isLoading = useAppSelector((state) => state.auth.isLoading);
 	const navigate = useNavigate();
 
 	const handleLoginNavigate = () => {
@@ -18,6 +20,14 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
 	const handleSignupNavigate = () => {
 		navigate(routes.signup, { replace: true });
 	};
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<PuffLoader color="#2563eb" />
+			</div>
+		);
+	}
 
 	if (!isLoggedIn) {
 		return (

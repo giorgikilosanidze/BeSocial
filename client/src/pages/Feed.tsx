@@ -3,12 +3,13 @@ import CreatePost from '@/components/CreatePost';
 import PostCard from '@/components/PostCard';
 import ProfileSidebar from '@/components/ProfileSidebar';
 import SuggestionsSidebar from '@/components/SuggestionsSidebar';
+import PostSkeleton from '@/components/PostSkeleton';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect } from 'react';
 import { fetchPosts } from '@/features/feed/feedThunks';
 
 const Feed = () => {
-	const posts = useAppSelector((state) => state.feed.posts);
+	const { posts, isLoading } = useAppSelector((state) => state.feed);
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
@@ -20,6 +21,7 @@ const Feed = () => {
 			<Navbar />
 
 			{/* Main Content */}
+
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 					<ProfileSidebar />
@@ -29,9 +31,15 @@ const Feed = () => {
 						<CreatePost />
 
 						<div className="space-y-6">
-							{posts.map((post) => (
-								<PostCard key={post.id} post={post} />
-							))}
+							{isLoading ? (
+								<>
+									<PostSkeleton />
+									<PostSkeleton />
+									<PostSkeleton />
+								</>
+							) : (
+								posts.map((post) => <PostCard key={post.id} post={post} />)
+							)}
 						</div>
 					</main>
 

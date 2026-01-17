@@ -5,7 +5,7 @@ import type { AuthSliceState } from '@/types/auth';
 const initialState: AuthSliceState = {
 	user: { id: '', username: '', email: '' },
 	isLoggedIn: false,
-	isLoading: false,
+	isLoading: true,
 	error: '',
 };
 
