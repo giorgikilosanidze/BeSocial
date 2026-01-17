@@ -84,6 +84,19 @@ export const getUserOnRefresh = createAsyncThunk<AuthResponse>(
 
 			if (!response.ok) {
 				const error = await response.json();
+
+				debugger;
+
+				if (error.message === 'ACCESS_TOKEN_EXPIRED') {
+					const refreshTokenResponse = await fetch(
+						'http://localhost:3000/api/auth/refreshToken',
+						{
+							credentials: 'include',
+						}
+					);
+					console.log(refreshTokenResponse);
+				}
+
 				return rejectWithValue(error.message || 'Not authenticated');
 			}
 

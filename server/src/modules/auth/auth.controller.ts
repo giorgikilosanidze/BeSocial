@@ -117,3 +117,8 @@ export async function sendLoggedInUser(req: UserIdRequest, res: Response, next: 
 		next(error);
 	}
 }
+
+export async function createRefreshToken(req: Request, res: Response, next: NextFunction) {
+	console.log(req.body);
+	return res.status(201).json({ message: 'success' });
+}

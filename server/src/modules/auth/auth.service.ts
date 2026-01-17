@@ -20,7 +20,7 @@ export function createJWT(id: string, username: string): string {
 			username,
 		},
 		process.env.JWT_SECRET_KEY as string,
-		{ expiresIn: '1h' }
+		{ expiresIn: '10s' }
 	);
 
 	return token;
