@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-	createRefreshToken,
+	resendAccessToken,
 	logOut,
 	postLogIn,
 	postSignUp,
@@ -13,7 +13,7 @@ const router = Router();
 
 router.get('/me', authGuard, sendLoggedInUser);
 
-router.post('/refreshToken', createRefreshToken);
+router.post('/refreshToken', resendAccessToken);
 
 router.post('/signup', signUpValidation, postSignUp);
 

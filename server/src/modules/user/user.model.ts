@@ -16,6 +16,9 @@ const userSchema = new Schema({
 		required: true,
 		type: String,
 	},
+	refreshToken: {
+		type: String,
+	},
 });
 
 const User = mongoose.model<UserSignUp & Document>('User', userSchema);

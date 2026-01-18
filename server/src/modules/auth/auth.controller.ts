@@ -1,16 +1,28 @@
 import { NextFunction, Request, Response } from 'express';
-import { PostSignUpBody, UserIdRequest } from './auth.types.js';
-import { comparePasswords, createJWT, signUpUser } from './auth.service.js';
-import { checkUserExistence, getUserById } from '../user/user.repository.js';
+import {
+	DecodedRefreshToken,
+	LogOutRequest,
+	PostSignUpBody,
+	RefreshTokenRequest,
+	UserIdRequest,
+} from './auth.types.js';
+import { comparePasswords, createJWT, createRefreshJWT, signUpUser } from './auth.service.js';
+import {
+	checkUserExistence,
+	deleteRefreshToken,
+	getUserById,
+	storeRefreshToken,
+} from '../user/user.repository.js';
 import dotenv from 'dotenv';
 import { UserSignUp } from '../user/user.types.js';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
 export async function postSignUp(
 	req: Request<{}, {}, PostSignUpBody>,
 	res: Response,
-	next: NextFunction
+	next: NextFunction,
 ) {
 	const { username, email, password, confirmPassword } = req.body;
 
@@ -39,6 +51,9 @@ export async function postSignUp(
 	}
 
 	const token = createJWT(user._id.toString(), user.username);
+	const refreshToken = createRefreshJWT(user._id.toString());
+
+	storeRefreshToken(user._id.toString(), refreshToken);
 
 	return res
 		.cookie('access_token', token, {
@@ -46,6 +61,12 @@ export async function postSignUp(
 			secure: process.env.NODE_ENV === 'production',
 			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
 			maxAge: 60 * 60 * 1000,
+		})
+		.cookie('refresh_token', refreshToken, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			maxAge: 7 * 24 * 60 * 60 * 1000,
 		})
 		.status(201)
 		.json({
@@ -58,7 +79,7 @@ export async function postSignUp(
 export async function postLogIn(
 	req: Request<{}, {}, PostSignUpBody>,
 	res: Response,
-	next: NextFunction
+	next: NextFunction,
 ) {
 	const { email, password } = req.body;
 
@@ -78,12 +99,22 @@ export async function postLogIn(
 
 	if (isEqual) {
 		const token = createJWT(existedUser._id.toString(), existedUser.username);
+		const refreshToken = createRefreshJWT(existedUser._id.toString());
+
+		storeRefreshToken(existedUser._id.toString(), refreshToken);
+
 		return res
 			.cookie('access_token', token, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
 				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
 				maxAge: 60 * 60 * 1000,
+			})
+			.cookie('refresh_token', refreshToken, {
+				httpOnly: true,
+				secure: process.env.NODE_ENV === 'production',
+				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+				maxAge: 7 * 24 * 60 * 60 * 1000,
 			})
 			.status(201)
 			.json({
@@ -96,8 +127,25 @@ export async function postLogIn(
 	}
 }
 
-export async function logOut(req: Request, res: Response, next: NextFunction) {
+export async function logOut(req: LogOutRequest, res: Response, next: NextFunction) {
+	const refreshToken = req.cookies.refresh_token;
+
+	if (refreshToken) {
+		const decodedToken = jwt.verify(
+			refreshToken,
+			process.env.JWT_REFRESH_SECRET_KEY!,
+		) as DecodedRefreshToken;
+
+		await deleteRefreshToken(decodedToken.id);
+	}
+
 	res.clearCookie('access_token', {
+		httpOnly: true,
+		secure: process.env.NODE_ENV === 'production',
+		sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+	});
+
+	res.clearCookie('refresh_token', {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === 'production',
 		sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
@@ -118,7 +166,48 @@ export async function sendLoggedInUser(req: UserIdRequest, res: Response, next: 
 	}
 }
 
-export async function createRefreshToken(req: Request, res: Response, next: NextFunction) {
-	console.log(req.body);
-	return res.status(201).json({ message: 'success' });
+export async function resendAccessToken(
+	req: RefreshTokenRequest,
+	res: Response,
+	next: NextFunction,
+) {
+	const refreshToken = req.cookies.refresh_token;
+
+	if (!refreshToken) {
+		return res.status(401).json({ message: 'No authorization' });
+	}
+
+	const decodedToken = jwt.verify(
+		refreshToken,
+		process.env.JWT_REFRESH_SECRET_KEY!,
+	) as DecodedRefreshToken;
+
+	const user = await getUserById(decodedToken.id);
+
+	if (!user) {
+		throw new Error('User does not exist');
+	}
+
+	const token = createJWT(user._id.toString(), user.username);
+	const newRefreshToken = createRefreshJWT(user._id.toString());
+
+	return res
+		.cookie('access_token', token, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			maxAge: 60 * 60 * 1000,
+		})
+		.cookie('refresh_token', newRefreshToken, {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			maxAge: 7 * 24 * 60 * 60 * 1000,
+		})
+		.status(201)
+		.json({
+			id: user._id.toString(),
+			username: user.username,
+			email: user.email,
+		});
 }

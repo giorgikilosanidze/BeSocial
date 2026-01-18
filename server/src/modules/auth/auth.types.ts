@@ -10,3 +10,17 @@ export interface PostSignUpBody {
 export interface UserIdRequest extends Request {
 	userId?: string;
 }
+
+export interface RefreshTokenRequest extends Request {
+	cookies: {
+		refresh_token?: string;
+	};
+}
+
+export type LogOutRequest = RefreshTokenRequest;
+
+export interface DecodedRefreshToken {
+	id: string;
+	iat: number;
+	exp: number;
+}

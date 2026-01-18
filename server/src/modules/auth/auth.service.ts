@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 export async function signUpUser(
 	username: string,
 	email: string,
-	password: string
+	password: string,
 ): Promise<UserSignUp> {
 	const hashedPassword = await hash(password, 12);
 	const createdUser = await createUser(username, email, hashedPassword);
@@ -20,9 +20,16 @@ export function createJWT(id: string, username: string): string {
 			username,
 		},
 		process.env.JWT_SECRET_KEY as string,
-		{ expiresIn: '10s' }
+		{ expiresIn: '10s' },
 	);
 
+	return token;
+}
+
+export function createRefreshJWT(id: string): string {
+	const token = jwt.sign({ id }, process.env.JWT_REFRESH_SECRET_KEY as string, {
+		expiresIn: '7d',
+	});
 	return token;
 }
 
