@@ -36,11 +36,17 @@ export async function postSignUp(
 	}
 
 	if (existedUser) {
-		return res.status(409).json({ message: 'User with this email already exists!' });
+		return res.status(409).json({
+			message: 'Registration failed!',
+			otherErrors: { email: 'User with this email already exists!' },
+		});
 	}
 
 	if (password !== confirmPassword) {
-		return res.status(400).json({ message: "Passwords don't match" });
+		return res.status(400).json({
+			message: 'Registration failed!',
+			otherErrors: { confirmPassword: "Passwords don't match" },
+		});
 	}
 
 	let user: UserSignUp;
@@ -87,7 +93,10 @@ export async function postLogIn(
 	const existedUser = await checkUserExistence(email);
 
 	if (!existedUser) {
-		return res.status(400).json({ message: 'User with this email does not exist!' });
+		return res.status(400).json({
+			message: 'Log in failed!',
+			otherErrors: { email: 'User with this email does not exist!' },
+		});
 	}
 
 	let isEqual: boolean;
@@ -124,7 +133,10 @@ export async function postLogIn(
 				email: existedUser.email,
 			});
 	} else {
-		return res.status(400).json({ message: 'User with this password does not exist!' });
+		return res.status(400).json({
+			message: 'Log in failed!',
+			otherErrors: { password: 'User with this password does not exist!' },
+		});
 	}
 }
 

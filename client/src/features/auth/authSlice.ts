@@ -75,6 +75,20 @@ const authSlice = createSlice({
 					} else {
 						state.signupValidationErrors.confirmPassword = '';
 					}
+				} else if (action.payload?.otherErrors) {
+					const { otherErrors } = action.payload;
+
+					if (otherErrors.email) {
+						state.signupValidationErrors.email = otherErrors.email;
+					} else {
+						state.signupValidationErrors.email = '';
+					}
+
+					if (otherErrors.confirmPassword) {
+						state.signupValidationErrors.confirmPassword = otherErrors.confirmPassword;
+					} else {
+						state.signupValidationErrors.password = '';
+					}
 				} else {
 					state.error = action.error.message || 'Something went wrong!';
 				}
@@ -106,6 +120,20 @@ const authSlice = createSlice({
 
 					if (properties?.password?.errors) {
 						state.loginValidationErrors.password = properties.password?.errors[0];
+					} else {
+						state.loginValidationErrors.password = '';
+					}
+				} else if (action.payload?.otherErrors) {
+					const { otherErrors } = action.payload;
+
+					if (otherErrors.email) {
+						state.loginValidationErrors.email = otherErrors.email;
+					} else {
+						state.loginValidationErrors.email = '';
+					}
+
+					if (otherErrors.password) {
+						state.loginValidationErrors.password = otherErrors.password;
 					} else {
 						state.loginValidationErrors.password = '';
 					}

@@ -11,10 +11,9 @@ import { z } from 'zod';
 const Login = () => {
 	const isLoading = useAppSelector((state) => state.auth.isLoading);
 	const backendErrors = useAppSelector((state) => state.auth.loginValidationErrors);
-	const navigate = useNavigate();
 	const [showPassword, setShowPassword] = useState(false);
+	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
-	console.log(backendErrors);
 
 	const [user, setUser] = useState<UserLogin>({
 		email: '',

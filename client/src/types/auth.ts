@@ -29,6 +29,7 @@ export interface AuthResponse {
 
 export type LoginError = {
 	message: string;
+	otherErrors?: { email?: string; password?: string };
 	errors?: {
 		properties?: {
 			email?: { errors?: string[] };
@@ -39,6 +40,7 @@ export type LoginError = {
 
 export type SignupError = {
 	message: string;
+	otherErrors?: { email?: string; confirmPassword?: string };
 	errors?: {
 		properties?: {
 			username?: { errors?: string[] };
