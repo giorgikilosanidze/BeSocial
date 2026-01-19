@@ -10,6 +10,7 @@ import { z } from 'zod';
 
 const Signup = () => {
 	const isLoading = useAppSelector((state) => state.auth.isLoading);
+	const backendErrors = useAppSelector((state) => state.auth.signupValidationErrors);
 	const [user, setUser] = useState<UserSignup>({
 		username: '',
 		email: '',
@@ -70,8 +71,6 @@ const Signup = () => {
 			}
 
 			handleValidationErrors(errorsObject);
-
-			return;
 
 			return;
 		}
@@ -139,7 +138,9 @@ const Signup = () => {
 								placeholder="johndoe123"
 							/>
 							{/* Error message for username */}
-							<p className="text-red-500 text-xs mt-1">{errors.username}</p>
+							<p className="text-red-500 text-xs mt-1">
+								{errors.username || backendErrors.username}
+							</p>
 						</div>
 
 						{/* Email Input */}
@@ -161,7 +162,9 @@ const Signup = () => {
 								placeholder="you@example.com"
 							/>
 							{/* Error message for email */}
-							<p className="text-red-500 text-xs mt-1">{errors.email}</p>
+							<p className="text-red-500 text-xs mt-1">
+								{errors.email || backendErrors.email}
+							</p>
 						</div>
 
 						{/* Password Input */}
@@ -227,7 +230,9 @@ const Signup = () => {
 								</button>
 							</div>
 							{/* Error message for password */}
-							<p className="text-red-500 text-xs mt-1">{errors.password}</p>
+							<p className="text-red-500 text-xs mt-1">
+								{errors.password || backendErrors.password}
+							</p>
 						</div>
 
 						{/* Confirm Password Input */}
@@ -293,7 +298,9 @@ const Signup = () => {
 								</button>
 							</div>
 							{/* Error message for confirm password */}
-							<p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
+							<p className="text-red-500 text-xs mt-1">
+								{errors.confirmPassword || backendErrors.confirmPassword}
+							</p>
 						</div>
 
 						{/* Sign Up Button */}

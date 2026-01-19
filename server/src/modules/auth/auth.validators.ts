@@ -20,6 +20,7 @@ export function logInValidation(req: Request, res: Response, next: NextFunction)
 
 	if (!validationResult.success) {
 		const errors = z.treeifyError(validationResult.error);
+
 		return res.status(400).json({ errors });
 	}
 

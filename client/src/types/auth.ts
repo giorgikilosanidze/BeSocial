@@ -1,3 +1,5 @@
+import type { LoginValidation, SignupValidation } from './validation';
+
 export interface UserSignup {
 	username: string;
 	email: string;
@@ -15,6 +17,8 @@ export interface AuthSliceState {
 	isLoggedIn: boolean;
 	isLoading: boolean;
 	error: string;
+	loginValidationErrors: LoginValidation;
+	signupValidationErrors: SignupValidation;
 }
 
 export interface AuthResponse {
@@ -22,3 +26,25 @@ export interface AuthResponse {
 	username: string;
 	email: string;
 }
+
+export type LoginError = {
+	message: string;
+	errors?: {
+		properties?: {
+			email?: { errors?: string[] };
+			password?: { errors?: string[] };
+		};
+	};
+};
+
+export type SignupError = {
+	message: string;
+	errors?: {
+		properties?: {
+			username?: { errors?: string[] };
+			email?: { errors?: string[] };
+			password?: { errors?: string[] };
+			confirmPassword?: { errors?: string[] };
+		};
+	};
+};

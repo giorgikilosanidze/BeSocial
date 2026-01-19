@@ -1,8 +1,8 @@
-import type { AuthResponse, UserLogin, UserSignup } from '@/types/auth';
+import type { AuthResponse, LoginError, SignupError, UserLogin, UserSignup } from '@/types/auth';
 import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-export const signupUser = createAsyncThunk<AuthResponse, UserSignup>(
+export const signupUser = createAsyncThunk<AuthResponse, UserSignup, { rejectValue: SignupError }>(
 	'auth/signupUser',
 	async (user, { rejectWithValue }) => {
 		try {
@@ -17,18 +17,18 @@ export const signupUser = createAsyncThunk<AuthResponse, UserSignup>(
 
 			if (!response.ok) {
 				const error = await response.json();
-				return rejectWithValue(error.message || 'Signup failed');
+				return rejectWithValue(error);
 			}
 
 			const res = await response.json();
 			return res;
 		} catch (error: unknown) {
-			return rejectWithValue((error as Error).message || 'Something went wrong');
+			return rejectWithValue({ message: (error as Error).message || 'Something went wrong' });
 		}
 	},
 );
 
-export const loginUser = createAsyncThunk<AuthResponse, UserLogin>(
+export const loginUser = createAsyncThunk<AuthResponse, UserLogin, { rejectValue: LoginError }>(
 	'auth/loginUser',
 	async (user, { rejectWithValue }) => {
 		try {
@@ -43,13 +43,13 @@ export const loginUser = createAsyncThunk<AuthResponse, UserLogin>(
 
 			if (!response.ok) {
 				const error = await response.json();
-				return rejectWithValue(error.message || 'Login failed');
+				return rejectWithValue(error);
 			}
 
 			const res = await response.json();
 			return res;
 		} catch (error: unknown) {
-			return rejectWithValue((error as Error).message || 'Something went wrong');
+			return rejectWithValue({ message: (error as Error).message || 'Something went wrong' });
 		}
 	},
 );

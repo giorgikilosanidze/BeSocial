@@ -1,16 +1,16 @@
 import routes from '@/constants/routes';
 import { loginUser } from '@/features/auth/authThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-// import { logInSchema } from '@/schemas/authValidation';
+import { logInSchema } from '@/schemas/authValidation';
 import type { UserLogin } from '@/types/auth';
-// import type { LoginValidation } from '@/types/validation';
+import type { LoginValidation } from '@/types/validation';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { z } from 'zod';
+import { z } from 'zod';
 
 const Login = () => {
 	const isLoading = useAppSelector((state) => state.auth.isLoading);
-	const backendErrors = useAppSelector((state) => state.auth.error);
+	const backendErrors = useAppSelector((state) => state.auth.loginValidationErrors);
 	const navigate = useNavigate();
 	const [showPassword, setShowPassword] = useState(false);
 	const dispatch = useAppDispatch();
@@ -21,14 +21,14 @@ const Login = () => {
 		password: '',
 	});
 
-	// const [errors, setErrors] = useState<UserLogin>({
-	// 	email: '',
-	// 	password: '',
-	// });
+	const [errors, setErrors] = useState<UserLogin>({
+		email: '',
+		password: '',
+	});
 
-	// const handleValidationErrors = (errors: LoginValidation) => {
-	// 	setErrors(errors);
-	// };
+	const handleValidationErrors = (errors: LoginValidation) => {
+		setErrors(errors);
+	};
 
 	const handleUserCredentials = (credential: string, value: string) => {
 		setUser((prev) => ({ ...prev, [credential]: value }));
@@ -41,28 +41,28 @@ const Login = () => {
 	const handleLogIn = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
-		// const validationResult = logInSchema.safeParse(user);
+		const validationResult = logInSchema.safeParse(user);
 
-		// if (!validationResult.success) {
-		// 	const validationError = z.treeifyError(validationResult.error);
+		if (!validationResult.success) {
+			const validationError = z.treeifyError(validationResult.error);
 
-		// 	const errorsObject: LoginValidation = {
-		// 		email: '',
-		// 		password: '',
-		// 	};
+			const errorsObject: LoginValidation = {
+				email: '',
+				password: '',
+			};
 
-		// 	if (validationError.properties?.email) {
-		// 		errorsObject.email = validationError.properties.email.errors[0];
-		// 	}
+			if (validationError.properties?.email) {
+				errorsObject.email = validationError.properties.email.errors[0];
+			}
 
-		// 	if (validationError.properties?.password) {
-		// 		errorsObject.password = validationError.properties.password.errors[0];
-		// 	}
+			if (validationError.properties?.password) {
+				errorsObject.password = validationError.properties.password.errors[0];
+			}
 
-		// 	handleValidationErrors(errorsObject);
+			handleValidationErrors(errorsObject);
 
-		// 	return;
-		// }
+			return;
+		}
 
 		try {
 			await dispatch(loginUser(user)).unwrap();
@@ -122,7 +122,9 @@ const Login = () => {
 								placeholder="you@example.com"
 							/>
 							{/* Error message for email */}
-							{/* <p className="text-red-500 text-xs mt-1">{errors.email}</p> */}
+							<p className="text-red-500 text-xs mt-1">
+								{errors.email || backendErrors.email}
+							</p>
 						</div>
 
 						{/* Password Input */}
@@ -186,7 +188,9 @@ const Login = () => {
 								</button>
 							</div>
 							{/* Error message for password */}
-							{/* <p className="text-red-500 text-xs mt-1">{errors.password}</p> */}
+							<p className="text-red-500 text-xs mt-1">
+								{errors.password || backendErrors.password}
+							</p>
 						</div>
 
 						{/* Forgot Password */}
