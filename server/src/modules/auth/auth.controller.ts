@@ -10,6 +10,7 @@ import { comparePasswords, createJWT, createRefreshJWT, signUpUser } from './aut
 import {
 	checkUserExistence,
 	deleteRefreshToken,
+	deleteRefreshTokenByToken,
 	getUserById,
 	storeRefreshToken,
 } from '../user/user.repository.js';
@@ -160,7 +161,12 @@ export async function sendLoggedInUser(req: UserIdRequest, res: Response, next: 
 	}
 	try {
 		const user = await getUserById(req.userId);
-		return res.status(200).json(user);
+
+		if (!user) {
+			return res.status(401).json('Not authenticated');
+		}
+
+		return res.status(200).json({ id: user._id, username: user.username, email: user.email });
 	} catch (error: any) {
 		next(error);
 	}
@@ -174,22 +180,66 @@ export async function resendAccessToken(
 	const refreshToken = req.cookies.refresh_token;
 
 	if (!refreshToken) {
+		res.clearCookie('access_token', {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		});
+
+		res.clearCookie('refresh_token', {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		});
 		return res.status(401).json({ message: 'No authorization' });
 	}
 
-	const decodedToken = jwt.verify(
-		refreshToken,
-		process.env.JWT_REFRESH_SECRET_KEY!,
-	) as DecodedRefreshToken;
+	let decodedToken: DecodedRefreshToken;
+
+	try {
+		decodedToken = jwt.verify(
+			refreshToken,
+			process.env.JWT_REFRESH_SECRET_KEY!,
+		) as DecodedRefreshToken;
+	} catch {
+		await deleteRefreshTokenByToken(refreshToken);
+		res.clearCookie('access_token', {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		});
+
+		res.clearCookie('refresh_token', {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		});
+		return res.status(401).json({ message: 'Invalid refresh token' });
+	}
 
 	const user = await getUserById(decodedToken.id);
 
-	if (!user) {
-		throw new Error('User does not exist');
+	if (!user || user.refreshToken !== refreshToken) {
+		await deleteRefreshTokenByToken(refreshToken);
+		res.clearCookie('access_token', {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		});
+
+		res.clearCookie('refresh_token', {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === 'production',
+			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		});
+		return res.status(401).json({ message: 'Refresh token revoked' });
 	}
 
 	const token = createJWT(user._id.toString(), user.username);
 	const newRefreshToken = createRefreshJWT(user._id.toString());
+
+	user.refreshToken = newRefreshToken;
+	await user.save();
 
 	return res
 		.cookie('access_token', token, {
@@ -204,10 +254,5 @@ export async function resendAccessToken(
 			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
 			maxAge: 7 * 24 * 60 * 60 * 1000,
 		})
-		.status(201)
-		.json({
-			id: user._id.toString(),
-			username: user.username,
-			email: user.email,
-		});
+		.sendStatus(204);
 }

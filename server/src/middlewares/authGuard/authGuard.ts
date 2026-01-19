@@ -9,7 +9,7 @@ export default function authGuard(req: AuthGuardRequest, res: Response, next: Ne
 	const accessToken = req.cookies.access_token;
 
 	if (!accessToken) {
-		const error = new Error('Authorization failed!');
+		const error = new Error('NO_ACCESS_TOKEN');
 		(error as any).status = 401; // mark as Unauthorized
 		return next(error);
 	}

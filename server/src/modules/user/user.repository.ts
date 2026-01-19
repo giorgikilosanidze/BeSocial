@@ -41,3 +41,7 @@ export async function storeRefreshToken(userId: string, token: string) {
 export async function deleteRefreshToken(id: string) {
 	await User.findByIdAndUpdate(id, { refreshToken: null });
 }
+
+export async function deleteRefreshTokenByToken(refreshToken: string) {
+	await User.updateOne({ refreshToken }, { $unset: { refreshToken: '' } });
+}

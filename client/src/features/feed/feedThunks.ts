@@ -5,6 +5,7 @@ import type {
 	FetchPostsResponse,
 	Post,
 } from '@/types/feed';
+import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 export const createPost = createAsyncThunk<CreatePostResponse, Post>(
@@ -22,6 +23,34 @@ export const createPost = createAsyncThunk<CreatePostResponse, Post>(
 
 			if (!response.ok) {
 				const error = await response.json();
+
+				if (
+					error.message === 'ACCESS_TOKEN_EXPIRED' ||
+					error.message === 'NO_ACCESS_TOKEN'
+				) {
+					try {
+						await refreshTokenRequest();
+
+						const retry = await fetch('http://localhost:3000/api/feed/posts', {
+							method: 'POST',
+							body: JSON.stringify(postData),
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							credentials: 'include',
+						});
+
+						if (!retry.ok) {
+							const retryError = await retry.json();
+							return rejectWithValue(retryError.message || 'Not authenticated');
+						}
+
+						return await retry.json();
+					} catch (refreshError: unknown) {
+						return rejectWithValue((refreshError as Error).message);
+					}
+				}
+
 				return rejectWithValue(error.message || 'Failed to create post!');
 			}
 
@@ -31,7 +60,7 @@ export const createPost = createAsyncThunk<CreatePostResponse, Post>(
 		} catch (error: unknown) {
 			return rejectWithValue((error as Error).message || 'Failed to create post!');
 		}
-	}
+	},
 );
 
 export const fetchPosts = createAsyncThunk<FetchPostsResponse>(
@@ -47,6 +76,32 @@ export const fetchPosts = createAsyncThunk<FetchPostsResponse>(
 
 			if (!response.ok) {
 				const error = await response.json();
+
+				if (
+					error.message === 'ACCESS_TOKEN_EXPIRED' ||
+					error.message === 'NO_ACCESS_TOKEN'
+				) {
+					try {
+						await refreshTokenRequest();
+
+						const retry = await fetch('http://localhost:3000/api/feed/posts', {
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							credentials: 'include',
+						});
+
+						if (!retry.ok) {
+							const retryError = await retry.json();
+							return rejectWithValue(retryError.message || 'Not authenticated');
+						}
+
+						return await retry.json();
+					} catch (refreshError: unknown) {
+						return rejectWithValue((refreshError as Error).message);
+					}
+				}
+
 				return rejectWithValue(error.message || 'Failed to fetch posts!');
 			}
 
@@ -56,7 +111,7 @@ export const fetchPosts = createAsyncThunk<FetchPostsResponse>(
 		} catch (error: unknown) {
 			return rejectWithValue((error as Error).message || 'Failed to fetch posts!');
 		}
-	}
+	},
 );
 
 export const editPost = createAsyncThunk<CreatePostResponse, EditPostData>(
@@ -73,14 +128,41 @@ export const editPost = createAsyncThunk<CreatePostResponse, EditPostData>(
 
 		if (!response.ok) {
 			const error = await response.json();
+
+			if (error.message === 'ACCESS_TOKEN_EXPIRED' || error.message === 'NO_ACCESS_TOKEN') {
+				try {
+					await refreshTokenRequest();
+
+					const retry = await fetch(
+						`http://localhost:3000/api/feed/posts/${editedData.postId}`,
+						{
+							method: 'PATCH',
+							body: JSON.stringify(editedData.post),
+							headers: {
+								'Content-Type': 'application/json',
+							},
+							credentials: 'include',
+						},
+					);
+
+					if (!retry.ok) {
+						const retryError = await retry.json();
+						return rejectWithValue(retryError.message || 'Not authenticated');
+					}
+
+					return await retry.json();
+				} catch (refreshError: unknown) {
+					return rejectWithValue((refreshError as Error).message);
+				}
+			}
+
 			return rejectWithValue((error as Error).message || 'Failed to edit post!');
 		}
 
 		const res = await response.json();
-		console.log(res);
 
 		return res;
-	}
+	},
 );
 
 export const deletePost = createAsyncThunk<DeletePostResponse, string>(
@@ -96,9 +178,33 @@ export const deletePost = createAsyncThunk<DeletePostResponse, string>(
 
 		if (!response.ok) {
 			const error = await response.json();
+
+			if (error.message === 'ACCESS_TOKEN_EXPIRED' || error.message === 'NO_ACCESS_TOKEN') {
+				try {
+					await refreshTokenRequest();
+
+					const retry = await fetch(`http://localhost:3000/api/feed/posts/${postId}`, {
+						method: 'DELETE',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						credentials: 'include',
+					});
+
+					if (!retry.ok) {
+						const retryError = await retry.json();
+						return rejectWithValue(retryError.message || 'Not authenticated');
+					}
+
+					return await retry.json();
+				} catch (refreshError: unknown) {
+					return rejectWithValue((refreshError as Error).message);
+				}
+			}
+
 			return rejectWithValue((error as Error).message || 'Failed to delete post!');
 		}
 
 		return { postId };
-	}
+	},
 );

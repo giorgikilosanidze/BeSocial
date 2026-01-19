@@ -1,4 +1,5 @@
 import type { AuthResponse, UserLogin, UserSignup } from '@/types/auth';
+import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 export const signupUser = createAsyncThunk<AuthResponse, UserSignup>(
@@ -85,23 +86,27 @@ export const getUserOnRefresh = createAsyncThunk<AuthResponse>(
 			if (!response.ok) {
 				const error = await response.json();
 
-				if (error.message === 'ACCESS_TOKEN_EXPIRED') {
-					const refreshTokenResponse = await fetch(
-						'http://localhost:3000/api/auth/refreshToken',
-						{
-							method: 'POST',
+				if (
+					error.message === 'ACCESS_TOKEN_EXPIRED' ||
+					error.message === 'NO_ACCESS_TOKEN'
+				) {
+					try {
+						await refreshTokenRequest();
+
+						const retry = await fetch('http://localhost:3000/api/auth/me', {
 							credentials: 'include',
-						},
-					);
+						});
 
-					if (!refreshTokenResponse.ok) {
-						const refreshTokenError = await refreshTokenResponse.json();
-						return rejectWithValue(refreshTokenError.message || 'Not authenticated');
+						if (!retry.ok) {
+							const retryError = await retry.json();
+							return rejectWithValue(retryError.message || 'Not authenticated');
+						}
+
+						const retryRes = await retry.json();
+						return retryRes;
+					} catch (refreshError: unknown) {
+						return rejectWithValue((refreshError as Error).message);
 					}
-
-					const refreshTokenRes = await refreshTokenResponse.json();
-
-					return refreshTokenRes;
 				}
 
 				return rejectWithValue(error.message || 'Not authenticated');
