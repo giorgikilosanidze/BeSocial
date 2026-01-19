@@ -3,6 +3,7 @@ import { signupUser } from '@/features/auth/authThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { signUpSchema } from '@/schemas/authValidation';
 import type { UserSignup } from '@/types/auth';
+import type { SignupValidation } from '@/types/validation';
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
@@ -15,10 +16,22 @@ const Signup = () => {
 		password: '',
 		confirmPassword: '',
 	});
+
+	const [errors, setErrors] = useState<SignupValidation>({
+		username: '',
+		email: '',
+		password: '',
+		confirmPassword: '',
+	});
+
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
+
+	const handleValidationErrors = (errors: SignupValidation) => {
+		setErrors(errors);
+	};
 
 	const handleLoginClick = () => {
 		navigate(routes.login);
@@ -32,6 +45,34 @@ const Signup = () => {
 		if (!validationResult.success) {
 			const validationError = z.treeifyError(validationResult.error);
 			console.log(validationError);
+
+			const errorsObject: SignupValidation = {
+				username: '',
+				email: '',
+				password: '',
+				confirmPassword: '',
+			};
+
+			if (validationError.properties?.username) {
+				errorsObject.username = validationError.properties.username.errors[0];
+			}
+
+			if (validationError.properties?.email) {
+				errorsObject.email = validationError.properties.email.errors[0];
+			}
+
+			if (validationError.properties?.password) {
+				errorsObject.password = validationError.properties.password.errors[0];
+			}
+
+			if (validationError.properties?.confirmPassword) {
+				errorsObject.confirmPassword = validationError.properties.confirmPassword.errors[0];
+			}
+
+			handleValidationErrors(errorsObject);
+
+			return;
+
 			return;
 		}
 
@@ -97,6 +138,8 @@ const Signup = () => {
 								className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
 								placeholder="johndoe123"
 							/>
+							{/* Error message for username */}
+							<p className="text-red-500 text-xs mt-1">{errors.username}</p>
 						</div>
 
 						{/* Email Input */}
@@ -117,6 +160,8 @@ const Signup = () => {
 								className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
 								placeholder="you@example.com"
 							/>
+							{/* Error message for email */}
+							<p className="text-red-500 text-xs mt-1">{errors.email}</p>
 						</div>
 
 						{/* Password Input */}
@@ -181,6 +226,8 @@ const Signup = () => {
 									)}
 								</button>
 							</div>
+							{/* Error message for password */}
+							<p className="text-red-500 text-xs mt-1">{errors.password}</p>
 						</div>
 
 						{/* Confirm Password Input */}
@@ -245,6 +292,8 @@ const Signup = () => {
 									)}
 								</button>
 							</div>
+							{/* Error message for confirm password */}
+							<p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
 						</div>
 
 						{/* Sign Up Button */}
