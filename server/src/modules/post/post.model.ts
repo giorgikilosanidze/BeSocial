@@ -13,17 +13,17 @@ const postSchema = new Schema(
 			type: String,
 			required: false,
 		},
+		isEdited: {
+			type: Boolean,
+			required: true,
+		},
 		author: {
 			type: Schema.Types.ObjectId,
 			ref: 'User',
 			required: true,
 		},
-		isEdited: {
-			type: Boolean,
-			required: true,
-		},
 	},
-	{ timestamps: true }
+	{ timestamps: true },
 );
 
 postSchema.set('toJSON', {

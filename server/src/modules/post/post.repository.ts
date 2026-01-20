@@ -34,7 +34,7 @@ export async function editPostDB(editedPostData: EditPostDB) {
 		{
 			new: true,
 			runValidators: true,
-		}
+		},
 	);
 
 	if (!post) {
@@ -62,4 +62,8 @@ export async function getAuthorIdByParams(req: Request<PostIdParams>) {
 	const post = await Post.findById(req.params.postId);
 	if (!post) throw new Error('Resource not found');
 	return post.author.toString();
+}
+
+export async function getPostsCountForUsers(userId: string) {
+	return await Post.countDocuments({ author: userId });
 }

@@ -3,7 +3,7 @@ import { getUserOnRefresh, loginUser, logOutUser, signupUser } from './authThunk
 import type { AuthSliceState } from '@/types/auth';
 
 const initialState: AuthSliceState = {
-	user: { id: '', username: '', email: '' },
+	user: { id: '', username: '', email: '', postsCount: 0 },
 	isLoggedIn: false,
 	isLoading: true,
 	error: '',
@@ -35,15 +35,8 @@ const authSlice = createSlice({
 			.addCase(signupUser.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.isLoggedIn = true;
-				state.user.id = action.payload.id;
-				state.user.username = action.payload.username;
-				state.user.email = action.payload.email;
-				state.signupValidationErrors = {
-					username: '',
-					email: '',
-					password: '',
-					confirmPassword: '',
-				};
+				state.user = action.payload;
+				state.signupValidationErrors = initialState.signupValidationErrors;
 			})
 			.addCase(signupUser.rejected, (state, action) => {
 				state.isLoading = false;
@@ -100,11 +93,8 @@ const authSlice = createSlice({
 			.addCase(loginUser.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.isLoggedIn = true;
-				state.user.id = action.payload.id;
-				state.user.username = action.payload.username;
-				state.user.email = action.payload.email;
-				state.loginValidationErrors.email = '';
-				state.loginValidationErrors.password = '';
+				state.user = action.payload;
+				state.loginValidationErrors = initialState.loginValidationErrors;
 			})
 			.addCase(loginUser.rejected, (state, action) => {
 				state.isLoading = false;
@@ -148,9 +138,7 @@ const authSlice = createSlice({
 			.addCase(logOutUser.fulfilled, (state) => {
 				state.isLoading = false;
 				state.isLoggedIn = false;
-				state.user.id = '';
-				state.user.username = '';
-				state.user.email = '';
+				state.user = initialState.user;
 			})
 			.addCase(logOutUser.rejected, (state, action) => {
 				state.isLoading = false;
@@ -163,9 +151,7 @@ const authSlice = createSlice({
 			.addCase(getUserOnRefresh.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.isLoggedIn = true;
-				state.user.id = action.payload.id;
-				state.user.username = action.payload.username;
-				state.user.email = action.payload.email;
+				state.user = action.payload;
 			})
 			.addCase(getUserOnRefresh.rejected, (state, action) => {
 				state.isLoading = false;

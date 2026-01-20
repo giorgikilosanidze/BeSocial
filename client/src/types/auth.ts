@@ -13,7 +13,7 @@ export interface UserLogin {
 }
 
 export interface AuthSliceState {
-	user: { id: string; username: string; email: string };
+	user: AuthResponse;
 	isLoggedIn: boolean;
 	isLoading: boolean;
 	error: string;
@@ -25,6 +25,7 @@ export interface AuthResponse {
 	id: string;
 	username: string;
 	email: string;
+	postsCount: number;
 }
 
 export type LoginError = {

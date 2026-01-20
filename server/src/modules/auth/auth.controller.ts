@@ -17,6 +17,7 @@ import {
 import dotenv from 'dotenv';
 import { UserSignUp } from '../user/user.types.js';
 import jwt from 'jsonwebtoken';
+import { getPostsCountForUsers } from '../post/post.repository.js';
 
 dotenv.config();
 
@@ -80,6 +81,7 @@ export async function postSignUp(
 			id: user._id.toString(),
 			username: user.username,
 			email: user.email,
+			postsCount: 0,
 		});
 }
 
@@ -108,10 +110,13 @@ export async function postLogIn(
 	}
 
 	if (isEqual) {
-		const token = createJWT(existedUser._id.toString(), existedUser.username);
-		const refreshToken = createRefreshJWT(existedUser._id.toString());
+		const userIdToString = existedUser._id.toString();
+		const token = createJWT(userIdToString, existedUser.username);
+		const refreshToken = createRefreshJWT(userIdToString);
 
-		storeRefreshToken(existedUser._id.toString(), refreshToken);
+		storeRefreshToken(userIdToString, refreshToken);
+
+		const postsCount = await getPostsCountForUsers(userIdToString);
 
 		return res
 			.cookie('access_token', token, {
@@ -131,6 +136,7 @@ export async function postLogIn(
 				id: existedUser._id.toString(),
 				username: existedUser.username,
 				email: existedUser.email,
+				postsCount,
 			});
 	} else {
 		return res.status(400).json({
@@ -178,7 +184,11 @@ export async function sendLoggedInUser(req: UserIdRequest, res: Response, next: 
 			return res.status(401).json('Not authenticated');
 		}
 
-		return res.status(200).json({ id: user._id, username: user.username, email: user.email });
+		const postsCount = await getPostsCountForUsers(req.userId);
+
+		return res
+			.status(200)
+			.json({ id: user._id, username: user.username, email: user.email, postsCount });
 	} catch (error: any) {
 		next(error);
 	}

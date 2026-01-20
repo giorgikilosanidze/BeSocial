@@ -30,7 +30,7 @@ export async function postCreation(req: CreatePostRequest, res: Response, next: 
 export async function editPost(
 	req: Request<PostIdParams, {}, EditPostData>,
 	res: Response,
-	next: NextFunction
+	next: NextFunction,
 ) {
 	if (!req.params.postId) {
 		return res.status(400).json({ message: 'postId parameter is required!' });
