@@ -67,3 +67,9 @@ export async function getAuthorIdByParams(req: Request<PostIdParams>) {
 export async function getPostsCountForUsers(userId: string) {
 	return await Post.countDocuments({ author: userId });
 }
+
+export async function getPostsByUserId(userId: string) {
+	return await Post.find({ author: userId })
+		.sort({ createdAt: -1 })
+		.populate('author', 'username _id');
+}

@@ -45,7 +45,7 @@ const feedSlice = createSlice({
 				state.isLoading = false;
 
 				state.posts = state.posts.map((post) =>
-					post.id === action.payload.id ? action.payload : post
+					post.id === action.payload.id ? action.payload : post,
 				);
 			})
 			.addCase(editPost.rejected, (state, action) => {

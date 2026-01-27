@@ -1,3 +1,5 @@
+import type { FetchPostsResponse } from './feed';
+
 export interface UserSliceState {
 	user: UserProfile;
 	isLoading: boolean;
@@ -9,4 +11,5 @@ export interface UserProfile {
 	username: string;
 	email: string;
 	postsCount: number;
+	posts: FetchPostsResponse;
 }
