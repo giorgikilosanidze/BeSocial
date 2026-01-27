@@ -1,5 +1,27 @@
 import { NextFunction, Request, Response } from 'express';
+import { getUserById } from '../user/user.repository.js';
+import { getPostsCountForUsers } from '../post/post.repository.js';
 
-export async function getUserProfile(req: Request, res: Response, next: NextFunction) {
-	console.log(2);
+export async function getUserProfile(
+	req: Request<{ userId?: string }>,
+	res: Response,
+	next: NextFunction,
+) {
+	const userId = req.params.userId;
+
+	if (!userId) {
+		return res.status(400).json({ message: 'Missing params' });
+	}
+
+	const user = await getUserById(userId);
+
+	if (!user) {
+		return res.status(400).json({ message: 'This user does not exist!' });
+	}
+
+	const postsCount = await getPostsCountForUsers(userId);
+
+	return res
+		.status(200)
+		.json({ id: user._id, username: user.username, email: user.email, postsCount });
 }
