@@ -5,11 +5,38 @@ import profileRoutes from './modules/profile/profile.routes.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import multer, { FileFilterCallback } from 'multer';
 
 const app = express();
 
+const fileStorage = multer.diskStorage({
+	destination(req, file, callback) {
+		callback(null, 'images');
+	},
+	filename(req, file, callback) {
+		callback(null, Date.now() + '-' + file.originalname);
+	},
+});
+
+const fileFilter = (req: Request, file: Express.Multer.File, callback: FileFilterCallback) => {
+	const allowedTypes = ['image/png', 'image/jpeg'];
+
+	if (allowedTypes.includes(file.mimetype)) {
+		callback(null, true); // accept file
+	} else {
+		callback(new Error('Only PNG and JPEG images are allowed!') as any, false);
+	}
+};
+
 app.use(cookieParser());
 app.use(express.json());
+app.use(
+	multer({
+		storage: fileStorage,
+		limits: { fileSize: 5 * 1024 * 1024 },
+		fileFilter,
+	}).array('image', 5),
+);
 app.use(
 	cors({
 		origin: 'http://localhost:5173',
