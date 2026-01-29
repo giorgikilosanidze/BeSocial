@@ -16,7 +16,6 @@ const PostCard = ({ post }: PostCardProps) => {
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 
 	const postCreatedAgo = timeAgo(post.createdAt);
-	console.log(post);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {

@@ -1,10 +1,20 @@
 import { createPost } from '@/features/feed/feedThunks';
 import { useAppDispatch } from '@/hooks/reduxHooks';
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 
 const CreatePost = () => {
 	const [postText, setPostText] = useState('');
 	const dispatch = useAppDispatch();
+	const [images, setImages] = useState<File[]>([]);
+	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+	const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+	useEffect(() => {
+		return () => {
+			imagePreviews.forEach((url) => URL.revokeObjectURL(url));
+		};
+	}, [imagePreviews]);
 
 	const handleCreatePost = () => {
 		dispatch(createPost({ text: postText }));
@@ -13,6 +23,37 @@ const CreatePost = () => {
 
 	const handlePostText = (text: string) => {
 		setPostText(text);
+	};
+
+	const handleImageUpload = (uploadedImages: FileList | null) => {
+		const imagesArr = Array.from(uploadedImages ?? []);
+
+		if (images.length + imagesArr.length > 5) {
+			console.warn('You can only upload maximum 5 images.');
+			return;
+		}
+
+		const validImages = imagesArr.filter((image) => {
+			if (image.size > MAX_FILE_SIZE) {
+				console.warn(`${image.name} is too large`);
+				return false;
+			}
+			return true;
+		});
+
+		setImages((prev) => [...prev, ...validImages]);
+
+		const newPreviews = validImages.map((file) => URL.createObjectURL(file));
+		setImagePreviews((prev) => [...prev, ...newPreviews]);
+	};
+
+	const deleteImagePreview = (index: number) => {
+		setImages((prev) => prev.filter((_, i) => i !== index));
+
+		// Revoke the URL to free memory
+		URL.revokeObjectURL(imagePreviews[index]);
+
+		setImagePreviews((prev) => prev.filter((_, i) => i !== index));
 	};
 
 	return (
@@ -39,30 +80,40 @@ const CreatePost = () => {
 			</div>
 
 			{/* Image Preview Container */}
-			<div id="image-preview-container" className="mt-3 hidden">
+			<div
+				id="image-preview-container"
+				className={`mt-3 ${images.length > 0 ? '' : 'hidden'}`}
+			>
 				<div className="grid grid-cols-2 gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
 					{/* Images will be displayed here */}
-					{/* <div className="relative group">
-						<img src="" alt="Preview" className="w-full h-48 object-cover rounded-lg" />
-						<button
-							type="button"
-							className="absolute top-2 right-2 bg-white hover:bg-gray-100 rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-						>
-							<svg
-								className="w-4 h-4 text-gray-700"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
+					{imagePreviews.map((src, index) => (
+						<div key={src} className="relative group">
+							<img
+								src={src}
+								alt="Preview"
+								className="w-full h-48 object-cover rounded-lg"
+							/>
+							<button
+								onClick={() => deleteImagePreview(index)}
+								type="button"
+								className="absolute top-2 right-2 bg-white hover:bg-gray-100 rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
 							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M6 18L18 6M6 6l12 12"
-								/>
-							</svg>
-						</button>
-					</div> */}
+								<svg
+									className="w-4 h-4 text-gray-700"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M6 18L18 6M6 6l12 12"
+									/>
+								</svg>
+							</button>
+						</div>
+					))}
 				</div>
 			</div>
 
@@ -83,7 +134,15 @@ const CreatePost = () => {
 							/>
 						</svg>
 						<span className="text-sm font-medium text-gray-700">Photo</span>
-						<input type="file" className="hidden" />
+						<input
+							onChange={(e: ChangeEvent<HTMLInputElement>) =>
+								handleImageUpload(e.target.files)
+							}
+							type="file"
+							accept="image/png,image/jpeg"
+							className="hidden"
+							multiple
+						/>
 					</label>
 				</div>
 				<button
