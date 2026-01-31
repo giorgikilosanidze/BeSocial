@@ -1,10 +1,11 @@
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
-import { useAppDispatch } from '@/hooks/reduxHooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
+	const user = useAppSelector((state) => state.auth.user);
 	const [isAccountMenuShown, setIsAccountMenuShown] = useState(false);
 	const userIconParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
@@ -153,10 +154,10 @@ const Navbar = () => {
 								<div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 scale-95 transition-all duration-200 ease-out origin-top-right">
 									<div className="px-4 py-3 border-b border-gray-100 mb-2">
 										<p className="text-sm font-semibold text-gray-900">
-											User Name
+											{user.username}
 										</p>
 										<p className="text-xs text-gray-500 truncate">
-											user@example.com
+											{user.email}
 										</p>
 									</div>
 
