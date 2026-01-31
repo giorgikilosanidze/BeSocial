@@ -19,7 +19,7 @@ export interface CreatePostResponse {
 	createdAt: string;
 	updatedAt: string;
 	id: string;
-	imageUrl?: string;
+	imageUrls?: string[];
 	likes?: number;
 	loves?: number;
 	comments?: number;
@@ -36,14 +36,14 @@ export interface EditPostData {
 	postId: string;
 	post: {
 		text?: string;
-		imageUrl?: string;
+		imageUrls?: string[];
 	};
 }
 
 export interface EditPostResponse {
 	postId: string;
 	text?: string;
-	imageUrl?: string;
+	imageUrls?: string[];
 }
 
 export interface DeletePostResponse {

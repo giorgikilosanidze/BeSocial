@@ -3,21 +3,17 @@ import type {
 	DeletePostResponse,
 	EditPostData,
 	FetchPostsResponse,
-	Post,
 } from '@/types/feed';
 import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-export const createPost = createAsyncThunk<CreatePostResponse, Post>(
+export const createPost = createAsyncThunk<CreatePostResponse, FormData>(
 	'feed/createPost',
 	async (postData, { rejectWithValue }) => {
 		try {
 			const response = await fetch('http://localhost:3000/api/feed/posts', {
 				method: 'POST',
-				body: JSON.stringify(postData),
-				headers: {
-					'Content-Type': 'application/json',
-				},
+				body: postData,
 				credentials: 'include',
 			});
 
@@ -33,10 +29,7 @@ export const createPost = createAsyncThunk<CreatePostResponse, Post>(
 
 						const retry = await fetch('http://localhost:3000/api/feed/posts', {
 							method: 'POST',
-							body: JSON.stringify(postData),
-							headers: {
-								'Content-Type': 'application/json',
-							},
+							body: postData,
 							credentials: 'include',
 						});
 

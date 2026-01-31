@@ -3,12 +3,14 @@ import Post from './post.model.js';
 import { EditPostDB, PostType } from './post.types.js';
 import { Request } from 'express';
 import { PostIdParams } from '../feed/feed.types.js';
+import { removeImage } from '../../utils/removeImage.js';
 
 export async function createPost(postData: PostType) {
 	const post = new Post({
 		text: postData.text,
-		author: postData.userId,
+		imageUrls: postData.imageUrls,
 		isEdited: false,
+		author: postData.userId,
 	});
 
 	const savedPost = await post.save();
@@ -28,7 +30,7 @@ export async function editPostDB(editedPostData: EditPostDB) {
 		editedPostData.postId,
 		{
 			...(editedPostData.editedText && { text: editedPostData.editedText }),
-			...(editedPostData.editedImageUrl && { imageUrl: editedPostData.editedImageUrl }),
+			...(editedPostData.editedImageUrls && { imageUrls: editedPostData.editedImageUrls }),
 			isEdited: true,
 		},
 		{
@@ -48,14 +50,20 @@ export async function editPostDB(editedPostData: EditPostDB) {
 	return editedPost;
 }
 
-export async function deletePostDB(postId: string): Promise<boolean> {
-	const deletedPost = await Post.findByIdAndDelete(postId);
+export async function deletePostDB(postId: string) {
+	const postToDelete = await Post.findById(postId);
 
-	if (!deletedPost) {
+	if (!postToDelete) {
 		throw new Error('Post not found!');
 	}
 
-	return true;
+	if (postToDelete.imageUrls) {
+		postToDelete.imageUrls.forEach((url) => {
+			removeImage(url);
+		});
+	}
+
+	await postToDelete.deleteOne();
 }
 
 export async function getAuthorIdByParams(req: Request<PostIdParams>) {

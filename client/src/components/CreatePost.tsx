@@ -17,8 +17,19 @@ const CreatePost = () => {
 	}, [imagePreviews]);
 
 	const handleCreatePost = () => {
-		dispatch(createPost({ text: postText }));
-		setPostText('');
+		const formData = new FormData();
+
+		images.forEach((img) => formData.append('image', img));
+		formData.append('text', postText);
+
+		try {
+			dispatch(createPost(formData)).unwrap();
+			setPostText('');
+			setImagePreviews([]);
+			setImages([]);
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
 	const handlePostText = (text: string) => {
@@ -135,9 +146,10 @@ const CreatePost = () => {
 						</svg>
 						<span className="text-sm font-medium text-gray-700">Photo</span>
 						<input
-							onChange={(e: ChangeEvent<HTMLInputElement>) =>
-								handleImageUpload(e.target.files)
-							}
+							onChange={(e: ChangeEvent<HTMLInputElement>) => {
+								handleImageUpload(e.target.files);
+								e.target.value = '';
+							}}
 							type="file"
 							accept="image/png,image/jpeg"
 							className="hidden"

@@ -7,10 +7,15 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import multer, { FileFilterCallback } from 'multer';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
 const app = express();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const fileStorage = multer.diskStorage({
 	destination(req, file, callback) {
@@ -40,6 +45,7 @@ app.use(
 		fileFilter,
 	}).array('image', 5),
 );
+app.use('/images', express.static(path.join(__dirname, '../images')));
 app.use(
 	cors({
 		origin: process.env.CLIENT_URL,

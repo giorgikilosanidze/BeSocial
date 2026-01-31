@@ -2,7 +2,7 @@ import { Request } from 'express';
 
 export interface CreatePostRequest extends Request {
 	userId?: string;
-	body: { text: string; imageUrl?: string };
+	body: { text: string; imageUrls?: string[] };
 }
 
 export interface PostIdParams {
@@ -11,5 +11,5 @@ export interface PostIdParams {
 
 export interface EditPostData {
 	text?: string;
-	imageUrl?: string;
+	imageUrls?: string[];
 }

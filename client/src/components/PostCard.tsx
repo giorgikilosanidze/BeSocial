@@ -11,6 +11,8 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [editedText, setEditedText] = useState('');
 	const dispatch = useAppDispatch();
 
+	const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+
 	const hasPermission = post.author._id === userId;
 
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
@@ -196,11 +198,16 @@ const PostCard = ({ post }: PostCardProps) => {
 			</div>
 
 			{/* Post Image */}
-			{post.imageUrl && (
-				<div className="w-full">
-					<img src={post.imageUrl} alt="Post" className="w-full object-cover max-h-96" />
-				</div>
-			)}
+			{post.imageUrls &&
+				post.imageUrls.map((url) => (
+					<div key={url} className="w-full">
+						<img
+							src={`${SERVER_URL}${url}`}
+							alt="Post"
+							className="w-full object-cover max-h-96"
+						/>
+					</div>
+				))}
 
 			{/* Reactions Summary */}
 			<div className="px-4 py-3 flex items-center justify-between text-sm text-gray-500 border-b border-gray-100">

@@ -7,10 +7,10 @@ const postSchema = new Schema(
 	{
 		text: {
 			type: String,
-			required: true,
+			required: false,
 		},
-		imageUrl: {
-			type: String,
+		imageUrls: {
+			type: Array,
 			required: false,
 		},
 		isEdited: {

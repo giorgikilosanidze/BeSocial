@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { createPost, deletePostDB, editPostDB, getPostsFromDB } from '../post/post.repository.js';
 import { CreatePostRequest, EditPostData, PostIdParams } from './feed.types.js';
+import path from 'path';
+import { removeImage } from '../../utils/removeImage.js';
 
 export async function getPosts(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -18,9 +20,25 @@ export async function postCreation(req: CreatePostRequest, res: Response, next: 
 
 	const text = req.body.text;
 	const userId = req.userId;
+	const imageFiles = req.files;
+
+	const imageUrls: string[] = [];
+
+	if (Array.isArray(imageFiles) && imageFiles?.length) {
+		imageFiles.forEach((image) => {
+			const normalizedPath = image.path.split(path.sep).join('/');
+			imageUrls.push(normalizedPath);
+		});
+	}
+
+	if (!text && imageUrls.length === 0) {
+		return res.status(400).json({ message: 'Post must have at least text or image!' });
+	}
+
+	console.log(req.files);
 
 	try {
-		const post = await createPost({ text, userId });
+		const post = await createPost({ text, userId, imageUrls });
 		return res.status(201).json(post);
 	} catch (error: any) {
 		return next(error);
@@ -38,14 +56,14 @@ export async function editPost(
 
 	const postId = req.params.postId;
 	const editedText = req.body.text;
-	const editedImageUrl = req.body.imageUrl;
+	const editedImageUrls = req.body.imageUrls;
 
-	if (!editedText && !editedImageUrl) {
+	if (!editedText && !editedImageUrls) {
 		return res.status(400).json({ message: 'Not enough data to edit post!' });
 	}
 
 	try {
-		const editedPost = await editPostDB({ postId, editedText, editedImageUrl });
+		const editedPost = await editPostDB({ postId, editedText, editedImageUrls });
 		return res.status(200).json(editedPost);
 	} catch (error: any) {
 		return next(error);

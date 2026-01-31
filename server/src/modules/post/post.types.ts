@@ -2,19 +2,19 @@ import { Document } from 'mongoose';
 
 export interface PostModel extends Document {
 	text: string;
-	imageUrl?: string;
+	imageUrls?: string[];
 	isEdited: boolean;
 	author: string;
 }
 
 export interface PostType {
 	text: string;
-	imageUrl?: string;
+	imageUrls?: string[];
 	userId: string;
 }
 
 export interface EditPostDB {
 	editedText?: string;
-	editedImageUrl?: string;
+	editedImageUrls?: string[];
 	postId: string;
 }
