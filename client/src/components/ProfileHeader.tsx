@@ -6,11 +6,12 @@ import { useParams } from 'react-router-dom';
 interface ProfileHeaderProps {
 	username: string;
 	postsCount: number;
+	hasPermission: boolean;
 }
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
-const ProfileHeader = ({ username, postsCount }: ProfileHeaderProps) => {
+const ProfileHeader = ({ username, postsCount, hasPermission }: ProfileHeaderProps) => {
 	const profilePictureUrl = useAppSelector((state) => state.profile.user.profilePictureUrl);
 	const coverPhotoUrl = useAppSelector((state) => state.profile.user.coverPhotoUrl);
 	const dispatch = useAppDispatch();
@@ -49,32 +50,39 @@ const ProfileHeader = ({ username, postsCount }: ProfileHeaderProps) => {
 				{/* Cover Photo - will be replaced with actual image */}
 				<img src={coverPhotoSrc} alt="Cover" className="w-full h-full object-cover" />
 				{/* Edit Cover Photo Button */}
-				<label className="absolute bottom-4 right-4 bg-white text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors shadow-md flex items-center space-x-2 cursor-pointer">
-					<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+				{hasPermission && (
+					<label className="absolute bottom-4 right-4 bg-white text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors shadow-md flex items-center space-x-2 cursor-pointer">
+						<svg
+							className="w-4 h-4"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+							/>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+							/>
+						</svg>
+						<span>Edit Cover</span>
+						<input
+							onChange={(e: ChangeEvent<HTMLInputElement>) => {
+								handleCoverPhoto(e.target.files);
+								e.target.value = '';
+							}}
+							type="file"
+							accept="image/png,image/jpeg"
+							className="hidden"
 						/>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-						/>
-					</svg>
-					<span>Edit Cover</span>
-					<input
-						onChange={(e: ChangeEvent<HTMLInputElement>) => {
-							handleCoverPhoto(e.target.files);
-							e.target.value = '';
-						}}
-						type="file"
-						accept="image/png,image/jpeg"
-						className="hidden"
-					/>
-				</label>
+					</label>
+				)}
 			</div>
 
 			{/* Profile Info Section */}
@@ -91,36 +99,38 @@ const ProfileHeader = ({ username, postsCount }: ProfileHeaderProps) => {
 								/>
 							</div>
 							{/* Edit Profile Photo Button */}
-							<label className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors border-2 border-gray-200 cursor-pointer">
-								<svg
-									className="w-5 h-5 text-gray-700"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
-								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+							{hasPermission && (
+								<label className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors border-2 border-gray-200 cursor-pointer">
+									<svg
+										className="w-5 h-5 text-gray-700"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+										/>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+										/>
+									</svg>
+									<input
+										onChange={(e: ChangeEvent<HTMLInputElement>) => {
+											handleProfilePicture(e.target.files);
+											e.target.value = '';
+										}}
+										type="file"
+										accept="image/png,image/jpeg"
+										className="hidden"
 									/>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-									/>
-								</svg>
-								<input
-									onChange={(e: ChangeEvent<HTMLInputElement>) => {
-										handleProfilePicture(e.target.files);
-										e.target.value = '';
-									}}
-									type="file"
-									accept="image/png,image/jpeg"
-									className="hidden"
-								/>
-							</label>
+								</label>
+							)}
 						</div>
 						<div className="pb-2">
 							<h1 className="text-3xl font-bold text-gray-900 mb-6">{username}</h1>

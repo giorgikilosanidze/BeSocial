@@ -33,6 +33,10 @@ const Navbar = () => {
 		};
 	}, [isAccountMenuShown]);
 
+	const handleGoToProfilePage = () => {
+		navigate(routes.profile.replace(':userId', user.id));
+	};
+
 	const handleNavigationToHome = () => {
 		navigate(routes.feed);
 	};
@@ -168,7 +172,10 @@ const Navbar = () => {
 
 							{isAccountMenuShown && (
 								<div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 scale-95 transition-all duration-200 ease-out origin-top-right">
-									<div className="px-4 py-3 border-b border-gray-100 mb-2">
+									<div
+										onClick={handleGoToProfilePage}
+										className="px-4 py-3 border-b border-gray-100 mb-2 hover:bg-gray-100 transition-colors cursor-pointer"
+									>
 										<p className="text-sm font-semibold text-gray-900">
 											{user.username}
 										</p>
@@ -179,7 +186,7 @@ const Navbar = () => {
 
 									<a
 										href="#"
-										className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+										className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
 									>
 										<svg
 											className="w-4 h-4 mr-3"
@@ -198,7 +205,7 @@ const Navbar = () => {
 									</a>
 									<a
 										href="#"
-										className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+										className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
 									>
 										<svg
 											className="w-4 h-4 mr-3"
@@ -217,7 +224,7 @@ const Navbar = () => {
 									</a>
 									<a
 										href="#"
-										className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+										className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
 									>
 										<svg
 											className="w-4 h-4 mr-3"

@@ -1,15 +1,19 @@
+import routes from '@/constants/routes';
 import { createPost } from '@/features/feed/feedThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const CreatePost = () => {
+	const userId = useAppSelector((state) => state.auth.user.id);
 	const profilePictureUrl = useAppSelector((state) => state.auth.user.profilePictureUrl);
 	const [postText, setPostText] = useState('');
 	const dispatch = useAppDispatch();
 	const [images, setImages] = useState<File[]>([]);
 	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+	const navigate = useNavigate();
 
 	const profilePictureSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
@@ -22,6 +26,10 @@ const CreatePost = () => {
 			imagePreviews.forEach((url) => URL.revokeObjectURL(url));
 		};
 	}, [imagePreviews]);
+
+	const handleGoToProfilePage = () => {
+		navigate(routes.profile.replace(':userId', userId));
+	};
 
 	const handleCreatePost = () => {
 		const formData = new FormData();
@@ -77,7 +85,10 @@ const CreatePost = () => {
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
 			<div className="flex space-x-3">
-				<div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+				<div
+					onClick={handleGoToProfilePage}
+					className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+				>
 					<img
 						src={profilePictureSrc}
 						alt="Profile"

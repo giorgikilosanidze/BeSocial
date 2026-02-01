@@ -12,9 +12,12 @@ import PostCard from '@/components/PostCard';
 import CreatePost from '@/components/CreatePost';
 
 const Profile = () => {
+	const loggedInUserId = useAppSelector((state) => state.auth.user.id);
 	const user = useAppSelector((state) => state.profile.user);
 	const { userId } = useParams<{ userId: string }>();
 	const dispatch = useAppDispatch();
+
+	const hasPermission = loggedInUserId === userId;
 
 	useEffect(() => {
 		if (!userId) return;
@@ -28,7 +31,11 @@ const Profile = () => {
 			{/* Main Container */}
 			<div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
 				{/* Profile Header */}
-				<ProfileHeader username={user.username} postsCount={user.postsCount} />
+				<ProfileHeader
+					username={user.username}
+					postsCount={user.postsCount}
+					hasPermission={hasPermission}
+				/>
 
 				{/* Tabs Navigation */}
 				<ProfileTabs />
@@ -45,7 +52,7 @@ const Profile = () => {
 					{/* Right Content - Posts/Timeline */}
 					<div className="lg:col-span-2 space-y-6">
 						{/* Create Post */}
-						<CreatePost />
+						{hasPermission && <CreatePost />}
 
 						{/* Posts */}
 						{user.posts.map((post) => (

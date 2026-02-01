@@ -1,8 +1,10 @@
+import routes from '@/constants/routes';
 import { deletePost, editPost } from '@/features/feed/feedThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import type { EditPostData, PostCardProps } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -12,8 +14,9 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [optionsVisibility, setOptionsVisibility] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [editedText, setEditedText] = useState('');
-	const dispatch = useAppDispatch();
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
+	const dispatch = useAppDispatch();
+	const navigate = useNavigate();
 
 	const hasPermission = post.author._id === userId;
 
@@ -39,6 +42,10 @@ const PostCard = ({ post }: PostCardProps) => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
 	}, [optionsVisibility]);
+
+	const handleGoToProfilePage = () => {
+		navigate(routes.profile.replace(':userId', post.author._id));
+	};
 
 	const toggleOptionsVisibility = () => {
 		setOptionsVisibility(!optionsVisibility);
@@ -90,7 +97,10 @@ const PostCard = ({ post }: PostCardProps) => {
 			{/* Post Header */}
 			<div className="p-4 flex items-start justify-between">
 				<div className="flex space-x-3">
-					<div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+					<div
+						onClick={handleGoToProfilePage}
+						className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+					>
 						<img
 							src={profilePictureSrc}
 							alt={post.author.username}
@@ -98,7 +108,10 @@ const PostCard = ({ post }: PostCardProps) => {
 						/>
 					</div>
 					<div>
-						<h4 className="font-semibold text-gray-900 text-sm">
+						<h4
+							onClick={handleGoToProfilePage}
+							className="font-semibold text-gray-900 text-sm cursor-pointer"
+						>
 							{post.author.username}
 						</h4>
 						<p className="text-xs text-gray-500">
