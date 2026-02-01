@@ -173,7 +173,7 @@ const ProfileHeader = ({ username, postsCount }: ProfileHeaderProps) => {
 				<div className="mt-6 space-y-3">
 					<h1 className="font-semibold text-xl">BIO</h1>
 					<p className="text-gray-700">
-						Those who break the rules are scum, but those who abondon there friends are
+						Those who break the rules are scum, but those who abandon there friends are
 						worse than scum.
 					</p>
 				</div>

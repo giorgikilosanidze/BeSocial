@@ -82,6 +82,8 @@ export async function postSignUp(
 			username: user.username,
 			email: user.email,
 			postsCount: 0,
+			profilePictureUrl: user.profilePictureUrl,
+			coverPhotoUrl: user.coverPhotoUrl,
 		});
 }
 
@@ -137,6 +139,8 @@ export async function postLogIn(
 				username: existedUser.username,
 				email: existedUser.email,
 				postsCount,
+				profilePictureUrl: existedUser.profilePictureUrl,
+				coverPhotoUrl: existedUser.coverPhotoUrl,
 			});
 	} else {
 		return res.status(400).json({
@@ -186,9 +190,14 @@ export async function sendLoggedInUser(req: UserIdRequest, res: Response, next: 
 
 		const postsCount = await getPostsCountForUsers(req.userId);
 
-		return res
-			.status(200)
-			.json({ id: user._id, username: user.username, email: user.email, postsCount });
+		return res.status(200).json({
+			id: user._id,
+			username: user.username,
+			email: user.email,
+			postsCount,
+			profilePictureUrl: user.profilePictureUrl,
+			coverPhotoUrl: user.coverPhotoUrl,
+		});
 	} catch (error: any) {
 		next(error);
 	}

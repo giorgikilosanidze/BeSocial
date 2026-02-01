@@ -4,18 +4,23 @@ import type { EditPostData, PostCardProps } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+
 const PostCard = ({ post }: PostCardProps) => {
 	const userId = useAppSelector((state) => state.auth.user.id);
+	const profilePictureUrl = useAppSelector((state) => state.auth.user.profilePictureUrl);
 	const [optionsVisibility, setOptionsVisibility] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [editedText, setEditedText] = useState('');
 	const dispatch = useAppDispatch();
-
-	const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 
 	const hasPermission = post.author._id === userId;
 
-	const threeDotsParentRef = useRef<HTMLDivElement>(null);
+	const profilePictureSrc =
+		profilePictureUrl && hasPermission
+			? `${SERVER_URL}/${profilePictureUrl}`
+			: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
 
 	const postCreatedAgo = timeAgo(post.createdAt);
 
@@ -87,9 +92,7 @@ const PostCard = ({ post }: PostCardProps) => {
 				<div className="flex space-x-3">
 					<div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
 						<img
-							src={
-								'https://ui-avatars.com/api/?name=Sarah+Johnson&background=2563eb&color=fff'
-							}
+							src={profilePictureSrc}
 							alt={post.author.username}
 							className="w-full h-full object-cover"
 						/>

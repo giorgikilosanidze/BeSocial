@@ -26,6 +26,8 @@ export interface AuthResponse {
 	username: string;
 	email: string;
 	postsCount: number;
+	profilePictureUrl?: string;
+	coverPhotoUrl?: string;
 }
 
 export type LoginError = {

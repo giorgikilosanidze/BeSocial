@@ -3,7 +3,14 @@ import { getUserOnRefresh, loginUser, logOutUser, signupUser } from './authThunk
 import type { AuthSliceState } from '@/types/auth';
 
 const initialState: AuthSliceState = {
-	user: { id: '', username: '', email: '', postsCount: 0 },
+	user: {
+		id: '',
+		username: '',
+		email: '',
+		postsCount: 0,
+		profilePictureUrl: '',
+		coverPhotoUrl: '',
+	},
 	isLoggedIn: false,
 	isLoading: true,
 	error: '',

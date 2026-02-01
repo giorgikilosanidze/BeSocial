@@ -1,12 +1,19 @@
 import { createPost } from '@/features/feed/feedThunks';
-import { useAppDispatch } from '@/hooks/reduxHooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+
 const CreatePost = () => {
+	const profilePictureUrl = useAppSelector((state) => state.auth.user.profilePictureUrl);
 	const [postText, setPostText] = useState('');
 	const dispatch = useAppDispatch();
 	const [images, setImages] = useState<File[]>([]);
 	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+	const profilePictureSrc = profilePictureUrl
+		? `${SERVER_URL}/${profilePictureUrl}`
+		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
 
 	const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -72,7 +79,7 @@ const CreatePost = () => {
 			<div className="flex space-x-3">
 				<div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
 					<img
-						src="https://ui-avatars.com/api/?name=User&background=2563eb&color=fff"
+						src={profilePictureSrc}
 						alt="Profile"
 						className="w-full h-full object-cover"
 					/>

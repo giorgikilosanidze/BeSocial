@@ -56,8 +56,29 @@ export const uploadProfilePicture = createAsyncThunk<ProfilePictureReturnData, U
 
 		const res = await response.json();
 
-		if (!response.ok) {
-			rejectWithValue({ res });
+		if (res.message === 'ACCESS_TOKEN_EXPIRED' || res.message === 'NO_ACCESS_TOKEN') {
+			try {
+				await refreshTokenRequest();
+
+				const retry = await fetch(
+					`${SERVER_URL}/api/profile/profilePicture/${data.userId}`,
+					{
+						method: 'POST',
+						body: data.formData,
+						credentials: 'include',
+					},
+				);
+
+				if (!retry.ok) {
+					const retryError = await retry.json();
+					return rejectWithValue(retryError.message || 'Not authenticated');
+				}
+
+				const retryRes = await retry.json();
+				return retryRes;
+			} catch (refreshError: unknown) {
+				return rejectWithValue((refreshError as Error).message);
+			}
 		}
 
 		return res;
@@ -75,8 +96,26 @@ export const uploadCoverPhoto = createAsyncThunk<CoverPhotoReturnData, UploadPic
 
 		const res = await response.json();
 
-		if (!response.ok) {
-			rejectWithValue({ res });
+		if (res.message === 'ACCESS_TOKEN_EXPIRED' || res.message === 'NO_ACCESS_TOKEN') {
+			try {
+				await refreshTokenRequest();
+
+				const retry = await fetch(`${SERVER_URL}/api/profile/coverPhoto/${data.userId}`, {
+					method: 'POST',
+					body: data.formData,
+					credentials: 'include',
+				});
+
+				if (!retry.ok) {
+					const retryError = await retry.json();
+					return rejectWithValue(retryError.message || 'Not authenticated');
+				}
+
+				const retryRes = await retry.json();
+				return retryRes;
+			} catch (refreshError: unknown) {
+				return rejectWithValue((refreshError as Error).message);
+			}
 		}
 
 		return res;
