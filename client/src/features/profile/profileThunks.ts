@@ -1,3 +1,4 @@
+import SERVER_URL from '@/constants/serverUrl';
 import type { UserProfile } from '@/types/profile';
 import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -5,7 +6,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 export const fetchProfileInfo = createAsyncThunk<UserProfile, string>(
 	'profile/fetchProfileInfo',
 	async (userId, { rejectWithValue }) => {
-		const response = await fetch(`http://localhost:3000/api/profile/user/${userId}`, {
+		const response = await fetch(`${SERVER_URL}/api/profile/user/${userId}`, {
 			credentials: 'include',
 		});
 
@@ -16,7 +17,7 @@ export const fetchProfileInfo = createAsyncThunk<UserProfile, string>(
 				try {
 					await refreshTokenRequest();
 
-					const retry = await fetch(`http://localhost:3000/api/profile/user/${userId}`, {
+					const retry = await fetch(`${SERVER_URL}/api/profile/user/${userId}`, {
 						credentials: 'include',
 					});
 

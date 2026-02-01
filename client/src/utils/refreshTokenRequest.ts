@@ -1,5 +1,7 @@
+import SERVER_URL from '@/constants/serverUrl';
+
 export async function refreshTokenRequest(): Promise<void> {
-	const refreshTokenResponse = await fetch('http://localhost:3000/api/auth/refreshToken', {
+	const refreshTokenResponse = await fetch(`${SERVER_URL}/api/auth/refreshToken`, {
 		method: 'POST',
 		credentials: 'include',
 	});

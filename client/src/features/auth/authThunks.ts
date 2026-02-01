@@ -1,3 +1,4 @@
+import SERVER_URL from '@/constants/serverUrl';
 import type { AuthResponse, LoginError, SignupError, UserLogin, UserSignup } from '@/types/auth';
 import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -6,7 +7,7 @@ export const signupUser = createAsyncThunk<AuthResponse, UserSignup, { rejectVal
 	'auth/signupUser',
 	async (user, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/api/auth/signup', {
+			const response = await fetch(`${SERVER_URL}/api/auth/signup`, {
 				method: 'POST',
 				body: JSON.stringify(user),
 				headers: {
@@ -32,7 +33,7 @@ export const loginUser = createAsyncThunk<AuthResponse, UserLogin, { rejectValue
 	'auth/loginUser',
 	async (user, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/api/auth/login', {
+			const response = await fetch(`${SERVER_URL}/api/auth/login`, {
 				method: 'POST',
 				body: JSON.stringify(user),
 				headers: {
@@ -58,7 +59,7 @@ export const logOutUser = createAsyncThunk<boolean>(
 	'auth/logOutUser',
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/api/auth/logout', {
+			const response = await fetch(`${SERVER_URL}/api/auth/logout`, {
 				method: 'POST',
 				credentials: 'include',
 			});
@@ -79,7 +80,7 @@ export const getUserOnRefresh = createAsyncThunk<AuthResponse>(
 	'auth/getUserOnRefresh',
 	async (_, { rejectWithValue }) => {
 		try {
-			const response = await fetch('http://localhost:3000/api/auth/me', {
+			const response = await fetch(`${SERVER_URL}/api/auth/me`, {
 				credentials: 'include',
 			});
 
@@ -93,7 +94,7 @@ export const getUserOnRefresh = createAsyncThunk<AuthResponse>(
 					try {
 						await refreshTokenRequest();
 
-						const retry = await fetch('http://localhost:3000/api/auth/me', {
+						const retry = await fetch(`${SERVER_URL}/api/auth/me`, {
 							credentials: 'include',
 						});
 
