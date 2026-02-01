@@ -4,12 +4,18 @@ import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+
 const Navbar = () => {
 	const user = useAppSelector((state) => state.auth.user);
 	const [isAccountMenuShown, setIsAccountMenuShown] = useState(false);
 	const userIconParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+
+	const profilePictureSrc = user.profilePictureUrl
+		? `${SERVER_URL}/${user.profilePictureUrl}`
+		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -151,9 +157,9 @@ const Navbar = () => {
 								onClick={toggleAccountMenuVisibility}
 								className="flex items-center focus:outline-none"
 							>
-								<div className="w-9 h-9 rounded-full overflow-hidden border-2 border-blue-600 cursor-pointer transition-transform transform hover:scale-105">
+								<div className="w-9 h-9 rounded-full overflow-hidden border-2 cursor-pointer transition-transform transform hover:scale-105">
 									<img
-										src="https://ui-avatars.com/api/?name=User&background=2563eb&color=fff"
+										src={profilePictureSrc}
 										alt="Profile"
 										className="w-full h-full object-cover"
 									/>
