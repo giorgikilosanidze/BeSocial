@@ -16,6 +16,14 @@ const userSchema = new Schema({
 		required: true,
 		type: String,
 	},
+	profilePictureUrl: {
+		required: false,
+		type: String,
+	},
+	coverPhotoUrl: {
+		required: false,
+		type: String,
+	},
 	refreshToken: {
 		type: String,
 	},

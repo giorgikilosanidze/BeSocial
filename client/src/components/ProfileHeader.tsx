@@ -1,21 +1,55 @@
+import { uploadCoverPhoto, uploadProfilePicture } from '@/features/profile/profileThunks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
+import type { ChangeEvent } from 'react';
+import { useParams } from 'react-router-dom';
+
 interface ProfileHeaderProps {
 	username: string;
 	postsCount: number;
 }
 
+const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+
 const ProfileHeader = ({ username, postsCount }: ProfileHeaderProps) => {
+	const profilePictureUrl = useAppSelector((state) => state.profile.user.profilePictureUrl);
+	const coverPhotoUrl = useAppSelector((state) => state.profile.user.coverPhotoUrl);
+	const dispatch = useAppDispatch();
+	const { userId } = useParams<{ userId: string }>();
+
+	const profilePictureSrc = profilePictureUrl
+		? `${SERVER_URL}/${profilePictureUrl}`
+		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+
+	const coverPhotoSrc = coverPhotoUrl
+		? `${SERVER_URL}/${coverPhotoUrl}`
+		: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200';
+
+	const handleProfilePicture = (image: FileList | null) => {
+		if (!image || !userId) return;
+
+		const formData = new FormData();
+		formData.append('image', image[0]);
+
+		dispatch(uploadProfilePicture({ userId, formData }));
+	};
+
+	const handleCoverPhoto = (image: FileList | null) => {
+		if (!image || !userId) return;
+
+		const formData = new FormData();
+		formData.append('image', image[0]);
+
+		dispatch(uploadCoverPhoto({ userId, formData }));
+	};
+
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mt-6">
 			{/* Cover Photo Section */}
 			<div className="relative h-80 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600">
 				{/* Cover Photo - will be replaced with actual image */}
-				<img
-					src="https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200"
-					alt="Cover"
-					className="w-full h-full object-cover"
-				/>
+				<img src={coverPhotoSrc} alt="Cover" className="w-full h-full object-cover" />
 				{/* Edit Cover Photo Button */}
-				<button className="absolute bottom-4 right-4 bg-white text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors shadow-md flex items-center space-x-2">
+				<label className="absolute bottom-4 right-4 bg-white text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors shadow-md flex items-center space-x-2 cursor-pointer">
 					<svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							strokeLinecap="round"
@@ -31,24 +65,33 @@ const ProfileHeader = ({ username, postsCount }: ProfileHeaderProps) => {
 						/>
 					</svg>
 					<span>Edit Cover</span>
-				</button>
+					<input
+						onChange={(e: ChangeEvent<HTMLInputElement>) => {
+							handleCoverPhoto(e.target.files);
+							e.target.value = '';
+						}}
+						type="file"
+						accept="image/png,image/jpeg"
+						className="hidden"
+					/>
+				</label>
 			</div>
 
 			{/* Profile Info Section */}
 			<div className="px-6 pb-6">
 				{/* Profile Photo */}
-				<div className="flex flex-col sm:flex-row sm:items-end sm:justify-between -mt-20 relative">
-					<div className="flex flex-col sm:flex-row sm:items-end space-y-4 sm:space-y-0 sm:space-x-5">
+				<div className="flex flex-col sm:flex-row sm:items-end sm:justify-between -mt-20 relative pointer-events-none">
+					<div className="flex flex-col sm:flex-row sm:items-end space-y-4 sm:space-y-0 sm:space-x-5 pointer-events-auto">
 						<div className="relative group">
 							<div className="w-40 h-40 rounded-full border-4 border-white overflow-hidden shadow-lg bg-white">
 								<img
-									src="https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200"
+									src={profilePictureSrc}
 									alt="Profile"
 									className="w-full h-full object-cover"
 								/>
 							</div>
 							{/* Edit Profile Photo Button */}
-							<button className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors border-2 border-gray-200">
+							<label className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors border-2 border-gray-200 cursor-pointer">
 								<svg
 									className="w-5 h-5 text-gray-700"
 									fill="none"
@@ -68,7 +111,16 @@ const ProfileHeader = ({ username, postsCount }: ProfileHeaderProps) => {
 										d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
 									/>
 								</svg>
-							</button>
+								<input
+									onChange={(e: ChangeEvent<HTMLInputElement>) => {
+										handleProfilePicture(e.target.files);
+										e.target.value = '';
+									}}
+									type="file"
+									accept="image/png,image/jpeg"
+									className="hidden"
+								/>
+							</label>
 						</div>
 						<div className="pb-2">
 							<h1 className="text-3xl font-bold text-gray-900 mb-6">{username}</h1>
@@ -76,7 +128,7 @@ const ProfileHeader = ({ username, postsCount }: ProfileHeaderProps) => {
 					</div>
 
 					{/* Action Buttons */}
-					<div className="flex space-x-3 mt-4 sm:mt-0">
+					<div className="flex space-x-3 mt-4 sm:mt-0 pointer-events-auto">
 						<button className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm">
 							<svg
 								className="w-4 h-4"

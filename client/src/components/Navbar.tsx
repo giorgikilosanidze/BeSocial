@@ -27,6 +27,10 @@ const Navbar = () => {
 		};
 	}, [isAccountMenuShown]);
 
+	const handleNavigationToHome = () => {
+		navigate(routes.feed);
+	};
+
 	const toggleAccountMenuVisibility = () => {
 		setIsAccountMenuShown(!isAccountMenuShown);
 	};
@@ -45,7 +49,10 @@ const Navbar = () => {
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between items-center h-16">
 					{/* Logo */}
-					<div className="flex items-center space-x-2">
+					<div
+						onClick={handleNavigationToHome}
+						className="flex items-center space-x-2 cursor-pointer"
+					>
 						<div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
 							<svg
 								className="w-5 h-5 text-white"
@@ -90,7 +97,10 @@ const Navbar = () => {
 
 					{/* Right Icons */}
 					<div className="flex items-center space-x-4">
-						<button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+						<button
+							onClick={handleNavigationToHome}
+							className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+						>
 							<svg
 								className="w-6 h-6 text-gray-600"
 								fill="none"

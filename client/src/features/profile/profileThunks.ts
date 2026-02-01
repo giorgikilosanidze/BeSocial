@@ -1,5 +1,10 @@
 import SERVER_URL from '@/constants/serverUrl';
-import type { UserProfile } from '@/types/profile';
+import type {
+	CoverPhotoReturnData,
+	ProfilePictureReturnData,
+	UploadPicturesData,
+	UserProfile,
+} from '@/types/profile';
 import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
@@ -37,5 +42,43 @@ export const fetchProfileInfo = createAsyncThunk<UserProfile, string>(
 		}
 
 		return data;
+	},
+);
+
+export const uploadProfilePicture = createAsyncThunk<ProfilePictureReturnData, UploadPicturesData>(
+	'profile/uploadProfilePicture',
+	async (data, { rejectWithValue }) => {
+		const response = await fetch(`${SERVER_URL}/api/profile/profilePicture/${data.userId}`, {
+			method: 'POST',
+			body: data.formData,
+			credentials: 'include',
+		});
+
+		const res = await response.json();
+
+		if (!response.ok) {
+			rejectWithValue({ res });
+		}
+
+		return res;
+	},
+);
+
+export const uploadCoverPhoto = createAsyncThunk<CoverPhotoReturnData, UploadPicturesData>(
+	'profile/uploadCoverPhoto',
+	async (data, { rejectWithValue }) => {
+		const response = await fetch(`${SERVER_URL}/api/profile/coverPhoto/${data.userId}`, {
+			method: 'POST',
+			body: data.formData,
+			credentials: 'include',
+		});
+
+		const res = await response.json();
+
+		if (!response.ok) {
+			rejectWithValue({ res });
+		}
+
+		return res;
 	},
 );

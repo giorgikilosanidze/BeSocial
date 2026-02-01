@@ -5,4 +5,6 @@ export interface UserSignUp extends Document {
 	email: string;
 	password: string;
 	refreshToken?: string;
+	profilePictureUrl?: string;
+	coverPhotoUrl?: string;
 }

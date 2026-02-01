@@ -35,8 +35,6 @@ export async function postCreation(req: CreatePostRequest, res: Response, next: 
 		return res.status(400).json({ message: 'Post must have at least text or image!' });
 	}
 
-	console.log(req.files);
-
 	try {
 		const post = await createPost({ text, userId, imageUrls });
 		return res.status(201).json(post);

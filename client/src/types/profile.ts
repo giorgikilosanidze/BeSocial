@@ -12,4 +12,19 @@ export interface UserProfile {
 	email: string;
 	postsCount: number;
 	posts: FetchPostsResponse;
+	profilePictureUrl?: string;
+	coverPhotoUrl?: string;
+}
+
+export interface UploadPicturesData {
+	userId: string;
+	formData: FormData;
+}
+
+export interface ProfilePictureReturnData {
+	profilePictureUrl: string;
+}
+
+export interface CoverPhotoReturnData {
+	coverPhotoUrl: string;
 }

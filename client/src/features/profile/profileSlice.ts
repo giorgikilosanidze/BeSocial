@@ -1,10 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchProfileInfo } from './profileThunks';
+import { fetchProfileInfo, uploadCoverPhoto, uploadProfilePicture } from './profileThunks';
 import type { UserSliceState } from '@/types/profile';
 import { createPost, deletePost, editPost } from '../feed/feedThunks';
 
 const initialState: UserSliceState = {
-	user: { id: '', username: '', email: '', postsCount: 0, posts: [] },
+	user: {
+		id: '',
+		username: '',
+		email: '',
+		postsCount: 0,
+		posts: [],
+		profilePictureUrl: '',
+		coverPhotoUrl: '',
+	},
 	error: '',
 	isLoading: false,
 };
@@ -68,6 +76,30 @@ const profileSlice = createSlice({
 			.addCase(deletePost.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.error.message || 'Failed to delete post!';
+			})
+
+			.addCase(uploadProfilePicture.pending, (state) => {
+				state.isLoading = true;
+			})
+			.addCase(uploadProfilePicture.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.user.profilePictureUrl = action.payload.profilePictureUrl;
+			})
+			.addCase(uploadProfilePicture.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.error.message || 'Failed to -upload profile picture!';
+			})
+
+			.addCase(uploadCoverPhoto.pending, (state) => {
+				state.isLoading = true;
+			})
+			.addCase(uploadCoverPhoto.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.user.coverPhotoUrl = action.payload.coverPhotoUrl;
+			})
+			.addCase(uploadCoverPhoto.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.error.message || 'Failed to -upload profile picture!';
 			});
 	},
 });

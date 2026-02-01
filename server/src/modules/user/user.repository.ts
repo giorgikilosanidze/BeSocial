@@ -1,3 +1,4 @@
+import { removeImage } from '../../utils/removeImage.js';
 import User from '../user/user.model.js';
 import { UserSignUp } from './user.types.js';
 
@@ -44,4 +45,36 @@ export async function deleteRefreshToken(id: string) {
 
 export async function deleteRefreshTokenByToken(refreshToken: string) {
 	await User.updateOne({ refreshToken }, { $unset: { refreshToken: '' } });
+}
+
+export async function saveProfilePicture(userId: string, profilePictureUrl: string) {
+	const user = await getUserById(userId);
+
+	if (!user) {
+		throw new Error('This user does not exist!');
+	}
+
+	if (user.profilePictureUrl) {
+		removeImage(user.profilePictureUrl);
+	}
+
+	user.profilePictureUrl = profilePictureUrl;
+
+	await user.save();
+}
+
+export async function saveCoverPhoto(userId: string, coverPhotoUrl: string) {
+	const user = await getUserById(userId);
+
+	if (!user) {
+		throw new Error('This user does not exist!');
+	}
+
+	if (user.coverPhotoUrl) {
+		removeImage(user.coverPhotoUrl);
+	}
+
+	user.coverPhotoUrl = coverPhotoUrl;
+
+	await user.save();
 }
