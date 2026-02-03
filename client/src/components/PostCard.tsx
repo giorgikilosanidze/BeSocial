@@ -10,7 +10,7 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const PostCard = ({ post }: PostCardProps) => {
 	const userId = useAppSelector((state) => state.auth.user.id);
-	const profilePictureUrl = useAppSelector((state) => state.auth.user.profilePictureUrl);
+	const profilePictureUrl = post.author.profilePictureUrl;
 	const [optionsVisibility, setOptionsVisibility] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [editedText, setEditedText] = useState('');
@@ -20,10 +20,9 @@ const PostCard = ({ post }: PostCardProps) => {
 
 	const hasPermission = post.author._id === userId;
 
-	const profilePictureSrc =
-		profilePictureUrl && hasPermission
-			? `${SERVER_URL}/${profilePictureUrl}`
-			: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+	const profilePictureSrc = profilePictureUrl
+		? `${SERVER_URL}/${profilePictureUrl}`
+		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
 
 	const postCreatedAgo = timeAgo(post.createdAt);
 
@@ -91,6 +90,7 @@ const PostCard = ({ post }: PostCardProps) => {
 			console.error('Delete post failed!', error);
 		}
 	};
+	console.log(profilePictureSrc);
 
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200">

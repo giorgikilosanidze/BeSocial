@@ -13,6 +13,7 @@ export interface CreatePostResponse {
 	author: {
 		username: string;
 		_id: string;
+		profilePictureUrl?: string;
 	};
 	isEdited: boolean;
 	text: string;
