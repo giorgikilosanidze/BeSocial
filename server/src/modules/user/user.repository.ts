@@ -78,3 +78,11 @@ export async function saveCoverPhoto(userId: string, coverPhotoUrl: string) {
 
 	await user.save();
 }
+
+export async function searchUsers(query: string) {
+	const users = await User.find({ username: { $regex: query, $options: 'i' } })
+		.select('username _id profilePictureUrl')
+		.limit(5);
+
+	return users;
+}

@@ -3,7 +3,7 @@ import CreatePost from '@/components/CreatePost';
 import PostCard from '@/components/PostCard';
 import ProfileSidebar from '@/components/ProfileSidebar';
 import SuggestionsSidebar from '@/components/SuggestionsSidebar';
-import PostSkeleton from '@/components/PostSkeleton';
+import PostSkeleton from '@/skeletons/PostSkeleton';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect } from 'react';
 import { fetchPosts } from '@/features/feed/feedThunks';

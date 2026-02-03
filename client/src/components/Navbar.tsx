@@ -1,8 +1,18 @@
+import fetchSearchedUsers from '@/api/fetchSearchedUsers';
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { useEffect, useRef, useState } from 'react';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+type SearchedUsers = SearchedUser[];
+
+interface SearchedUser {
+	id: string;
+	username: string;
+	profilePictureUrl?: string;
+}
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -10,12 +20,28 @@ const Navbar = () => {
 	const user = useAppSelector((state) => state.auth.user);
 	const [isAccountMenuShown, setIsAccountMenuShown] = useState(false);
 	const userIconParentRef = useRef<HTMLDivElement>(null);
+	const [searchValue, setSearchValue] = useState('');
+	const [searchedUsers, setSearchedUsers] = useState<SearchedUsers>([]);
+	const debouncedSearch = useDebounce(searchValue);
+	const [isSearchLoading, setIsSearchLoading] = useState(false);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
 		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+
+	useEffect(() => {
+		const loadSearchedUsers = async () => {
+			const users = await fetchSearchedUsers(debouncedSearch);
+			setSearchedUsers(users);
+			setIsSearchLoading(false);
+		};
+
+		if (debouncedSearch) {
+			loadSearchedUsers();
+		}
+	}, [debouncedSearch]);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -33,8 +59,24 @@ const Navbar = () => {
 		};
 	}, [isAccountMenuShown]);
 
-	const handleGoToProfilePage = () => {
-		navigate(routes.profile.replace(':userId', user.id));
+	const handleSearchValue = (value: string) => {
+		setSearchValue(value);
+		setIsSearchLoading(true);
+
+		if (!value) {
+			setSearchedUsers([]);
+		}
+	};
+
+	const handleGoToProfilePage = (userId?: string) => {
+		if (!userId) {
+			navigate(routes.profile.replace(':userId', user.id));
+		} else {
+			navigate(routes.profile.replace(':userId', userId));
+			setSearchedUsers([]);
+			setSearchValue('');
+			setIsSearchLoading(false);
+		}
 	};
 
 	const handleNavigationToHome = () => {
@@ -85,8 +127,12 @@ const Navbar = () => {
 					<div className="hidden md:flex flex-1 max-w-md mx-8">
 						<div className="relative w-full">
 							<input
+								onChange={(e: ChangeEvent<HTMLInputElement>) =>
+									handleSearchValue(e.target.value)
+								}
+								value={searchValue}
 								type="text"
-								placeholder="Search BeSocial..."
+								placeholder="Search Users..."
 								className="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
 							/>
 							<svg
@@ -102,6 +148,65 @@ const Navbar = () => {
 									d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
 								/>
 							</svg>
+
+							{searchValue && (
+								<div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 max-h-96 overflow-y-auto">
+									<div className="py-1">
+										{searchedUsers.map((user) => {
+											const profilePictureSrc = user.profilePictureUrl
+												? `${SERVER_URL}/${user.profilePictureUrl}`
+												: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+
+											return (
+												<div
+													key={user.id}
+													onClick={() => handleGoToProfilePage(user.id)}
+													className="flex items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
+												>
+													<div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 border border-gray-100">
+														<img
+															src={profilePictureSrc}
+															alt="User Profile"
+															className="w-full h-full object-cover"
+														/>
+													</div>
+													<div className="ml-3 flex-1 min-w-0">
+														<p className="text-sm font-semibold text-gray-900 truncate">
+															{user.username}
+														</p>
+														<p className="text-xs text-gray-500 truncate">
+															245 followers
+														</p>
+													</div>
+												</div>
+											);
+										})}
+									</div>
+
+									{isSearchLoading && (
+										<div className="py-1">
+											{[1, 2, 3].map((i) => (
+												<div
+													key={i}
+													className="flex items-center px-4 py-3"
+												>
+													<div className="w-10 h-10 rounded-full bg-gray-100 animate-pulse flex-shrink-0"></div>
+													<div className="ml-3 flex-1">
+														<div className="h-4 bg-gray-100 rounded animate-pulse mb-2 w-3/4"></div>
+														<div className="h-3 bg-gray-100 rounded animate-pulse w-1/2"></div>
+													</div>
+												</div>
+											))}
+										</div>
+									)}
+
+									{searchedUsers.length === 0 && !isSearchLoading && (
+										<div className="p-4 text-center text-gray-500">
+											<p className="text-sm">No users found</p>
+										</div>
+									)}
+								</div>
+							)}
 						</div>
 					</div>
 
@@ -173,7 +278,7 @@ const Navbar = () => {
 							{isAccountMenuShown && (
 								<div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 scale-95 transition-all duration-200 ease-out origin-top-right">
 									<div
-										onClick={handleGoToProfilePage}
+										onClick={() => handleGoToProfilePage()}
 										className="px-4 py-3 border-b border-gray-100 mb-2 hover:bg-gray-100 transition-colors cursor-pointer"
 									>
 										<p className="text-sm font-semibold text-gray-900">
