@@ -10,10 +10,12 @@ import ProfilePhotos from '@/components/ProfilePhotos';
 import ProfileFriends from '@/components/ProfileFriends';
 import PostCard from '@/components/PostCard';
 import CreatePost from '@/components/CreatePost';
+import ProfileSkeleton from '@/skeletons/ProfileSkeleton';
 
 const Profile = () => {
 	const loggedInUserId = useAppSelector((state) => state.auth.user.id);
 	const user = useAppSelector((state) => state.profile.user);
+	const isLoading = useAppSelector((state) => state.profile.isLoading);
 	const { userId } = useParams<{ userId: string }>();
 	const dispatch = useAppDispatch();
 
@@ -23,6 +25,10 @@ const Profile = () => {
 		if (!userId) return;
 		dispatch(fetchProfileInfo(userId));
 	}, [userId, dispatch]);
+
+	if (isLoading) {
+		return <ProfileSkeleton />;
+	}
 
 	return (
 		<div className="min-h-screen bg-gray-50">
