@@ -3,6 +3,7 @@ import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useDebounce } from '@/hooks/useDebounce';
+import SearchSkeleton from '@/skeletons/SearchSkeleton';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -184,20 +185,7 @@ const Navbar = () => {
 									</div>
 
 									{isSearchLoading && searchedUsers.length === 0 && (
-										<div className="py-1">
-											{[1, 2, 3].map((i) => (
-												<div
-													key={i}
-													className="flex items-center px-4 py-3"
-												>
-													<div className="w-10 h-10 rounded-full bg-gray-100 animate-pulse flex-shrink-0"></div>
-													<div className="ml-3 flex-1">
-														<div className="h-4 bg-gray-100 rounded animate-pulse mb-2 w-3/4"></div>
-														<div className="h-3 bg-gray-100 rounded animate-pulse w-1/2"></div>
-													</div>
-												</div>
-											))}
-										</div>
+										<SearchSkeleton />
 									)}
 
 									{searchedUsers.length === 0 && !isSearchLoading && (
