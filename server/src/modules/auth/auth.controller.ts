@@ -67,13 +67,13 @@ export async function postSignUp(
 		.cookie('access_token', token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 			maxAge: 60 * 60 * 1000,
 		})
 		.cookie('refresh_token', refreshToken, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 			maxAge: 7 * 24 * 60 * 60 * 1000,
 		})
 		.status(201)
@@ -124,13 +124,13 @@ export async function postLogIn(
 			.cookie('access_token', token, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
-				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+				sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 				maxAge: 60 * 60 * 1000,
 			})
 			.cookie('refresh_token', refreshToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === 'production',
-				sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+				sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 				maxAge: 7 * 24 * 60 * 60 * 1000,
 			})
 			.status(201)
@@ -165,13 +165,13 @@ export async function logOut(req: LogOutRequest, res: Response, next: NextFuncti
 	res.clearCookie('access_token', {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === 'production',
-		sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 	});
 
 	res.clearCookie('refresh_token', {
 		httpOnly: true,
 		secure: process.env.NODE_ENV === 'production',
-		sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+		sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 	});
 
 	return res.sendStatus(200);
@@ -214,13 +214,13 @@ export async function resendAccessToken(
 		res.clearCookie('access_token', {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 		});
 
 		res.clearCookie('refresh_token', {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 		});
 		return res.status(401).json({ message: 'No authorization' });
 	}
@@ -237,13 +237,13 @@ export async function resendAccessToken(
 		res.clearCookie('access_token', {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 		});
 
 		res.clearCookie('refresh_token', {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 		});
 		return res.status(401).json({ message: 'Invalid refresh token' });
 	}
@@ -255,13 +255,13 @@ export async function resendAccessToken(
 		res.clearCookie('access_token', {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 		});
 
 		res.clearCookie('refresh_token', {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 		});
 		return res.status(401).json({ message: 'Refresh token revoked' });
 	}
@@ -276,13 +276,13 @@ export async function resendAccessToken(
 		.cookie('access_token', token, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 			maxAge: 60 * 60 * 1000,
 		})
 		.cookie('refresh_token', newRefreshToken, {
 			httpOnly: true,
 			secure: process.env.NODE_ENV === 'production',
-			sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+			sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 			maxAge: 7 * 24 * 60 * 60 * 1000,
 		})
 		.sendStatus(204);
