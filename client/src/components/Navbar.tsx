@@ -38,10 +38,10 @@ const Navbar = () => {
 			setIsSearchLoading(false);
 		};
 
-		if (debouncedSearch) {
+		if (debouncedSearch && debouncedSearch === searchValue) {
 			loadSearchedUsers();
 		}
-	}, [debouncedSearch]);
+	}, [debouncedSearch, searchValue]);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -61,7 +61,7 @@ const Navbar = () => {
 
 	const handleSearchValue = (value: string) => {
 		setSearchValue(value);
-		setIsSearchLoading(true);
+		setIsSearchLoading(value ? true : false);
 
 		if (!value) {
 			setSearchedUsers([]);
@@ -183,7 +183,7 @@ const Navbar = () => {
 										})}
 									</div>
 
-									{isSearchLoading && (
+									{isSearchLoading && searchedUsers.length === 0 && (
 										<div className="py-1">
 											{[1, 2, 3].map((i) => (
 												<div
