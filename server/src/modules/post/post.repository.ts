@@ -81,5 +81,5 @@ export async function getPostsCountForUsers(userId: string) {
 export async function getPostsByUserId(userId: string) {
 	return await Post.find({ author: userId })
 		.sort({ createdAt: -1 })
-		.populate('author', 'username _id');
+		.populate('author', 'username _id profilePictureUrl');
 }
