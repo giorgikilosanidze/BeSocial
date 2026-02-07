@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { createPost, deletePostDB, editPostDB, getPostsFromDB } from '../post/post.repository.js';
 import { CreatePostRequest, EditPostData, PostIdParams } from './feed.types.js';
 import path from 'path';
-import { removeImage } from '../../utils/removeImage.js';
+import { getIO } from '../../socket.js';
 
 export async function getPosts(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -37,6 +37,7 @@ export async function postCreation(req: CreatePostRequest, res: Response, next: 
 
 	try {
 		const post = await createPost({ text, userId, imageUrls });
+		getIO().emit('newPost', post);
 		return res.status(201).json(post);
 	} catch (error: any) {
 		return next(error);

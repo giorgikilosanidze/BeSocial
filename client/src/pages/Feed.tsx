@@ -7,6 +7,9 @@ import PostSkeleton from '@/skeletons/PostSkeleton';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect } from 'react';
 import { fetchPosts } from '@/features/feed/feedThunks';
+import { socket } from '@/socket';
+import { addPostInRealTime } from '@/features/feed/feedSlice';
+import type { CreatePostResponse } from '@/types/feed';
 
 const Feed = () => {
 	const { posts, isLoading } = useAppSelector((state) => state.feed);
@@ -14,6 +17,16 @@ const Feed = () => {
 
 	useEffect(() => {
 		dispatch(fetchPosts());
+	}, [dispatch]);
+
+	useEffect(() => {
+		socket.on('newPost', (post: CreatePostResponse) => {
+			dispatch(addPostInRealTime(post));
+		});
+
+		return () => {
+			socket.off('newPost');
+		};
 	}, [dispatch]);
 
 	return (

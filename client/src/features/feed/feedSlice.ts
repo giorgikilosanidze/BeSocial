@@ -11,15 +11,19 @@ const initialState: FeedSliceState = {
 const feedSlice = createSlice({
 	name: 'feed',
 	initialState,
-	reducers: {},
+	reducers: {
+		addPostInRealTime: (state, action) => {
+			state.posts.unshift(action.payload);
+		},
+	},
 	extraReducers: (builder) => {
 		builder
 			.addCase(createPost.pending, (state) => {
 				state.isLoading = true;
 			})
-			.addCase(createPost.fulfilled, (state, action) => {
+			.addCase(createPost.fulfilled, (state) => {
 				state.isLoading = false;
-				state.posts.unshift(action.payload);
+				// state.posts.unshift(action.payload);
 			})
 			.addCase(createPost.rejected, (state, action) => {
 				state.isLoading = false;
@@ -67,6 +71,6 @@ const feedSlice = createSlice({
 	},
 });
 
-// export const {} = feedSlice.actions;
+export const { addPostInRealTime } = feedSlice.actions;
 
 export default feedSlice.reducer;
