@@ -1,7 +1,11 @@
 import routes from '@/constants/routes';
-import { deletePost, editPost } from '@/features/feed/feedThunks';
+import { deletePost, editPost, sendReactionData } from '@/features/feed/feedThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import type { EditPostData, PostCardProps } from '@/types/feed';
+import Like from '@/svg/Like';
+import LikeButtonSvg from '@/svg/LikeButtonSvg';
+import Love from '@/svg/Love';
+import Angry from '@/svg/Angry';
+import type { EditPostData, PostCardProps, ReactionTypes } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +45,10 @@ const PostCard = ({ post }: PostCardProps) => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
 	}, [optionsVisibility]);
+
+	const handleReaction = (reactionType: ReactionTypes) => {
+		dispatch(sendReactionData({ postId: post.id, userId: userId, reactionType }));
+	};
 
 	const handleGoToProfilePage = () => {
 		navigate(routes.profile.replace(':userId', post.author._id));
@@ -228,30 +236,11 @@ const PostCard = ({ post }: PostCardProps) => {
 			<div className="px-4 py-3 flex items-center justify-between text-sm text-gray-500 border-b border-gray-100">
 				<div className="flex items-center space-x-2">
 					<div className="flex -space-x-1">
-						<div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center border border-white">
-							<svg
-								className="w-3 h-3 text-white"
-								fill="currentColor"
-								viewBox="0 0 20 20"
-							>
-								<path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-							</svg>
-						</div>
-						<div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border border-white">
-							<svg
-								className="w-3 h-3 text-white"
-								fill="currentColor"
-								viewBox="0 0 20 20"
-							>
-								<path
-									fillRule="evenodd"
-									d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
-									clipRule="evenodd"
-								/>
-							</svg>
-						</div>
+						<Like />
+						<Love />
+						<Angry />
 					</div>
-					{/* <span>{post.likes + post.loves}</span> */}
+					{/* <span>{post.likes + post.loves + post.angry}</span> */}
 				</div>
 				<div className="flex items-center space-x-4">
 					<button className="hover:underline">{post.comments} comments</button>
@@ -261,26 +250,66 @@ const PostCard = ({ post }: PostCardProps) => {
 
 			{/* Action Buttons */}
 			<div className="px-4 py-2 flex items-center justify-around border-b border-gray-100">
-				<button
-					className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-						post.isLiked ? 'text-blue-600' : 'text-gray-600 hover:bg-gray-100'
-					}`}
-				>
-					<svg
-						className="w-5 h-5"
-						fill={post.isLiked ? 'currentColor' : 'none'}
-						stroke="currentColor"
-						viewBox="0 0 24 24"
+				{/* Like button with reaction picker */}
+				<div className="relative group">
+					{/* Reaction Picker - Shows on hover */}
+					<div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out">
+						<div className="bg-white rounded-full shadow-lg border border-gray-200 px-5 py-3 flex items-center gap-4">
+							{/* Like Reaction */}
+							<button
+								onClick={() => handleReaction('like')}
+								className="transform hover:scale-125 transition-transform duration-150 cursor-pointer"
+								aria-label="Like"
+							>
+								<Like
+									divWidth="w-7"
+									divHeight="h-7"
+									svgWidth="w-5"
+									svgHeight="h-5"
+								/>
+							</button>
+
+							{/* Love Reaction */}
+							<button
+								onClick={() => handleReaction('love')}
+								className="transform hover:scale-125 transition-transform duration-150 cursor-pointer"
+								aria-label="Love"
+							>
+								<Love
+									divWidth="w-7"
+									divHeight="h-7"
+									svgWidth="w-5"
+									svgHeight="h-5"
+								/>
+							</button>
+
+							{/* Angry Reaction */}
+							<button
+								onClick={() => handleReaction('angry')}
+								className="transform hover:scale-125 transition-transform duration-150 cursor-pointer"
+								aria-label="Angry"
+							>
+								<Angry
+									divWidth="w-7"
+									divHeight="h-7"
+									svgWidth="w-5"
+									svgHeight="h-5"
+								/>
+							</button>
+						</div>
+					</div>
+
+					{/* Like Button */}
+					<button
+						onClick={() => handleReaction('like')}
+						className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+							post.isLiked ? 'text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+						}`}
 					>
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"
-						/>
-					</svg>
-					<span className="font-medium text-sm">Like</span>
-				</button>
+						<LikeButtonSvg isLiked={post.isLiked} />
+						<span className="font-medium text-sm">Like</span>
+					</button>
+				</div>
 				<button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
 					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path

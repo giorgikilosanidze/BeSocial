@@ -4,6 +4,7 @@ import type {
 	DeletePostResponse,
 	EditPostData,
 	FetchPostsResponse,
+	ReactionData,
 } from '@/types/feed';
 import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -197,5 +198,26 @@ export const deletePost = createAsyncThunk<DeletePostResponse, string>(
 		}
 
 		return { postId };
+	},
+);
+
+export const sendReactionData = createAsyncThunk<boolean, ReactionData>(
+	'feed/sendReactionData',
+	async (reactionData, { rejectWithValue }) => {
+		const response = await fetch(`${SERVER_URL}/api/feed/reaction`, {
+			method: 'POST',
+			credentials: 'include',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(reactionData),
+		});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			console.log(data);
+			rejectWithValue({ data });
+		}
+
+		return data;
 	},
 );

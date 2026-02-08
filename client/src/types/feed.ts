@@ -2,6 +2,7 @@ export interface FeedSliceState {
 	posts: CreatePostResponse[];
 	isLoading: boolean;
 	error: string;
+	reactions: ReactionsState;
 }
 
 export interface Post {
@@ -50,3 +51,17 @@ export interface EditPostResponse {
 export interface DeletePostResponse {
 	postId: string;
 }
+
+export interface ReactionsState {
+	reactions: [];
+	isLoading: boolean;
+	error: string;
+}
+
+export interface ReactionData {
+	postId: string;
+	userId: string;
+	reactionType: ReactionTypes;
+}
+
+export type ReactionTypes = 'like' | 'love' | 'angry';

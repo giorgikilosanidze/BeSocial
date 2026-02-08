@@ -3,6 +3,8 @@ import { createPost, deletePostDB, editPostDB, getPostsFromDB } from '../post/po
 import { CreatePostRequest, EditPostData, PostIdParams } from './feed.types.js';
 import path from 'path';
 import { getIO } from '../../socket.js';
+import { ReactionData } from '../reactions/reaction.types.js';
+import { addReaction, collectReactions } from '../reactions/reaction.repository.js';
 
 export async function getPosts(req: Request, res: Response, next: NextFunction) {
 	try {
@@ -83,5 +85,36 @@ export async function deletePost(req: Request<PostIdParams>, res: Response, next
 		return res.status(204).send();
 	} catch (error: any) {
 		return next(error);
+	}
+}
+
+export async function handleReaction(
+	req: Request<{}, {}, ReactionData>,
+	res: Response,
+	next: NextFunction,
+) {
+	const { postId, userId, reactionType } = req.body;
+
+	if (!postId || !userId || !reactionType) {
+		return res.status(400).json({ message: 'Not enough information to handle reaction!' });
+	}
+
+	try {
+		await addReaction({ postId, userId, reactionType });
+		const reactions = await collectReactions(postId);
+		console.log(reactions);
+
+		const returnObject = {
+			postId,
+			reactions,
+			userReaction: reactionType,
+		};
+
+		res.status(200).json({
+			message: 'Reaction added successfully!',
+			reactionData: returnObject,
+		});
+	} catch (error) {
+		res.status(500).json({ message: 'Could not react to post!' });
 	}
 }
