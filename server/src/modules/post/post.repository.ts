@@ -15,7 +15,7 @@ export async function createPost(postData: PostType) {
 
 	const savedPost = await post.save();
 
-	await savedPost.populate('author', 'username _id');
+	await savedPost.populate('author', 'username _id profilePictureUrl');
 
 	return savedPost;
 }
@@ -47,7 +47,7 @@ export async function editPostDB(editedPostData: EditPostDB) {
 
 	const editedPost = await post.save();
 
-	await editedPost.populate('author', '_id username');
+	await editedPost.populate('author', '_id username profilePictureUrl');
 
 	return editedPost;
 }

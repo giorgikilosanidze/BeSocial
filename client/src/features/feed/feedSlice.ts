@@ -15,6 +15,14 @@ const feedSlice = createSlice({
 		addPostInRealTime: (state, action) => {
 			state.posts.unshift(action.payload);
 		},
+		editPostInRealTime: (state, action) => {
+			state.posts = state.posts.map((post) =>
+				post.id === action.payload.id ? action.payload : post,
+			);
+		},
+		deletePostInRealTime: (state, action) => {
+			state.posts = state.posts.filter((post) => post.id !== action.payload);
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -45,12 +53,8 @@ const feedSlice = createSlice({
 			.addCase(editPost.pending, (state) => {
 				state.isLoading = true;
 			})
-			.addCase(editPost.fulfilled, (state, action) => {
+			.addCase(editPost.fulfilled, (state) => {
 				state.isLoading = false;
-
-				state.posts = state.posts.map((post) =>
-					post.id === action.payload.id ? action.payload : post,
-				);
 			})
 			.addCase(editPost.rejected, (state, action) => {
 				state.isLoading = false;
@@ -60,9 +64,8 @@ const feedSlice = createSlice({
 			.addCase(deletePost.pending, (state) => {
 				state.isLoading = true;
 			})
-			.addCase(deletePost.fulfilled, (state, action) => {
+			.addCase(deletePost.fulfilled, (state) => {
 				state.isLoading = false;
-				state.posts = state.posts.filter((post) => post.id !== action.payload.postId);
 			})
 			.addCase(deletePost.rejected, (state, action) => {
 				state.isLoading = false;
@@ -71,6 +74,6 @@ const feedSlice = createSlice({
 	},
 });
 
-export const { addPostInRealTime } = feedSlice.actions;
+export const { addPostInRealTime, editPostInRealTime, deletePostInRealTime } = feedSlice.actions;
 
 export default feedSlice.reducer;

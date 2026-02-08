@@ -63,6 +63,7 @@ export async function editPost(
 
 	try {
 		const editedPost = await editPostDB({ postId, editedText, editedImageUrls });
+		getIO().emit('postEdited', editedPost);
 		return res.status(200).json(editedPost);
 	} catch (error: any) {
 		return next(error);
@@ -78,6 +79,7 @@ export async function deletePost(req: Request<PostIdParams>, res: Response, next
 
 	try {
 		await deletePostDB(postId);
+		getIO().emit('postDeleted', postId);
 		return res.status(204).send();
 	} catch (error: any) {
 		return next(error);

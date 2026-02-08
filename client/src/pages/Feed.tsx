@@ -8,8 +8,12 @@ import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect } from 'react';
 import { fetchPosts } from '@/features/feed/feedThunks';
 import { socket } from '@/socket';
-import { addPostInRealTime } from '@/features/feed/feedSlice';
-import type { CreatePostResponse } from '@/types/feed';
+import {
+	addPostInRealTime,
+	deletePostInRealTime,
+	editPostInRealTime,
+} from '@/features/feed/feedSlice';
+import type { CreatePostResponse, EditPostData } from '@/types/feed';
 
 const Feed = () => {
 	const { posts, isLoading } = useAppSelector((state) => state.feed);
@@ -26,6 +30,26 @@ const Feed = () => {
 
 		return () => {
 			socket.off('newPost');
+		};
+	}, [dispatch]);
+
+	useEffect(() => {
+		socket.on('postEdited', (editedPost: EditPostData) => {
+			dispatch(editPostInRealTime(editedPost));
+		});
+
+		return () => {
+			socket.off('postEdited');
+		};
+	}, [dispatch]);
+
+	useEffect(() => {
+		socket.on('postDeleted', (postId: string) => {
+			dispatch(deletePostInRealTime(postId));
+		});
+
+		return () => {
+			socket.off('postDeleted');
 		};
 	}, [dispatch]);
 
