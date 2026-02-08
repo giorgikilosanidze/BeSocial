@@ -84,6 +84,9 @@ const profileSlice = createSlice({
 			.addCase(uploadProfilePicture.fulfilled, (state, action) => {
 				state.isLoading = false;
 				state.user.profilePictureUrl = action.payload.profilePictureUrl;
+				state.user.posts.forEach((post) => {
+					post.author.profilePictureUrl = action.payload.profilePictureUrl;
+				});
 			})
 			.addCase(uploadProfilePicture.rejected, (state, action) => {
 				state.isLoading = false;

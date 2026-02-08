@@ -1,3 +1,4 @@
+import { updateProfilePicture } from '@/features/auth/authSlice';
 import { uploadCoverPhoto, uploadProfilePicture } from '@/features/profile/profileThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import type { ChangeEvent } from 'react';
@@ -25,13 +26,21 @@ const ProfileHeader = ({ username, postsCount, hasPermission }: ProfileHeaderPro
 		? `${SERVER_URL}/${coverPhotoUrl}`
 		: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200';
 
-	const handleProfilePicture = (image: FileList | null) => {
+	const handleProfilePicture = async (image: FileList | null) => {
 		if (!image || !userId) return;
 
 		const formData = new FormData();
 		formData.append('image', image[0]);
 
-		dispatch(uploadProfilePicture({ userId, formData }));
+		try {
+			const newProfilePictureUrl = await dispatch(
+				uploadProfilePicture({ userId, formData }),
+			).unwrap();
+
+			dispatch(updateProfilePicture(newProfilePictureUrl));
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
 	const handleCoverPhoto = (image: FileList | null) => {
