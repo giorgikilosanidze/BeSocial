@@ -1,4 +1,4 @@
-import { updateProfilePicture } from '@/features/auth/authSlice';
+import { updateCoverPhoto, updateProfilePicture } from '@/features/auth/authSlice';
 import { uploadCoverPhoto, uploadProfilePicture } from '@/features/profile/profileThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import type { ChangeEvent } from 'react';
@@ -43,13 +43,21 @@ const ProfileHeader = ({ username, postsCount, hasPermission }: ProfileHeaderPro
 		}
 	};
 
-	const handleCoverPhoto = (image: FileList | null) => {
+	const handleCoverPhoto = async (image: FileList | null) => {
 		if (!image || !userId) return;
 
 		const formData = new FormData();
 		formData.append('image', image[0]);
 
-		dispatch(uploadCoverPhoto({ userId, formData }));
+		try {
+			const newCoverPhotoUrl = await dispatch(
+				uploadCoverPhoto({ userId, formData }),
+			).unwrap();
+
+			dispatch(updateCoverPhoto(newCoverPhotoUrl));
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
 	return (

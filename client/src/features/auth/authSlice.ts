@@ -36,6 +36,9 @@ const authSlice = createSlice({
 		updateProfilePicture: (state, action) => {
 			state.user.profilePictureUrl = action.payload.profilePictureUrl;
 		},
+		updateCoverPhoto: (state, action) => {
+			state.user.coverPhotoUrl = action.payload.coverPhotoUrl;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -170,6 +173,6 @@ const authSlice = createSlice({
 	},
 });
 
-export const { stopLoader, updateProfilePicture } = authSlice.actions;
+export const { stopLoader, updateProfilePicture, updateCoverPhoto } = authSlice.actions;
 
 export default authSlice.reducer;
