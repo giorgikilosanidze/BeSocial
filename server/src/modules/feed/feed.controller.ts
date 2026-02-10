@@ -102,7 +102,6 @@ export async function handleReaction(
 	try {
 		await addReaction({ postId, userId, reactionType });
 		const reactions = await collectReactions(postId);
-		console.log(reactions);
 
 		const returnObject = {
 			postId,
@@ -110,10 +109,7 @@ export async function handleReaction(
 			userReaction: reactionType,
 		};
 
-		res.status(200).json({
-			message: 'Reaction added successfully!',
-			reactionData: returnObject,
-		});
+		res.status(200).json(returnObject);
 	} catch (error) {
 		res.status(500).json({ message: 'Could not react to post!' });
 	}

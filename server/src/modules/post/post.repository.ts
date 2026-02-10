@@ -24,6 +24,7 @@ export async function getPostsFromDB() {
 	const posts = await Post.find()
 		.sort({ createdAt: -1 })
 		.populate('author', 'username _id profilePictureUrl');
+
 	return posts;
 }
 

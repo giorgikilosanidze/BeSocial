@@ -16,12 +16,15 @@ const reactionSchema = new Schema(
 			required: true,
 		},
 		type: {
-			type: Schema.Types.String,
+			type: String,
+			enum: ['like', 'love', 'angry'],
 			required: true,
 		},
 	},
 	{ timestamps: true },
 );
+
+reactionSchema.index({ postId: 1, userId: 1 }, { unique: true });
 
 reactionSchema.set('toJSON', {
 	transform: (_, ret) => {

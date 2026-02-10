@@ -214,9 +214,33 @@ export const sendReactionData = createAsyncThunk<boolean, ReactionData>(
 		const data = await response.json();
 
 		if (!response.ok) {
-			console.log(data);
-			rejectWithValue({ data });
+			const error = await response.json();
+
+			if (error.message === 'ACCESS_TOKEN_EXPIRED' || error.message === 'NO_ACCESS_TOKEN') {
+				try {
+					await refreshTokenRequest();
+
+					const retry = await fetch(`${SERVER_URL}/api/feed/reaction`, {
+						method: 'POST',
+						credentials: 'include',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(reactionData),
+					});
+
+					if (!retry.ok) {
+						const retryError = await retry.json();
+						return rejectWithValue(retryError.message || 'Not authenticated');
+					}
+
+					return await retry.json();
+				} catch (refreshError: unknown) {
+					return rejectWithValue((refreshError as Error).message);
+				}
+			}
+
+			return rejectWithValue((error as Error).message || 'Failed to delete post!');
 		}
+		console.log(data);
 
 		return data;
 	},
