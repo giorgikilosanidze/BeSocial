@@ -13,3 +13,7 @@ export interface EditPostData {
 	text?: string;
 	imageUrls?: string[];
 }
+
+export interface GetPostsRequest extends Request {
+	userId?: string;
+}

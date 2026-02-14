@@ -22,7 +22,6 @@ export interface CreatePostResponse {
 	updatedAt: string;
 	id: string;
 	imageUrls?: string[];
-	// reactions?:  ;
 	userReaction?: ReactionTypes | null;
 	comments?: number;
 }

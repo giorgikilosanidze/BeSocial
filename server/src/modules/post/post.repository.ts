@@ -1,4 +1,4 @@
-import { Error } from 'mongoose';
+import mongoose, { Error } from 'mongoose';
 import Post from './post.model.js';
 import { EditPostDB, PostType } from './post.types.js';
 import { Request } from 'express';
@@ -20,10 +20,80 @@ export async function createPost(postData: PostType) {
 	return savedPost;
 }
 
-export async function getPostsFromDB() {
-	const posts = await Post.find()
-		.sort({ createdAt: -1 })
-		.populate('author', 'username _id profilePictureUrl');
+export async function getPostsFromDB(userId?: string) {
+	const posts = await Post.aggregate([
+		{
+			$sort: { createdAt: -1 },
+		},
+		{
+			$lookup: {
+				from: 'reactions',
+				localField: '_id',
+				foreignField: 'postId',
+				as: 'reactions',
+			},
+		},
+		{
+			$addFields: {
+				likes: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'like'] },
+						},
+					},
+				},
+				loves: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'love'] },
+						},
+					},
+				},
+				angry: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'angry'] },
+						},
+					},
+				},
+				userReaction: {
+					$let: {
+						vars: {
+							userReactionObj: {
+								$arrayElemAt: [
+									{
+										$filter: {
+											input: '$reactions',
+											as: 'reaction',
+											cond: { $eq: ['$$reaction.userId', new mongoose.Types.ObjectId(userId)] },
+										},
+									},
+									0,
+								],
+							},
+						},
+						in: '$$userReactionObj.type',
+					},
+				},
+				id: '$_id',
+			},
+		},
+		{
+			$project: {
+				reactions: 0,
+				_id: 0,
+				__v: 0,
+			},
+		},
+	]);
+
+	await Post.populate(posts, { path: 'author', select: 'username _id profilePictureUrl' });
 
 	return posts;
 }
@@ -79,8 +149,83 @@ export async function getPostsCountForUsers(userId: string) {
 	return await Post.countDocuments({ author: userId });
 }
 
-export async function getPostsByUserId(userId: string) {
-	return await Post.find({ author: userId })
-		.sort({ createdAt: -1 })
-		.populate('author', 'username _id profilePictureUrl');
+export async function getPostsByUserId(userId: string, viewerId?: string) {
+	const posts = await Post.aggregate([
+		{
+			$match: { author: new mongoose.Types.ObjectId(userId) },
+		},
+		{
+			$sort: { createdAt: -1 },
+		},
+		{
+			$lookup: {
+				from: 'reactions',
+				localField: '_id',
+				foreignField: 'postId',
+				as: 'reactions',
+			},
+		},
+		{
+			$addFields: {
+				likes: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'like'] },
+						},
+					},
+				},
+				loves: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'love'] },
+						},
+					},
+				},
+				angry: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'angry'] },
+						},
+					},
+				},
+				userReaction: {
+					$let: {
+						vars: {
+							userReactionObj: {
+								$arrayElemAt: [
+									{
+										$filter: {
+											input: '$reactions',
+											as: 'reaction',
+											cond: { $eq: ['$$reaction.userId', new mongoose.Types.ObjectId(viewerId)] },
+										},
+									},
+									0,
+								],
+							},
+						},
+						in: '$$userReactionObj.type',
+					},
+				},
+				id: '$_id',
+			},
+		},
+		{
+			$project: {
+				reactions: 0,
+				_id: 0,
+				__v: 0,
+			},
+		},
+	]);
+
+	await Post.populate(posts, { path: 'author', select: 'username _id profilePictureUrl' });
+
+	return posts;
 }

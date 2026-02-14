@@ -9,6 +9,7 @@ export async function getUserProfile(
 	next: NextFunction,
 ) {
 	const userId = req.params.userId;
+	const viewerId = (req as any).userId;
 
 	if (!userId) {
 		return res.status(400).json({ message: 'Missing params' });
@@ -22,7 +23,7 @@ export async function getUserProfile(
 
 	const postsCount = await getPostsCountForUsers(userId);
 
-	const posts = await getPostsByUserId(userId);
+	const posts = await getPostsByUserId(userId, viewerId);
 
 	return res.status(200).json({
 		id: user._id,

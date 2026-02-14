@@ -2,16 +2,21 @@ import mongoose from 'mongoose';
 import Reaction from './reaction.model.js';
 import { ReactionData } from './reaction.types.js';
 
-export async function addReaction(reactionData: ReactionData) {
+export async function addReaction(reactionData: ReactionData): Promise<boolean> {
 	const existedReaction = await Reaction.findOne({
 		postId: reactionData.postId,
 		userId: reactionData.userId,
 	});
 
 	if (existedReaction) {
-		existedReaction.type = reactionData.reactionType;
-		await existedReaction.save();
-		return;
+		if (existedReaction.type === reactionData.reactionType) {
+			await existedReaction.deleteOne();
+			return false;
+		} else {
+			existedReaction.type = reactionData.reactionType;
+			await existedReaction.save();
+			return true;
+		}
 	}
 
 	const reaction = new Reaction({
@@ -25,6 +30,8 @@ export async function addReaction(reactionData: ReactionData) {
 	}
 
 	await reaction.save();
+
+	return true;
 }
 
 export async function collectReactions(postId: string): Promise<Record<string, number>> {
@@ -47,4 +54,25 @@ export async function collectReactions(postId: string): Promise<Record<string, n
 	);
 
 	return formattedReactions;
+}
+
+export async function collectAllReactions() {
+	const reactions = await Reaction.aggregate([
+		{
+			$group: {
+				_id: '$type',
+				count: { $sum: 1 },
+			},
+		},
+	]);
+
+	// const formattedReactions = reactions.reduce(
+	// 	(acc, r) => {
+	// 		acc[r._id] = r.count;
+	// 		return acc;
+	// 	},
+	// 	{} as Record<string, number>,
+	// );
+
+	return reactions;
 }

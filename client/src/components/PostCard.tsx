@@ -23,9 +23,17 @@ const PostCard = ({ post }: PostCardProps) => {
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	// const [instantReact, setInstantReact] = useState(null);
+	const [instantReact, setInstantReact] = useState<ReactionTypes | null>(
+		post.userReaction || null,
+	);
 
 	const hasPermission = post.author._id === userId;
+
+	const activeReaction = instantReact;
+
+	const isLike = activeReaction === 'like';
+	const isLove = activeReaction === 'love';
+	const isAngry = activeReaction === 'angry';
 
 	const profilePictureSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
@@ -50,6 +58,12 @@ const PostCard = ({ post }: PostCardProps) => {
 	}, [optionsVisibility]);
 
 	const handleReaction = (reactionType: ReactionTypes) => {
+		if (instantReact === reactionType) {
+			setInstantReact(null);
+		} else {
+			setInstantReact(reactionType);
+		}
+
 		dispatch(sendReactionData({ postId: post.id, userId: userId, reactionType }));
 	};
 
@@ -101,7 +115,7 @@ const PostCard = ({ post }: PostCardProps) => {
 			console.error('Delete post failed!', error);
 		}
 	};
-
+	console.log(isLike);
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200">
 			{/* Post Header */}
@@ -306,31 +320,27 @@ const PostCard = ({ post }: PostCardProps) => {
 					<button
 						onClick={() => handleReaction('like')}
 						className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-							post.userReaction === 'like'
+							isLike
 								? 'text-blue-600'
-								: post.userReaction === 'love'
+								: isLove
 									? 'text-red-500'
-									: post.userReaction === 'angry'
+									: isAngry
 										? 'text-orange-500'
 										: 'text-gray-600 hover:bg-gray-100'
 						}`}
 					>
 						{/* Icon changes based on reaction type */}
-						{post.userReaction === 'love' ? (
+						{isLove ? (
 							<LoveButtonSvg isActive />
-						) : post.userReaction === 'angry' ? (
+						) : isAngry ? (
 							<AngryButtonSvg isActive />
 						) : (
-							<LikeButtonSvg isLiked={post.userReaction === 'like'} />
+							<LikeButtonSvg isLiked={isLike} />
 						)}
 
 						{/* Label changes based on reaction type */}
 						<span className="font-medium text-sm">
-							{post.userReaction === 'love'
-								? 'Love'
-								: post.userReaction === 'angry'
-									? 'Angry'
-									: 'Like'}
+							{isLove ? 'Love' : isAngry ? 'Angry' : 'Like'}
 						</span>
 					</button>
 				</div>

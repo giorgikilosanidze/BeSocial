@@ -1,14 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
 import { createPost, deletePostDB, editPostDB, getPostsFromDB } from '../post/post.repository.js';
-import { CreatePostRequest, EditPostData, PostIdParams } from './feed.types.js';
+import { CreatePostRequest, EditPostData, GetPostsRequest, PostIdParams } from './feed.types.js';
 import path from 'path';
 import { getIO } from '../../socket.js';
 import { ReactionData } from '../reactions/reaction.types.js';
-import { addReaction, collectReactions } from '../reactions/reaction.repository.js';
+import {
+	addReaction,
+	collectReactions,
+} from '../reactions/reaction.repository.js';
 
-export async function getPosts(req: Request, res: Response, next: NextFunction) {
+export async function getPosts(req: GetPostsRequest, res: Response, next: NextFunction) {
 	try {
-		const posts = await getPostsFromDB();
+		const posts = await getPostsFromDB(req.userId);
+
 		return res.status(200).json(posts);
 	} catch (error: any) {
 		return next(error);
@@ -100,13 +104,13 @@ export async function handleReaction(
 	}
 
 	try {
-		await addReaction({ postId, userId, reactionType });
+		const isAdded = await addReaction({ postId, userId, reactionType });
 		const reactions = await collectReactions(postId);
 
 		const returnObject = {
 			postId,
 			reactions,
-			userReaction: reactionType,
+			userReaction: isAdded ? reactionType : null,
 		};
 
 		getIO().emit('reactionAdded', returnObject);
