@@ -1,22 +1,38 @@
 import { updateCoverPhoto, updateProfilePicture } from '@/features/auth/authSlice';
-import { uploadCoverPhoto, uploadProfilePicture } from '@/features/profile/profileThunks';
+import {
+	followOrUnfollow,
+	uploadCoverPhoto,
+	uploadProfilePicture,
+} from '@/features/profile/profileThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import type { ChangeEvent } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
 
 interface ProfileHeaderProps {
 	username: string;
 	postsCount: number;
+	followersCount: number;
+	followingCount: number;
+	isFollowed: boolean;
 	hasPermission: boolean;
 }
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
-const ProfileHeader = ({ username, postsCount, hasPermission }: ProfileHeaderProps) => {
+const ProfileHeader = ({
+	username,
+	postsCount,
+	followersCount,
+	followingCount,
+	isFollowed,
+	hasPermission,
+}: ProfileHeaderProps) => {
 	const profilePictureUrl = useAppSelector((state) => state.profile.user.profilePictureUrl);
 	const coverPhotoUrl = useAppSelector((state) => state.profile.user.coverPhotoUrl);
 	const dispatch = useAppDispatch();
 	const { userId } = useParams<{ userId: string }>();
+	const [followAction, setFollowAction] = useState<1 | 2>(isFollowed ? 2 : 1);
+	const [optimisticFollowers, setoptimisticFollowers] = useState(followersCount);
 
 	const profilePictureSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
@@ -25,6 +41,14 @@ const ProfileHeader = ({ username, postsCount, hasPermission }: ProfileHeaderPro
 	const coverPhotoSrc = coverPhotoUrl
 		? `${SERVER_URL}/${coverPhotoUrl}`
 		: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200';
+
+	const handleFollow = () => {
+		dispatch(followOrUnfollow({ targetUser: userId!, action: followAction }));
+		setFollowAction(followAction === 1 ? 2 : 1);
+		setoptimisticFollowers(
+			followAction === 1 ? optimisticFollowers + 1 : optimisticFollowers - 1,
+		);
+	};
 
 	const handleProfilePicture = async (image: FileList | null) => {
 		if (!image || !userId) return;
@@ -156,22 +180,44 @@ const ProfileHeader = ({ username, postsCount, hasPermission }: ProfileHeaderPro
 
 					{/* Action Buttons */}
 					<div className="flex space-x-3 mt-4 sm:mt-0 pointer-events-auto">
-						<button className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm">
-							<svg
-								className="w-4 h-4"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
+						{!hasPermission && (
+							<button
+								onClick={handleFollow}
+								className="flex items-center space-x-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors shadow-sm"
 							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M12 4v16m8-8H4"
-								/>
-							</svg>
-							<span>Follow</span>
-						</button>
+								{followAction === 1 && (
+									<svg
+										className="w-4 h-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M12 4v16m8-8H4"
+										/>
+									</svg>
+								)}
+								{followAction === 2 && (
+									<svg
+										className="w-4 h-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M25 4v16m8-8H4"
+										/>
+									</svg>
+								)}
+								<span>{followAction === 1 ? 'Follow' : 'Unfollow'}</span>
+							</button>
+						)}
 						<button className="flex items-center space-x-2 bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors">
 							<svg
 								className="w-4 h-4"
@@ -187,11 +233,6 @@ const ProfileHeader = ({ username, postsCount, hasPermission }: ProfileHeaderPro
 								/>
 							</svg>
 							<span>Message</span>
-						</button>
-						<button className="bg-gray-100 text-gray-700 p-2.5 rounded-lg hover:bg-gray-200 transition-colors">
-							<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-								<path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-							</svg>
 						</button>
 					</div>
 				</div>
@@ -213,16 +254,16 @@ const ProfileHeader = ({ username, postsCount, hasPermission }: ProfileHeaderPro
 							<span className="text-sm text-gray-600">Posts</span>
 						</button>
 						<button className="flex flex-col hover:opacity-75 transition-opacity">
-							<span className="text-2xl font-bold text-gray-900">1,842</span>
+							<span className="text-2xl font-bold text-gray-900">
+								{optimisticFollowers}
+							</span>
 							<span className="text-sm text-gray-600">Followers</span>
 						</button>
 						<button className="flex flex-col hover:opacity-75 transition-opacity">
-							<span className="text-2xl font-bold text-gray-900">531</span>
+							<span className="text-2xl font-bold text-gray-900">
+								{followingCount}
+							</span>
 							<span className="text-sm text-gray-600">Following</span>
-						</button>
-						<button className="flex flex-col hover:opacity-75 transition-opacity">
-							<span className="text-2xl font-bold text-gray-900">89</span>
-							<span className="text-sm text-gray-600">Photos</span>
 						</button>
 					</div>
 				</div>

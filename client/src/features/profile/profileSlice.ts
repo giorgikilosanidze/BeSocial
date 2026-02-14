@@ -1,5 +1,10 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { fetchProfileInfo, uploadCoverPhoto, uploadProfilePicture } from './profileThunks';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import {
+	fetchProfileInfo,
+	followOrUnfollow,
+	uploadCoverPhoto,
+	uploadProfilePicture,
+} from './profileThunks';
 import type { UserSliceState } from '@/types/profile';
 import { createPost, deletePost, editPost } from '../feed/feedThunks';
 
@@ -12,6 +17,11 @@ const initialState: UserSliceState = {
 		posts: [],
 		profilePictureUrl: '',
 		coverPhotoUrl: '',
+		followersCount: 0,
+		followingCount: 0,
+		followers: [],
+		following: [],
+		isFollowed: false,
 	},
 	error: '',
 	isLoading: false,
@@ -20,7 +30,15 @@ const initialState: UserSliceState = {
 const profileSlice = createSlice({
 	name: 'profile',
 	initialState,
-	reducers: {},
+	reducers: {
+		updateFollowsInRealTime: (state, action: PayloadAction<{ isFollowing: boolean }>) => {
+			if (action.payload.isFollowing) {
+				state.user.followersCount++;
+			} else {
+				state.user.followersCount--;
+			}
+		},
+	},
 	extraReducers(builder) {
 		builder
 			.addCase(fetchProfileInfo.pending, (state) => {
@@ -103,8 +121,14 @@ const profileSlice = createSlice({
 			.addCase(uploadCoverPhoto.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.error.message || 'Failed to -upload profile picture!';
+			})
+
+			.addCase(followOrUnfollow.rejected, (state, action) => {
+				state.error = action.error.message || 'Failed to follow/unfollow user!';
 			});
 	},
 });
+
+export const { updateFollowsInRealTime } = profileSlice.actions;
 
 export default profileSlice.reducer;

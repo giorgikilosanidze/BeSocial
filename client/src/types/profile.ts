@@ -14,6 +14,11 @@ export interface UserProfile {
 	posts: FetchPostsResponse;
 	profilePictureUrl?: string;
 	coverPhotoUrl?: string;
+	followersCount: number;
+	followingCount: number;
+	following: [];
+	followers: [];
+	isFollowed: boolean;
 }
 
 export interface UploadPicturesData {

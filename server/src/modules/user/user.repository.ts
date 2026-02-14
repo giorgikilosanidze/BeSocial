@@ -86,3 +86,36 @@ export async function searchUsers(query: string) {
 
 	return users;
 }
+
+export async function handleFollowOrUnfollow(
+	userId: string,
+	targetUserId: string,
+	action: 1 | 2,
+): Promise<boolean> {
+	if (action === 1) {
+		await User.findByIdAndUpdate(targetUserId, {
+			$addToSet: { followers: userId },
+		});
+
+		await User.findByIdAndUpdate(userId, {
+			$addToSet: { following: targetUserId },
+		});
+
+		return true;
+	} else {
+		await User.findByIdAndUpdate(targetUserId, {
+			$pull: { followers: userId },
+		});
+
+		await User.findByIdAndUpdate(userId, {
+			$pull: { following: targetUserId },
+		});
+
+		return false;
+	}
+}
+
+export async function checkFollow(loggedInUserId: string, visitedUserId: string): Promise<boolean> {
+	const loggedInUser = await User.findById(loggedInUserId);
+	return loggedInUser?.following.includes(visitedUserId)!;
+}

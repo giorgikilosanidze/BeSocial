@@ -6,11 +6,8 @@ const initialState: FeedSliceState = {
 	posts: [],
 	isLoading: false,
 	error: '',
-	reactions: {
-		reactions: [],
-		isLoading: false,
-		error: '',
-	},
+	followersCount: 0,
+	followingsCount: 0,
 };
 
 const feedSlice = createSlice({

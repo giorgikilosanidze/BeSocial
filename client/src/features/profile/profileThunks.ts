@@ -121,3 +121,46 @@ export const uploadCoverPhoto = createAsyncThunk<CoverPhotoReturnData, UploadPic
 		return res;
 	},
 );
+
+export const followOrUnfollow = createAsyncThunk<
+	{ isFollowing: boolean },
+	{ targetUser: string; action: 1 | 2 }
+>('profile/followOrUnfollow', async (targetUserData, { rejectWithValue }) => {
+	const response = await fetch(`${SERVER_URL}/api/profile/follow`, {
+		method: 'POST',
+		body: JSON.stringify(targetUserData),
+		credentials: 'include',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+
+	const res = await response.json();
+
+	if (res.message === 'ACCESS_TOKEN_EXPIRED' || res.message === 'NO_ACCESS_TOKEN') {
+		try {
+			await refreshTokenRequest();
+
+			const retry = await fetch(`${SERVER_URL}/api/profile/follow`, {
+				method: 'POST',
+				body: JSON.stringify(targetUserData),
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			if (!retry.ok) {
+				const retryError = await retry.json();
+				return rejectWithValue(retryError.message || 'Not authenticated');
+			}
+
+			const retryRes = await retry.json();
+			return retryRes;
+		} catch (refreshError: unknown) {
+			return rejectWithValue((refreshError as Error).message);
+		}
+	}
+
+	return res;
+});

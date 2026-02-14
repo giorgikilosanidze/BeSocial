@@ -84,6 +84,8 @@ export async function postSignUp(
 			postsCount: 0,
 			profilePictureUrl: user.profilePictureUrl,
 			coverPhotoUrl: user.coverPhotoUrl,
+			followersCount: 0,
+			followingCount: 0,
 		});
 }
 
@@ -141,6 +143,8 @@ export async function postLogIn(
 				postsCount,
 				profilePictureUrl: existedUser.profilePictureUrl,
 				coverPhotoUrl: existedUser.coverPhotoUrl,
+				followersCount: existedUser.followers.length,
+				followingCount: existedUser.following.length,
 			});
 	} else {
 		return res.status(400).json({
@@ -197,6 +201,8 @@ export async function sendLoggedInUser(req: UserIdRequest, res: Response, next: 
 			postsCount,
 			profilePictureUrl: user.profilePictureUrl,
 			coverPhotoUrl: user.coverPhotoUrl,
+			followersCount: user.followers.length,
+			followingCount: user.following.length,
 		});
 	} catch (error: any) {
 		next(error);

@@ -11,6 +11,8 @@ import ProfileFriends from '@/components/ProfileFriends';
 import PostCard from '@/components/PostCard';
 import CreatePost from '@/components/CreatePost';
 import ProfileSkeleton from '@/skeletons/ProfileSkeleton';
+import { socket } from '@/socket';
+import { updateFollowsInRealTime } from '@/features/profile/profileSlice';
 
 const Profile = () => {
 	const loggedInUserId = useAppSelector((state) => state.auth.user.id);
@@ -26,6 +28,16 @@ const Profile = () => {
 		dispatch(fetchProfileInfo(userId));
 	}, [userId, dispatch]);
 
+	useEffect(() => {
+		socket.on('followedOrUnfollowed', (followsData) => {
+			dispatch(updateFollowsInRealTime(followsData));
+		});
+
+		return () => {
+			socket.off();
+		};
+	}, [dispatch]);
+
 	if (isLoading) {
 		return <ProfileSkeleton />;
 	}
@@ -40,6 +52,9 @@ const Profile = () => {
 				<ProfileHeader
 					username={user.username}
 					postsCount={user.postsCount}
+					followersCount={user.followersCount}
+					followingCount={user.followingCount}
+					isFollowed={user.isFollowed}
 					hasPermission={hasPermission}
 				/>
 

@@ -7,6 +7,7 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const ProfileSidebar = () => {
 	const user = useAppSelector((state) => state.auth.user);
 	const navigate = useNavigate();
+	console.log(user);
 
 	const handleViewProfileClick = () => {
 		navigate(routes.profile.replace(':userId', user.id));
@@ -46,11 +47,15 @@ const ProfileSidebar = () => {
 								<p className="text-xs text-gray-500">Posts</p>
 							</div>
 							<div>
-								<p className="text-lg font-bold text-gray-900">1.2K</p>
+								<p className="text-lg font-bold text-gray-900">
+									{user.followersCount}
+								</p>
 								<p className="text-xs text-gray-500">Followers</p>
 							</div>
 							<div>
-								<p className="text-lg font-bold text-gray-900">892</p>
+								<p className="text-lg font-bold text-gray-900">
+									{user.followingCount}
+								</p>
 								<p className="text-xs text-gray-500">Following</p>
 							</div>
 						</div>

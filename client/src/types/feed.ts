@@ -2,7 +2,8 @@ export interface FeedSliceState {
 	posts: CreatePostResponse[];
 	isLoading: boolean;
 	error: string;
-	reactions: ReactionsState;
+	followersCount: number;
+	followingsCount: number;
 }
 
 export interface Post {

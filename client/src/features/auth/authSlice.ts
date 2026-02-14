@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { getUserOnRefresh, loginUser, logOutUser, signupUser } from './authThunks';
 import type { AuthSliceState } from '@/types/auth';
+import { followOrUnfollow } from '../profile/profileThunks';
 
 const initialState: AuthSliceState = {
 	user: {
@@ -10,6 +11,10 @@ const initialState: AuthSliceState = {
 		postsCount: 0,
 		profilePictureUrl: '',
 		coverPhotoUrl: '',
+		followersCount: 0,
+		followingCount: 0,
+		followers: [],
+		following: [],
 	},
 	isLoggedIn: false,
 	isLoading: true,
@@ -168,6 +173,17 @@ const authSlice = createSlice({
 			})
 			.addCase(getUserOnRefresh.rejected, (state, action) => {
 				state.isLoading = false;
+				state.error = action.error.message || 'Something went wrong!';
+			})
+
+			.addCase(followOrUnfollow.fulfilled, (state, action) => {
+				if (action.payload.isFollowing) {
+					state.user.followingCount++;
+				} else {
+					state.user.followingCount--;
+				}
+			})
+			.addCase(followOrUnfollow.rejected, (state, action) => {
 				state.error = action.error.message || 'Something went wrong!';
 			});
 	},

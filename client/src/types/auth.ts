@@ -28,6 +28,10 @@ export interface AuthResponse {
 	postsCount: number;
 	profilePictureUrl?: string;
 	coverPhotoUrl?: string;
+	followersCount: number;
+	followingCount: number;
+	following: [];
+	followers: [];
 }
 
 export type LoginError = {

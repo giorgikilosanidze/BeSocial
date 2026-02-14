@@ -26,8 +26,6 @@ const Feed = () => {
 
 	useEffect(() => {
 		socket.on('reactionAdded', (reactionData) => {
-			console.log(reactionData);
-
 			dispatch(addReactionInRealTime(reactionData));
 		});
 

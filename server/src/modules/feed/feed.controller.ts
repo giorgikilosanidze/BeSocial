@@ -4,15 +4,11 @@ import { CreatePostRequest, EditPostData, GetPostsRequest, PostIdParams } from '
 import path from 'path';
 import { getIO } from '../../socket.js';
 import { ReactionData } from '../reactions/reaction.types.js';
-import {
-	addReaction,
-	collectReactions,
-} from '../reactions/reaction.repository.js';
+import { addReaction, collectReactions } from '../reactions/reaction.repository.js';
 
 export async function getPosts(req: GetPostsRequest, res: Response, next: NextFunction) {
 	try {
 		const posts = await getPostsFromDB(req.userId);
-
 		return res.status(200).json(posts);
 	} catch (error: any) {
 		return next(error);

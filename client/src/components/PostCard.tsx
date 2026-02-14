@@ -115,7 +115,7 @@ const PostCard = ({ post }: PostCardProps) => {
 			console.error('Delete post failed!', error);
 		}
 	};
-	console.log(isLike);
+
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200">
 			{/* Post Header */}

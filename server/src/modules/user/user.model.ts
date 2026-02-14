@@ -24,6 +24,8 @@ const userSchema = new Schema({
 		required: false,
 		type: String,
 	},
+	followers: [{ type: String, ref: 'User' }],
+	following: [{ type: String, ref: 'User' }],
 	refreshToken: {
 		type: String,
 	},
