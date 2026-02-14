@@ -3,6 +3,8 @@ import { deletePost, editPost, sendReactionData } from '@/features/feed/feedThun
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import Like from '@/svg/Like';
 import LikeButtonSvg from '@/svg/LikeButtonSvg';
+import LoveButtonSvg from '@/svg/LoveButtonSvg';
+import AngryButtonSvg from '@/svg/AngryButtonSvg';
 import Love from '@/svg/Love';
 import Angry from '@/svg/Angry';
 import type { EditPostData, PostCardProps, ReactionTypes } from '@/types/feed';
@@ -21,6 +23,7 @@ const PostCard = ({ post }: PostCardProps) => {
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	// const [instantReact, setInstantReact] = useState(null);
 
 	const hasPermission = post.author._id === userId;
 
@@ -299,15 +302,36 @@ const PostCard = ({ post }: PostCardProps) => {
 						</div>
 					</div>
 
-					{/* Like Button */}
+					{/* Reaction Button — changes based on userReaction */}
 					<button
 						onClick={() => handleReaction('like')}
 						className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
-							post.isLiked ? 'text-blue-600' : 'text-gray-600 hover:bg-gray-100'
+							post.userReaction === 'like'
+								? 'text-blue-600'
+								: post.userReaction === 'love'
+									? 'text-red-500'
+									: post.userReaction === 'angry'
+										? 'text-orange-500'
+										: 'text-gray-600 hover:bg-gray-100'
 						}`}
 					>
-						<LikeButtonSvg isLiked={post.isLiked} />
-						<span className="font-medium text-sm">Like</span>
+						{/* Icon changes based on reaction type */}
+						{post.userReaction === 'love' ? (
+							<LoveButtonSvg isActive />
+						) : post.userReaction === 'angry' ? (
+							<AngryButtonSvg isActive />
+						) : (
+							<LikeButtonSvg isLiked={post.userReaction === 'like'} />
+						)}
+
+						{/* Label changes based on reaction type */}
+						<span className="font-medium text-sm">
+							{post.userReaction === 'love'
+								? 'Love'
+								: post.userReaction === 'angry'
+									? 'Angry'
+									: 'Like'}
+						</span>
 					</button>
 				</div>
 				<button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">

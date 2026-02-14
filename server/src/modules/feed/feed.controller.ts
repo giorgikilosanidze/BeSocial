@@ -109,6 +109,7 @@ export async function handleReaction(
 			userReaction: reactionType,
 		};
 
+		getIO().emit('reactionAdded', returnObject);
 		res.status(200).json(returnObject);
 	} catch (error) {
 		res.status(500).json({ message: 'Could not react to post!' });

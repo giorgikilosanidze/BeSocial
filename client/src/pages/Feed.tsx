@@ -10,6 +10,7 @@ import { fetchPosts } from '@/features/feed/feedThunks';
 import { socket } from '@/socket';
 import {
 	addPostInRealTime,
+	addReactionInRealTime,
 	deletePostInRealTime,
 	editPostInRealTime,
 } from '@/features/feed/feedSlice';
@@ -21,6 +22,16 @@ const Feed = () => {
 
 	useEffect(() => {
 		dispatch(fetchPosts());
+	}, [dispatch]);
+
+	useEffect(() => {
+		socket.on('reactionAdded', (reactionData) => {
+			dispatch(addReactionInRealTime(reactionData));
+		});
+
+		return () => {
+			socket.off();
+		};
 	}, [dispatch]);
 
 	useEffect(() => {

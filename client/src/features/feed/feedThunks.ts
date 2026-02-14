@@ -240,7 +240,7 @@ export const sendReactionData = createAsyncThunk<boolean, ReactionData>(
 
 			return rejectWithValue((error as Error).message || 'Failed to delete post!');
 		}
-		console.log(data);
+		// console.log(data);
 
 		return data;
 	},

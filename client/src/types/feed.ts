@@ -22,10 +22,9 @@ export interface CreatePostResponse {
 	updatedAt: string;
 	id: string;
 	imageUrls?: string[];
-	likes?: number;
-	loves?: number;
+	// reactions?:  ;
+	userReaction?: ReactionTypes | null;
 	comments?: number;
-	isLiked?: boolean;
 }
 
 export type FetchPostsResponse = CreatePostResponse[];
@@ -62,6 +61,12 @@ export interface ReactionData {
 	postId: string;
 	userId: string;
 	reactionType: ReactionTypes;
+}
+
+export interface SocketReactionData {
+	postId: string;
+	userId: string;
+	userReaction: ReactionTypes;
 }
 
 export type ReactionTypes = 'like' | 'love' | 'angry';

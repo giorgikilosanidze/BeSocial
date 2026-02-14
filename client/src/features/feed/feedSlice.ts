@@ -1,5 +1,5 @@
-import type { FeedSliceState } from '@/types/feed';
-import { createSlice } from '@reduxjs/toolkit';
+import type { FeedSliceState, SocketReactionData } from '@/types/feed';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { createPost, deletePost, editPost, fetchPosts } from './feedThunks';
 
 const initialState: FeedSliceState = {
@@ -27,6 +27,16 @@ const feedSlice = createSlice({
 		},
 		deletePostInRealTime: (state, action) => {
 			state.posts = state.posts.filter((post) => post.id !== action.payload);
+		},
+		addReactionInRealTime: (state, action: PayloadAction<SocketReactionData>) => {
+			for (let i = 0; i < state.posts.length; i++) {
+				const post = state.posts[i];
+
+				if (post.id === action.payload.postId) {
+					post.userReaction = action.payload.userReaction;
+					return;
+				}
+			}
 		},
 	},
 	extraReducers: (builder) => {
@@ -79,6 +89,11 @@ const feedSlice = createSlice({
 	},
 });
 
-export const { addPostInRealTime, editPostInRealTime, deletePostInRealTime } = feedSlice.actions;
+export const {
+	addPostInRealTime,
+	editPostInRealTime,
+	deletePostInRealTime,
+	addReactionInRealTime,
+} = feedSlice.actions;
 
 export default feedSlice.reducer;
