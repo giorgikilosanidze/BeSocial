@@ -10,6 +10,7 @@ import { getPostsByUserId, getPostsCountForUsers } from '../post/post.repository
 import path from 'path';
 import { FollowRequest } from './profile.types.js';
 import { getIO } from '../../socket.js';
+import { createNotification } from '../notification/notification.repository.js';
 
 export async function getUserProfile(
 	req: Request<{ userId?: string }>,
@@ -102,7 +103,19 @@ export async function followOrUnfollow(req: FollowRequest, res: Response, next: 
 
 	const isFollowing = await handleFollowOrUnfollow(userId, targetUserId, action);
 
+	let notification;
+
+	if (action === 1) {
+		notification = await createNotification({
+			recipient: targetUserId,
+			sender: userId,
+			type: 'follow',
+			isRead: false,
+		});
+	}
+
 	getIO().emit('followedOrUnfollowed', { isFollowing });
+	getIO().emit('followNotification', notification);
 
 	res.status(200).json({ isFollowing });
 }
