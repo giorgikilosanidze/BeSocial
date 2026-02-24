@@ -34,7 +34,7 @@ const Profile = () => {
 		});
 
 		return () => {
-			socket.off();
+			socket.off('followedOrUnfollowed');
 		};
 	}, [dispatch]);
 

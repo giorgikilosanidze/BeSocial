@@ -237,15 +237,6 @@ const ProfileHeader = ({
 					</div>
 				</div>
 
-				{/* Bio and Info */}
-				<div className="mt-6 space-y-3">
-					<h1 className="font-semibold text-xl">BIO</h1>
-					<p className="text-gray-700">
-						Those who break the rules are scum, but those who abandon there friends are
-						worse than scum.
-					</p>
-				</div>
-
 				{/* Stats */}
 				<div className="mt-6 pt-5 border-t border-gray-200">
 					<div className="flex flex-wrap gap-6">

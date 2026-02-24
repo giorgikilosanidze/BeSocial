@@ -17,7 +17,12 @@ try {
 	const io = init(server);
 
 	io.on('connection', (socket) => {
-		console.log('client connected:', socket.id);
+		const userId = socket.handshake.query.userId as string;
+
+		if (userId) {
+			socket.join(userId);
+			console.log(`User ${userId} joined room. Socket ID: ${socket.id}`);
+		}
 	});
 } catch (error) {
 	console.log(error);

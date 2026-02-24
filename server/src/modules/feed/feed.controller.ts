@@ -1,10 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
-import { createPost, deletePostDB, editPostDB, getPostsFromDB } from '../post/post.repository.js';
+import {
+	createPost,
+	deletePostDB,
+	editPostDB,
+	getPostsFromDB,
+	getUserIdByPost,
+} from '../post/post.repository.js';
 import { CreatePostRequest, EditPostData, GetPostsRequest, PostIdParams } from './feed.types.js';
 import path from 'path';
 import { getIO } from '../../socket.js';
 import { ReactionData } from '../reactions/reaction.types.js';
 import { addReaction, collectReactions } from '../reactions/reaction.repository.js';
+import { createNotification } from '../notification/notification.repository.js';
+import { log } from 'console';
 
 export async function getPosts(req: GetPostsRequest, res: Response, next: NextFunction) {
 	try {
@@ -103,6 +111,14 @@ export async function handleReaction(
 		const isAdded = await addReaction({ postId, userId, reactionType });
 		const reactions = await collectReactions(postId);
 
+		const postAuthorId = await getUserIdByPost(postId);
+		const notification = await createNotification({
+			recipient: postAuthorId,
+			sender: userId,
+			type: 'reaction',
+			isRead: false,
+		});
+
 		const returnObject = {
 			postId,
 			reactions,
@@ -110,6 +126,11 @@ export async function handleReaction(
 		};
 
 		getIO().emit('reactionAdded', returnObject);
+
+		if (isAdded) {
+			getIO().to(postAuthorId.toString()).emit('reactionNotification', notification);
+		}
+
 		res.status(200).json(returnObject);
 	} catch (error) {
 		res.status(500).json({ message: 'Could not react to post!' });

@@ -5,6 +5,14 @@ import { Request } from 'express';
 import { PostIdParams } from '../feed/feed.types.js';
 import { removeImage } from '../../utils/removeImage.js';
 
+export async function getUserIdByPost(postId: string) {
+	const post = await Post.findById(postId);
+	if (!post) {
+		throw new Error('Could not find post with this id!');
+	}
+	return post.author;
+}
+
 export async function createPost(postData: PostType) {
 	const post = new Post({
 		text: postData.text,
@@ -71,7 +79,12 @@ export async function getPostsFromDB(userId?: string) {
 										$filter: {
 											input: '$reactions',
 											as: 'reaction',
-											cond: { $eq: ['$$reaction.userId', new mongoose.Types.ObjectId(userId)] },
+											cond: {
+												$eq: [
+													'$$reaction.userId',
+													new mongoose.Types.ObjectId(userId),
+												],
+											},
 										},
 									},
 									0,
@@ -203,7 +216,12 @@ export async function getPostsByUserId(userId: string, viewerId?: string) {
 										$filter: {
 											input: '$reactions',
 											as: 'reaction',
-											cond: { $eq: ['$$reaction.userId', new mongoose.Types.ObjectId(viewerId)] },
+											cond: {
+												$eq: [
+													'$$reaction.userId',
+													new mongoose.Types.ObjectId(viewerId),
+												],
+											},
 										},
 									},
 									0,

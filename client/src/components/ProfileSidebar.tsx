@@ -7,7 +7,6 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const ProfileSidebar = () => {
 	const user = useAppSelector((state) => state.auth.user);
 	const navigate = useNavigate();
-	console.log(user);
 
 	const handleViewProfileClick = () => {
 		navigate(routes.profile.replace(':userId', user.id));

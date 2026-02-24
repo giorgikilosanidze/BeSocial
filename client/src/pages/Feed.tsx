@@ -30,7 +30,7 @@ const Feed = () => {
 		});
 
 		return () => {
-			socket.off();
+			socket.off('reactionAdded');
 		};
 	}, [dispatch]);
 

@@ -31,6 +31,16 @@ const notificationSchema = new Schema(
 	{ timestamps: true },
 );
 
+notificationSchema.set('toJSON', {
+	transform: (_, ret) => {
+		const { _id, __v, ...rest } = ret;
+		return {
+			id: _id,
+			...rest,
+		};
+	},
+});
+
 const Notification = mongoose.model<NotificationModel & Document>(
 	'Notification',
 	notificationSchema,
