@@ -12,3 +12,10 @@ export interface NotificationType {
 	createdAt: string;
 	id: string;
 }
+
+export interface NotificationState {
+	data: NotificationType[];
+	error: string;
+	isLoading: boolean;
+	status: 'idle' | 'loading' | 'fullfiled' | 'error';
+}

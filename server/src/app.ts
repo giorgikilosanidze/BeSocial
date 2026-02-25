@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import authRoutes from './modules/auth/auth.routes.js';
 import feedRoutes from './modules/feed/feed.routes.js';
 import profileRoutes from './modules/profile/profile.routes.js';
+import notificationRoutes from './modules/notification/notification.routes.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -59,6 +60,7 @@ app.use(helmet());
 app.use('/api/auth', authRoutes);
 app.use('/api/feed', feedRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api', notificationRoutes);
 
 app.get(
 	'/api/search',
