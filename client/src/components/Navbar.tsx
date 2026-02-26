@@ -261,7 +261,12 @@ const Navbar = () => {
 								)}
 							</button>
 
-							{isNotificationsOpen && <NotificationDropdown onSeeAll={handleSeeAllNotifications} />}
+							{isNotificationsOpen && (
+								<NotificationDropdown
+									onClose={() => setIsNotificationsOpen(false)}
+									onSeeAll={handleSeeAllNotifications}
+								/>
+							)}
 						</div>
 						<button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
 							<svg
