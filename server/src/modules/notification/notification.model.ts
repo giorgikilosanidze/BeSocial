@@ -27,6 +27,11 @@ const notificationSchema = new Schema(
 			ref: 'Post',
 			required: false,
 		},
+		reactionType: {
+			type: String,
+			enum: ['like', 'love', 'angry'],
+			required: false,
+		},
 	},
 	{ timestamps: true },
 );

@@ -15,3 +15,26 @@ export async function getUserNotifications(userId: string) {
 
 	return notifications;
 }
+
+export async function getAllUserNotifications(userId: string) {
+	const notifications = await Notification.find({ recipient: userId })
+		.sort({ createdAt: -1 })
+		.populate('sender', 'username profilePictureUrl');
+
+	return notifications;
+}
+export async function markNotificationAsRead(notificationId: string) {
+	const notification = await Notification.findByIdAndUpdate(
+		notificationId,
+		{ isRead: true },
+		{ new: true },
+	);
+
+	if (!notification) {
+		throw new Error('Notification not found!');
+	}
+
+	await notification.populate('sender', 'username profilePictureUrl');
+
+	return notification;
+}

@@ -2,13 +2,17 @@ import { fetchNotifications } from '@/features/notifications/notificationsThunks
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect } from 'react';
 import ReactedNotification from './ReactedNotification';
-import FollowingNotification from './followingNotification';
+import FollowingNotification from './FollowingNotification';
 
-const NotificationDropdown = () => {
+interface NotificationDropdownProps {
+	onSeeAll: () => void;
+	onClose: () => void;
+}
+
+const NotificationDropdown = ({ onSeeAll, onClose }: NotificationDropdownProps) => {
 	const notifications = useAppSelector((state) => state.notification.data);
 	const status = useAppSelector((state) => state.notification.status);
 	const dispatch = useAppDispatch();
-	console.log(notifications);
 
 	useEffect(() => {
 		if (status === 'idle') {
@@ -23,7 +27,7 @@ const NotificationDropdown = () => {
 				<div className="flex items-center space-x-2">
 					<h3 className="text-base font-bold text-gray-900">Notifications</h3>
 					<span className="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
-						3
+						{notifications.filter((n) => !n.isRead).length}
 					</span>
 				</div>
 			</div>
@@ -36,6 +40,7 @@ const NotificationDropdown = () => {
 							<FollowingNotification
 								key={notification.id}
 								notification={notification}
+								onNotificationClick={onClose}
 							/>
 						);
 					} else {
@@ -43,6 +48,7 @@ const NotificationDropdown = () => {
 							<ReactedNotification
 								key={notification.id}
 								notification={notification}
+								onNotificationClick={onClose}
 							/>
 						);
 					}
@@ -51,7 +57,10 @@ const NotificationDropdown = () => {
 
 			{/* Footer */}
 			<div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-				<button className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
+				<button
+					onClick={onSeeAll}
+					className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+				>
 					See all notifications
 				</button>
 			</div>

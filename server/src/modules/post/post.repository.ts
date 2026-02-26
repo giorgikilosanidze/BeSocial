@@ -111,6 +111,93 @@ export async function getPostsFromDB(userId?: string) {
 	return posts;
 }
 
+export async function getPostById(postId: string, viewerId?: string) {
+	const posts = await Post.aggregate([
+		{
+			$match: { _id: new mongoose.Types.ObjectId(postId) },
+		},
+		{
+			$lookup: {
+				from: 'reactions',
+				localField: '_id',
+				foreignField: 'postId',
+				as: 'reactions',
+			},
+		},
+		{
+			$addFields: {
+				likes: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'like'] },
+						},
+					},
+				},
+				loves: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'love'] },
+						},
+					},
+				},
+				angry: {
+					$size: {
+						$filter: {
+							input: '$reactions',
+							as: 'reaction',
+							cond: { $eq: ['$$reaction.type', 'angry'] },
+						},
+					},
+				},
+				userReaction: {
+					$let: {
+						vars: {
+							userReactionObj: {
+								$arrayElemAt: [
+									{
+										$filter: {
+											input: '$reactions',
+											as: 'reaction',
+											cond: {
+												$eq: viewerId ? [
+													'$$reaction.userId',
+													new mongoose.Types.ObjectId(viewerId),
+												] : false,
+											},
+										},
+									},
+									0,
+								],
+							},
+						},
+						in: '$$userReactionObj.type',
+					},
+				},
+				id: '$_id',
+			},
+		},
+		{
+			$project: {
+				reactions: 0,
+				_id: 0,
+				__v: 0,
+			},
+		},
+	]);
+
+	if (!posts || posts.length === 0) {
+		throw new Error('Post not found');
+	}
+
+	await Post.populate(posts, { path: 'author', select: 'username _id profilePictureUrl' });
+
+	return posts[0];
+}
+
 export async function editPostDB(editedPostData: EditPostDB) {
 	const post = await Post.findByIdAndUpdate(
 		editedPostData.postId,

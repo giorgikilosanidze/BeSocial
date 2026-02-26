@@ -3,6 +3,7 @@ const routes = {
 	signup: '/signup',
 	feed: '/feed',
 	profile: '/profile/:userId',
+	post: '/post/:postId',
 	notFound: '*',
 };
 

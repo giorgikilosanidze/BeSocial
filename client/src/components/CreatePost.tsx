@@ -37,6 +37,10 @@ const CreatePost = () => {
 		images.forEach((img) => formData.append('image', img));
 		formData.append('text', postText);
 
+		if (!postText && images.length === 0) {
+			return;
+		}
+
 		try {
 			dispatch(createPost(formData)).unwrap();
 			setPostText('');

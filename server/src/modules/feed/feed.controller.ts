@@ -23,6 +23,22 @@ export async function getPosts(req: GetPostsRequest, res: Response, next: NextFu
 	}
 }
 
+export async function getSinglePost(req: Request<PostIdParams>, res: Response, next: NextFunction) {
+	if (!req.params.postId) {
+		return res.status(400).json({ message: 'postId parameter is required!' });
+	}
+
+	// Make sure req is cast as any or we extract userId properly since it's guarded by authGuard
+	const userId = (req as any).userId as string | undefined;
+
+	try {
+		const post = await import('../post/post.repository.js').then((m) => m.getPostById(req.params.postId as string, userId));
+		return res.status(200).json(post);
+	} catch (error: any) {
+		return next(error);
+	}
+}
+
 export async function postCreation(req: CreatePostRequest, res: Response, next: NextFunction) {
 	if (!req.userId) {
 		return res.status(401).json({ error: 'Unauthorized' });
@@ -117,6 +133,8 @@ export async function handleReaction(
 			sender: userId,
 			type: 'reaction',
 			isRead: false,
+			post: postId,
+			reactionType: reactionType,
 		});
 
 		const returnObject = {

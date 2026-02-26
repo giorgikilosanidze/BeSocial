@@ -8,6 +8,7 @@ export interface NotificationType {
 	type: 'follow' | 'reaction';
 	isRead: boolean;
 	post?: string;
+	reactionType?: 'like' | 'love' | 'angry';
 	updatedAt: string;
 	createdAt: string;
 	id: string;

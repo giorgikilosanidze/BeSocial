@@ -1,5 +1,7 @@
 import SERVER_URL from '@/constants/serverUrl';
 import type { NotificationType } from '@/types/notification';
+import { useNavigate } from 'react-router-dom';
+import routes from '@/constants/routes';
 
 interface FollowNotificationToastProps {
 	toast: NotificationType;
@@ -7,6 +9,13 @@ interface FollowNotificationToastProps {
 }
 
 const FollowNotification = ({ toast, onRemove }: FollowNotificationToastProps) => {
+	const navigate = useNavigate();
+
+	const handleNavigate = () => {
+		navigate(routes.profile.replace(':userId', toast.sender._id));
+		onRemove();
+	};
+
 	const profilePictureUrl = toast.sender.profilePictureUrl
 		? `${SERVER_URL}/${toast.sender.profilePictureUrl}`
 		: 'https://ui-avatars.com/api/?name=Jane+Smith&background=8b5cf6&color=fff&size=200';
@@ -14,7 +23,8 @@ const FollowNotification = ({ toast, onRemove }: FollowNotificationToastProps) =
 	return (
 		<div
 			onAnimationEnd={onRemove}
-			className="pointer-events-auto w-80 bg-white rounded-xl shadow-[0_8px_30px_-4px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden animate-toast-slide-in"
+			onClick={handleNavigate}
+			className="pointer-events-auto w-80 bg-white rounded-xl shadow-[0_8px_30px_-4px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden animate-toast-slide-in cursor-pointer hover:bg-gray-50 transition-colors"
 		>
 			<div className="flex items-start p-4 border-l-4 border-l-blue-500">
 				<div className="relative flex-shrink-0">

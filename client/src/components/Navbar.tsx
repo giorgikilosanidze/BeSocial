@@ -1,5 +1,6 @@
 import fetchSearchedUsers from '@/api/fetchSearchedUsers';
 import NotificationDropdown from './NotificationDropdown';
+import NotificationModal from './NotificationModal';
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
@@ -29,6 +30,7 @@ const Navbar = () => {
 	const debouncedSearch = useDebounce(searchValue);
 	const [isSearchLoading, setIsSearchLoading] = useState(false);
 	const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+	const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
@@ -72,6 +74,11 @@ const Navbar = () => {
 		setIsNotificationsOpen(!isNotificationsOpen);
 	};
 
+	const handleSeeAllNotifications = () => {
+		setIsNotificationsOpen(false);
+		setIsNotificationModalOpen(true);
+	};
+
 	const handleSearchValue = (value: string) => {
 		setSearchValue(value);
 		setIsSearchLoading(value ? true : false);
@@ -110,6 +117,7 @@ const Navbar = () => {
 	};
 
 	return (
+		<>
 		<nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between items-center h-16">
@@ -253,7 +261,7 @@ const Navbar = () => {
 								)}
 							</button>
 
-							{isNotificationsOpen && <NotificationDropdown />}
+							{isNotificationsOpen && <NotificationDropdown onSeeAll={handleSeeAllNotifications} />}
 						</div>
 						<button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
 							<svg
@@ -383,6 +391,10 @@ const Navbar = () => {
 				</div>
 			</div>
 		</nav>
+		{isNotificationModalOpen && (
+			<NotificationModal onClose={() => setIsNotificationModalOpen(false)} />
+		)}
+		</>
 	);
 };
 
