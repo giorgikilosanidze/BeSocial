@@ -1,6 +1,6 @@
-import type { FeedSliceState, SocketReactionData } from '@/types/feed';
+import type { Comments, FeedSliceState, SocketReactionData } from '@/types/feed';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { createPost, deletePost, editPost, fetchPosts } from './feedThunks';
+import { addComment, createPost, deletePost, editPost, fetchPosts } from './feedThunks';
 
 const initialState: FeedSliceState = {
 	posts: [],
@@ -80,6 +80,21 @@ const feedSlice = createSlice({
 				state.isLoading = false;
 			})
 			.addCase(deletePost.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.error.message || 'Failed to delete post!';
+			})
+
+			.addCase(addComment.pending, (state) => {
+				state.isLoading = true;
+			})
+			.addCase(addComment.fulfilled, (state, action: PayloadAction<Comments>) => {
+				state.isLoading = false;
+
+				const post = state.posts.find((post) => post.id === action.payload.postId);
+
+				post?.comments?.push(action.payload);
+			})
+			.addCase(addComment.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.error.message || 'Failed to delete post!';
 			});

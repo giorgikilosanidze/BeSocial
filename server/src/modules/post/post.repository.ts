@@ -1,6 +1,6 @@
 import mongoose, { Error } from 'mongoose';
 import Post from './post.model.js';
-import { EditPostDB, PostType } from './post.types.js';
+import { AddCommentType, EditPostDB, PostType } from './post.types.js';
 import { Request } from 'express';
 import { PostIdParams } from '../feed/feed.types.js';
 import { removeImage } from '../../utils/removeImage.js';
@@ -163,10 +163,12 @@ export async function getPostById(postId: string, viewerId?: string) {
 											input: '$reactions',
 											as: 'reaction',
 											cond: {
-												$eq: viewerId ? [
-													'$$reaction.userId',
-													new mongoose.Types.ObjectId(viewerId),
-												] : false,
+												$eq: viewerId
+													? [
+															'$$reaction.userId',
+															new mongoose.Types.ObjectId(viewerId),
+														]
+													: false,
 											},
 										},
 									},
@@ -333,4 +335,18 @@ export async function getPostsByUserId(userId: string, viewerId?: string) {
 	await Post.populate(posts, { path: 'author', select: 'username _id profilePictureUrl' });
 
 	return posts;
+}
+
+export async function addComment({ userId, postId, text, username, profilePictureUrl }: AddCommentType) {
+	const post = await Post.findById(postId);
+
+	if (!post) throw new Error('Post not found');
+
+	post.comments.push({ userId, username, text, profilePictureUrl });
+
+	await post.save();
+
+	const newComment = post.comments[post.comments.length - 1];
+
+	return newComment;
 }

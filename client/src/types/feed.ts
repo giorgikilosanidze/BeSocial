@@ -24,7 +24,17 @@ export interface CreatePostResponse {
 	id: string;
 	imageUrls?: string[];
 	userReaction?: ReactionTypes | null;
-	comments?: number;
+	comments?: Comments[];
+}
+
+export interface Comments {
+	_id: string;
+	postId: string;
+	userId: string;
+	username: string;
+	text: string;
+	createdAt: string;
+	profilePictureUrl?: string;
 }
 
 export type FetchPostsResponse = CreatePostResponse[];
@@ -70,3 +80,8 @@ export interface SocketReactionData {
 }
 
 export type ReactionTypes = 'like' | 'love' | 'angry';
+
+export interface CommentData {
+	text: string;
+	postId: string;
+}

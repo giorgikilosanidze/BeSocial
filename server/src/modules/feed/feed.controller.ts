@@ -1,18 +1,25 @@
 import { NextFunction, Request, Response } from 'express';
 import {
+	addComment,
 	createPost,
 	deletePostDB,
 	editPostDB,
 	getPostsFromDB,
 	getUserIdByPost,
 } from '../post/post.repository.js';
-import { CreatePostRequest, EditPostData, GetPostsRequest, PostIdParams } from './feed.types.js';
+import {
+	CommentRequest,
+	CreatePostRequest,
+	EditPostData,
+	GetPostsRequest,
+	PostIdParams,
+} from './feed.types.js';
 import path from 'path';
 import { getIO } from '../../socket.js';
 import { ReactionData } from '../reactions/reaction.types.js';
 import { addReaction, collectReactions } from '../reactions/reaction.repository.js';
 import { createNotification } from '../notification/notification.repository.js';
-import { log } from 'console';
+import { getUsernameById, getProfilePictureUrlById } from '../user/user.repository.js';
 
 export async function getPosts(req: GetPostsRequest, res: Response, next: NextFunction) {
 	try {
@@ -32,7 +39,9 @@ export async function getSinglePost(req: Request<PostIdParams>, res: Response, n
 	const userId = (req as any).userId as string | undefined;
 
 	try {
-		const post = await import('../post/post.repository.js').then((m) => m.getPostById(req.params.postId as string, userId));
+		const post = await import('../post/post.repository.js').then((m) =>
+			m.getPostById(req.params.postId as string, userId),
+		);
 		return res.status(200).json(post);
 	} catch (error: any) {
 		return next(error);
@@ -153,4 +162,26 @@ export async function handleReaction(
 	} catch (error) {
 		res.status(500).json({ message: 'Could not react to post!' });
 	}
+}
+
+export async function addCommentToPost(req: CommentRequest, res: Response, next: NextFunction) {
+	const userId = req.userId;
+	const postId = req.body.postId;
+	const text = req.body.text.trim();
+
+	if (!userId) {
+		return res.status(400).json({ message: 'Failed to identify user!' });
+	}
+
+	const username = await getUsernameById(userId);
+
+	if (!username) {
+		return res.status(400).json({ message: 'Failed to find username!' });
+	}
+
+	const profilePictureUrl = await getProfilePictureUrlById(userId);
+
+	const comment = await addComment({ userId, postId, text, username, profilePictureUrl });
+
+	res.status(200).json(comment);
 }

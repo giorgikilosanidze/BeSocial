@@ -7,6 +7,8 @@ import LoveButtonSvg from '@/svg/LoveButtonSvg';
 import AngryButtonSvg from '@/svg/AngryButtonSvg';
 import Love from '@/svg/Love';
 import Angry from '@/svg/Angry';
+import Comment from '@/components/Comment';
+import CommentInput from '@/components/CommentInput';
 import type { EditPostData, PostCardProps, ReactionTypes } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
@@ -16,10 +18,12 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const PostCard = ({ post }: PostCardProps) => {
 	const userId = useAppSelector((state) => state.auth.user.id);
+	const currentUser = useAppSelector((state) => state.auth.user);
 	const profilePictureUrl = post.author.profilePictureUrl;
 	const [optionsVisibility, setOptionsVisibility] = useState(false);
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [editedText, setEditedText] = useState('');
+	const [commentsVisible, setCommentsVisible] = useState(false);
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -75,6 +79,10 @@ const PostCard = ({ post }: PostCardProps) => {
 		setOptionsVisibility(!optionsVisibility);
 	};
 
+	const toggleComments = () => {
+		setCommentsVisible(!commentsVisible);
+	};
+
 	const handleEditMode = (mode: boolean) => {
 		setIsEditMode(mode);
 
@@ -115,6 +123,7 @@ const PostCard = ({ post }: PostCardProps) => {
 			console.error('Delete post failed!', error);
 		}
 	};
+	console.log(post.comments);
 
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -260,8 +269,9 @@ const PostCard = ({ post }: PostCardProps) => {
 					{/* <span>{post.likes + post.loves + post.angry}</span> */}
 				</div>
 				<div className="flex items-center space-x-4">
-					<button className="hover:underline">{post.comments} comments</button>
-					<span>12 shares</span>
+					<button onClick={toggleComments} className="hover:underline">
+						{post.comments?.length || 0} comments
+					</button>
 				</div>
 			</div>
 
@@ -344,7 +354,10 @@ const PostCard = ({ post }: PostCardProps) => {
 						</span>
 					</button>
 				</div>
-				<button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
+				<button
+					onClick={toggleComments}
+					className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${commentsVisible ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-100'}`}
+				>
 					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							strokeLinecap="round"
@@ -355,7 +368,7 @@ const PostCard = ({ post }: PostCardProps) => {
 					</svg>
 					<span className="font-medium text-sm">Comment</span>
 				</button>
-				<button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
+				{/* <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
 					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
 							strokeLinecap="round"
@@ -365,11 +378,33 @@ const PostCard = ({ post }: PostCardProps) => {
 						/>
 					</svg>
 					<span className="font-medium text-sm">Share</span>
-				</button>
+				</button> */}
 			</div>
 
-			{/* Comments Section - Always hidden for UI demo */}
-			{/* You can show this conditionally based on your logic */}
+			{/* Comments Section */}
+			{commentsVisible && (
+				<div className="px-4 pb-4 pt-2">
+					{/* Sample comments — replace with real data later */}
+					<div className="space-y-1">
+						{post.comments?.map((comment) => (
+							<Comment
+								key={comment._id}
+								username={comment.username}
+								text={comment.text}
+								createdAt={comment.createdAt}
+								profilePictureUrl={comment.profilePictureUrl}
+							/>
+						))}
+					</div>
+
+					{/* Comment Input */}
+					<CommentInput
+						postId={post.id}
+						profilePictureUrl={currentUser.profilePictureUrl}
+						username={currentUser.username}
+					/>
+				</div>
+			)}
 		</div>
 	);
 };

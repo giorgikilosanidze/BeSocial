@@ -5,6 +5,7 @@ export interface PostModel extends Document {
 	imageUrls?: string[];
 	isEdited: boolean;
 	author: string;
+	comments: CommentModelType[];
 }
 
 export interface PostType {
@@ -17,4 +18,19 @@ export interface EditPostDB {
 	editedText?: string;
 	editedImageUrls?: string[];
 	postId: string;
+}
+
+export interface AddCommentType {
+	userId: string;
+	postId: string;
+	text: string;
+	username: string;
+	profilePictureUrl: string;
+}
+
+export interface CommentModelType {
+	userId: string;
+	text: string;
+	username: string;
+	profilePictureUrl: string;
 }

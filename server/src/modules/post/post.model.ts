@@ -1,5 +1,6 @@
 import mongoose, { Document } from 'mongoose';
 import { PostModel } from './post.types.js';
+import commentSchema from '../comment/comment.schema.js';
 
 const Schema = mongoose.Schema;
 
@@ -22,6 +23,7 @@ const postSchema = new Schema(
 			ref: 'User',
 			required: true,
 		},
+		comments: [commentSchema],
 	},
 	{ timestamps: true },
 );

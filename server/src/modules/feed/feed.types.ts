@@ -17,3 +17,11 @@ export interface EditPostData {
 export interface GetPostsRequest extends Request {
 	userId?: string;
 }
+
+export interface CommentRequest {
+	userId?: string;
+	body: {
+		postId: string;
+		text: string;
+	};
+}

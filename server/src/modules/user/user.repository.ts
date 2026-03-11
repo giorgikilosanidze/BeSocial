@@ -119,3 +119,13 @@ export async function checkFollow(loggedInUserId: string, visitedUserId: string)
 	const loggedInUser = await User.findById(loggedInUserId);
 	return loggedInUser?.following.includes(visitedUserId)!;
 }
+
+export async function getUsernameById(id: string): Promise<string | null> {
+	const user = await User.findById(id).select('username');
+	return user?.username || null;
+}
+
+export async function getProfilePictureUrlById(id: string): Promise<string> {
+	const user = await User.findById(id).select('profilePictureUrl');
+	return user?.profilePictureUrl || '';
+}
