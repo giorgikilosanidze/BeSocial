@@ -23,6 +23,9 @@ export interface CreatePostResponse {
 	updatedAt: string;
 	id: string;
 	imageUrls?: string[];
+	likes: number;
+	loves: number;
+	angry: number;
 	userReaction?: ReactionTypes | null;
 	comments?: Comments[];
 }
@@ -77,6 +80,11 @@ export interface SocketReactionData {
 	postId: string;
 	userId: string;
 	userReaction: ReactionTypes;
+	reactions: {
+		likes: number;
+		loves: number;
+		angry: number;
+	};
 }
 
 export type ReactionTypes = 'like' | 'love' | 'angry';

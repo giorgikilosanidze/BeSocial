@@ -31,6 +31,22 @@ const feedSlice = createSlice({
 
 				if (post.id === action.payload.postId) {
 					post.userReaction = action.payload.userReaction;
+					post.likes = action.payload.reactions.likes;
+					post.loves = action.payload.reactions.loves;
+					post.angry = action.payload.reactions.angry;
+					return;
+				}
+			}
+		},
+		addCommentInRealTime: (state, action: PayloadAction<Comments>) => {
+			for (let i = 0; i < state.posts.length; i++) {
+				const post = state.posts[i];
+
+				if (post.id === action.payload.postId) {
+					if (!post.comments) {
+						post.comments = [];
+					}
+					post.comments.unshift(action.payload);
 					return;
 				}
 			}
@@ -87,12 +103,11 @@ const feedSlice = createSlice({
 			.addCase(addComment.pending, (state) => {
 				state.isLoading = true;
 			})
-			.addCase(addComment.fulfilled, (state, action: PayloadAction<Comments>) => {
+			.addCase(addComment.fulfilled, (state) => {
 				state.isLoading = false;
 
-				const post = state.posts.find((post) => post.id === action.payload.postId);
-
-				post?.comments?.push(action.payload);
+				// const post = state.posts.find((post) => post.id === action.payload.postId);
+				// post?.comments?.push(action.payload);
 			})
 			.addCase(addComment.rejected, (state, action) => {
 				state.isLoading = false;
@@ -106,6 +121,7 @@ export const {
 	editPostInRealTime,
 	deletePostInRealTime,
 	addReactionInRealTime,
+	addCommentInRealTime,
 } = feedSlice.actions;
 
 export default feedSlice.reducer;

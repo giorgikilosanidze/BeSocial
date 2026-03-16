@@ -24,6 +24,7 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [isEditMode, setIsEditMode] = useState(false);
 	const [editedText, setEditedText] = useState('');
 	const [commentsVisible, setCommentsVisible] = useState(false);
+	const [visibleCommentsCount, setVisibleCommentsCount] = useState(3);
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -44,6 +45,8 @@ const PostCard = ({ post }: PostCardProps) => {
 		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
 
 	const postCreatedAgo = timeAgo(post.createdAt);
+
+	const reactionsAmount = (post.likes || 0) + (post.loves || 0) + (post.angry || 0);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -81,6 +84,10 @@ const PostCard = ({ post }: PostCardProps) => {
 
 	const toggleComments = () => {
 		setCommentsVisible(!commentsVisible);
+	};
+
+	const showMoreComments = () => {
+		setVisibleCommentsCount((prev) => prev + 3);
 	};
 
 	const handleEditMode = (mode: boolean) => {
@@ -266,7 +273,9 @@ const PostCard = ({ post }: PostCardProps) => {
 						<Love />
 						<Angry />
 					</div>
-					{/* <span>{post.likes + post.loves + post.angry}</span> */}
+					<span>
+						{`${reactionsAmount} ${reactionsAmount > 1 ? 'reactions' : 'reaction'}`}{' '}
+					</span>
 				</div>
 				<div className="flex items-center space-x-4">
 					<button onClick={toggleComments} className="hover:underline">
@@ -386,7 +395,15 @@ const PostCard = ({ post }: PostCardProps) => {
 				<div className="px-4 pb-4 pt-2">
 					{/* Sample comments — replace with real data later */}
 					<div className="space-y-1">
-						{post.comments?.map((comment) => (
+						{post.comments && post.comments.length > visibleCommentsCount && (
+							<button
+								onClick={showMoreComments}
+								className="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline mb-2 transition-colors"
+							>
+								Show more comments
+							</button>
+						)}
+						{post.comments?.slice(0, visibleCommentsCount).map((comment) => (
 							<Comment
 								key={comment._id}
 								username={comment.username}

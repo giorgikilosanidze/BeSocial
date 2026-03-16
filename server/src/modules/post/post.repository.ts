@@ -94,6 +94,12 @@ export async function getPostsFromDB(userId?: string) {
 						in: '$$userReactionObj.type',
 					},
 				},
+				comments: {
+					$sortArray: {
+						input: '$comments',
+						sortBy: { createdAt: -1 },
+					},
+				},
 				id: '$_id',
 			},
 		},
@@ -177,6 +183,12 @@ export async function getPostById(postId: string, viewerId?: string) {
 							},
 						},
 						in: '$$userReactionObj.type',
+					},
+				},
+				comments: {
+					$sortArray: {
+						input: '$comments',
+						sortBy: { createdAt: -1 },
 					},
 				},
 				id: '$_id',
@@ -318,6 +330,12 @@ export async function getPostsByUserId(userId: string, viewerId?: string) {
 							},
 						},
 						in: '$$userReactionObj.type',
+					},
+				},
+				comments: {
+					$sortArray: {
+						input: '$comments',
+						sortBy: { createdAt: -1 },
 					},
 				},
 				id: '$_id',

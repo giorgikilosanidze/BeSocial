@@ -183,5 +183,15 @@ export async function addCommentToPost(req: CommentRequest, res: Response, next:
 
 	const comment = await addComment({ userId, postId, text, username, profilePictureUrl });
 
-	res.status(200).json(comment);
+	const commentDoc = comment as any;
+	const commentObject = commentDoc.toObject ? commentDoc.toObject() : commentDoc;
+	const formattedComment = {
+		...commentObject,
+		_id: commentDoc._id,
+		postId: postId,
+	};
+
+	getIO().emit('commentAdded', formattedComment);
+
+	res.status(200).json(formattedComment);
 }

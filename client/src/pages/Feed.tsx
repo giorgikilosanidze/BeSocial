@@ -13,6 +13,7 @@ import {
 	addReactionInRealTime,
 	deletePostInRealTime,
 	editPostInRealTime,
+	addCommentInRealTime,
 } from '@/features/feed/feedSlice';
 import type { CreatePostResponse, EditPostData } from '@/types/feed';
 
@@ -61,6 +62,16 @@ const Feed = () => {
 
 		return () => {
 			socket.off('postDeleted');
+		};
+	}, [dispatch]);
+
+	useEffect(() => {
+		socket.on('commentAdded', (comment) => {
+			dispatch(addCommentInRealTime(comment));
+		});
+
+		return () => {
+			socket.off('commentAdded');
 		};
 	}, [dispatch]);
 
