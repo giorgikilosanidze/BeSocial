@@ -28,6 +28,9 @@ const PostCard = ({ post }: PostCardProps) => {
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const [reactionsAmount, setReactionsAmount] = useState(
+		(post.likes || 0) + (post.loves || 0) + (post.angry || 0),
+	);
 	const [instantReact, setInstantReact] = useState<ReactionTypes | null>(
 		post.userReaction || null,
 	);
@@ -45,8 +48,6 @@ const PostCard = ({ post }: PostCardProps) => {
 		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
 
 	const postCreatedAgo = timeAgo(post.createdAt);
-
-	const reactionsAmount = (post.likes || 0) + (post.loves || 0) + (post.angry || 0);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -69,6 +70,12 @@ const PostCard = ({ post }: PostCardProps) => {
 			setInstantReact(null);
 		} else {
 			setInstantReact(reactionType);
+		}
+
+		if (instantReact === reactionType) {
+			setReactionsAmount(reactionsAmount - 1);
+		} else if (!instantReact) {
+			setReactionsAmount(reactionsAmount + 1);
 		}
 
 		dispatch(sendReactionData({ postId: post.id, userId: userId, reactionType }));
@@ -337,7 +344,7 @@ const PostCard = ({ post }: PostCardProps) => {
 
 					{/* Reaction Button — changes based on userReaction */}
 					<button
-						onClick={() => handleReaction('like')}
+						onClick={() => handleReaction(activeReaction ?? 'like')}
 						className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
 							isLike
 								? 'text-blue-600'
