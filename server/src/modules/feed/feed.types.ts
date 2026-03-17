@@ -25,3 +25,8 @@ export interface CommentRequest {
 		text: string;
 	};
 }
+
+export interface CommentChecker {
+	postId: string;
+	commentId: string;
+}

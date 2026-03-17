@@ -2,12 +2,14 @@ import { NextFunction, Request, Response } from 'express';
 import {
 	addComment,
 	createPost,
+	deleteCommentFromDB,
 	deletePostDB,
 	editPostDB,
 	getPostsFromDB,
 	getUserIdByPost,
 } from '../post/post.repository.js';
 import {
+	CommentChecker,
 	CommentRequest,
 	CreatePostRequest,
 	EditPostData,
@@ -194,4 +196,21 @@ export async function addCommentToPost(req: CommentRequest, res: Response, next:
 	getIO().emit('commentAdded', formattedComment);
 
 	res.status(200).json(formattedComment);
+}
+
+export async function deleteComment(
+	req: Request<{}, {}, CommentChecker>,
+	res: Response,
+	next: NextFunction,
+) {
+	const postId = req.body.postId;
+	const commentId = req.body.commentId;
+
+	const isDeleted = await deleteCommentFromDB(postId, commentId);
+
+	if (isDeleted) {
+		res.status(200).json({ postId, commentId });
+	} else {
+		res.status(400).json({ message: 'Failed to delete a comment' });
+	}
 }

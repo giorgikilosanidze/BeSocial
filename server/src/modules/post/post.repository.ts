@@ -2,7 +2,7 @@ import mongoose, { Error } from 'mongoose';
 import Post from './post.model.js';
 import { AddCommentType, EditPostDB, PostType } from './post.types.js';
 import { Request } from 'express';
-import { PostIdParams } from '../feed/feed.types.js';
+import { CommentChecker, PostIdParams } from '../feed/feed.types.js';
 import { removeImage } from '../../utils/removeImage.js';
 
 export async function getUserIdByPost(postId: string) {
@@ -355,7 +355,13 @@ export async function getPostsByUserId(userId: string, viewerId?: string) {
 	return posts;
 }
 
-export async function addComment({ userId, postId, text, username, profilePictureUrl }: AddCommentType) {
+export async function addComment({
+	userId,
+	postId,
+	text,
+	username,
+	profilePictureUrl,
+}: AddCommentType) {
 	const post = await Post.findById(postId);
 
 	if (!post) throw new Error('Post not found');
@@ -367,4 +373,32 @@ export async function addComment({ userId, postId, text, username, profilePictur
 	const newComment = post.comments[post.comments.length - 1];
 
 	return newComment;
+}
+
+export async function checkCommentAuthorId(req: Request<{}, {}, CommentChecker>): Promise<string> {
+	const post = await Post.findById(req.body.postId);
+
+	if (!post) throw new Error('Post not found');
+
+	const comment = post?.comments.find((comment) => comment?._id?.equals(req.body.commentId));
+
+	if (!comment) throw new Error('Comment not found');
+
+	return comment.userId.toString();
+}
+
+export async function deleteCommentFromDB(postId: string, commentId: string): Promise<boolean> {
+	const post = await Post.findById(postId);
+
+	if (!post) throw new Error('Post not found');
+
+	if (post?.comments) {
+		post.comments = post.comments.filter((comment) => !comment?._id?.equals(commentId));
+
+		await post.save();
+
+		return true;
+	}
+
+	return false;
 }

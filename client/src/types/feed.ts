@@ -93,3 +93,13 @@ export interface CommentData {
 	text: string;
 	postId: string;
 }
+
+export interface DeleteCommentPayload {
+	postId: string;
+	commentId: string;
+}
+
+export interface DeleteCommentResponse {
+	postId: string;
+	commentId: string;
+}

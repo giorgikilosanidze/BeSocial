@@ -7,10 +7,11 @@ import {
 	handleReaction,
 	getSinglePost,
 	addCommentToPost,
+	deleteComment,
 } from './feed.controller.js';
 import authGuard from '../../middlewares/authGuard/authGuard.js';
 import { permissionGuard } from '../../middlewares/permissionGuard/permissionGuard.js';
-import { getAuthorIdByParams } from '../post/post.repository.js';
+import { checkCommentAuthorId, getAuthorIdByParams } from '../post/post.repository.js';
 
 const router = Router();
 
@@ -26,5 +27,7 @@ router.delete('/posts/:postId', authGuard, permissionGuard(getAuthorIdByParams),
 router.post('/reaction', authGuard, handleReaction);
 
 router.post('/comment', authGuard, addCommentToPost);
+
+router.delete('/comment', authGuard, permissionGuard(checkCommentAuthorId), deleteComment);
 
 export default router;

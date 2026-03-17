@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export interface PostModel extends Document {
 	text: string;
@@ -33,4 +33,5 @@ export interface CommentModelType {
 	text: string;
 	username: string;
 	profilePictureUrl: string;
+	_id?: Types.ObjectId;
 }

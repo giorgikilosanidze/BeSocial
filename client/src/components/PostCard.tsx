@@ -413,6 +413,9 @@ const PostCard = ({ post }: PostCardProps) => {
 						{post.comments?.slice(0, visibleCommentsCount).map((comment) => (
 							<Comment
 								key={comment._id}
+								id={comment._id}
+								postId={post.id}
+								hasPermission={userId === comment.userId}
 								username={comment.username}
 								text={comment.text}
 								createdAt={comment.createdAt}

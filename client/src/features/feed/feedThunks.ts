@@ -3,6 +3,8 @@ import type {
 	CommentData,
 	Comments,
 	CreatePostResponse,
+	DeleteCommentPayload,
+	DeleteCommentResponse,
 	DeletePostResponse,
 	EditPostData,
 	FetchPostsResponse,
@@ -288,5 +290,52 @@ export const addComment = createAsyncThunk<Comments, CommentData>(
 		}
 
 		return data;
+	},
+);
+
+export const deleteComment = createAsyncThunk<DeleteCommentResponse, DeleteCommentPayload>(
+	'feed/deleteComment',
+	async (payload, { rejectWithValue }) => {
+		const response = await fetch(`${SERVER_URL}/api/feed/comment`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'include',
+			body: JSON.stringify(payload),
+		});
+
+		if (!response.ok) {
+			const error = await response.json();
+
+			if (error.message === 'ACCESS_TOKEN_EXPIRED' || error.message === 'NO_ACCESS_TOKEN') {
+				try {
+					await refreshTokenRequest();
+
+					const retry = await fetch(`${SERVER_URL}/api/feed/comment`, {
+						method: 'DELETE',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						credentials: 'include',
+						body: JSON.stringify(payload),
+					});
+
+					if (!retry.ok) {
+						const retryError = await retry.json();
+						return rejectWithValue(retryError.message || 'Not authenticated');
+					}
+
+					return await retry.json();
+				} catch (refreshError: unknown) {
+					return rejectWithValue((refreshError as Error).message);
+				}
+			}
+
+			return rejectWithValue((error as Error).message || 'Failed to delete comment!');
+		}
+
+		const res = await response.json();
+		return res;
 	},
 );
