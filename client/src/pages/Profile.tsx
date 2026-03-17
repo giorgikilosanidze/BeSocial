@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import ProfileHeader from '@/components/ProfileHeader';
 import ProfileTabs from '@/components/ProfileTabs';
-import ProfileIntro from '@/components/ProfileIntro';
+// import ProfileIntro from '@/components/ProfileIntro';
 import ProfilePhotos from '@/components/ProfilePhotos';
 import ProfileFriends from '@/components/ProfileFriends';
 import PostCard from '@/components/PostCard';
@@ -65,7 +65,7 @@ const Profile = () => {
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 					{/* Left Sidebar - About/Info */}
 					<div className="lg:col-span-1 space-y-6">
-						<ProfileIntro />
+						{/* <ProfileIntro /> */}
 						<ProfilePhotos />
 						<ProfileFriends />
 					</div>
