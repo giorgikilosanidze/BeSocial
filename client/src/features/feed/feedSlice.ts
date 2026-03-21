@@ -18,6 +18,7 @@ import {
 const initialState: FeedSliceState = {
 	posts: [],
 	isLoading: false,
+	isSuggestionsLoading: false,
 	error: '',
 	followersCount: 0,
 	followingsCount: 0,
@@ -150,14 +151,14 @@ const feedSlice = createSlice({
 			})
 
 			.addCase(getSuggestions.pending, (state) => {
-				state.isLoading = true;
+				state.isSuggestionsLoading = true;
 			})
 			.addCase(getSuggestions.fulfilled, (state, action) => {
-				state.isLoading = false;
+				state.isSuggestionsLoading = false;
 				state.suggestions = action.payload;
 			})
 			.addCase(getSuggestions.rejected, (state, action) => {
-				state.isLoading = false;
+				state.isSuggestionsLoading = false;
 				state.error = action.error.message || 'Failed to get suggestions!';
 			});
 	},

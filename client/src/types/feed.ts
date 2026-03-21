@@ -1,6 +1,7 @@
 export interface FeedSliceState {
 	posts: CreatePostResponse[];
 	isLoading: boolean;
+	isSuggestionsLoading: boolean;
 	error: string;
 	followersCount: number;
 	followingsCount: number;

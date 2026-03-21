@@ -131,20 +131,13 @@ export async function getProfilePictureUrlById(id: string): Promise<string> {
 }
 
 export async function getRandomSuggestions(userId: string) {
-	const user = await User.findById(userId);
+	const user = await User.findById(userId).select('following');
 
-	const excludedIds = [...(user?.following || []), userId];
+	const excludedIds = Array.from(new Set([userId, ...(user?.following || [])]));
 
-	const suggestions = await User.aggregate([
-		{
-			$match: {
-				_id: { $nin: excludedIds },
-			},
-		},
-		{
-			$sample: { size: 3 },
-		},
-	]);
+	const suggestions = await User.find({
+		_id: { $nin: excludedIds },
+	}).select('_id username profilePictureUrl');
 
 	return suggestions;
 }
