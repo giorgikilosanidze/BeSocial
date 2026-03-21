@@ -12,6 +12,7 @@ import {
 	deletePost,
 	editPost,
 	fetchPosts,
+	getSuggestions,
 } from './feedThunks';
 
 const initialState: FeedSliceState = {
@@ -20,6 +21,7 @@ const initialState: FeedSliceState = {
 	error: '',
 	followersCount: 0,
 	followingsCount: 0,
+	suggestions: [],
 };
 
 const feedSlice = createSlice({
@@ -145,6 +147,18 @@ const feedSlice = createSlice({
 			.addCase(deleteComment.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.error.message || 'Failed to delete post!';
+			})
+
+			.addCase(getSuggestions.pending, (state) => {
+				state.isLoading = true;
+			})
+			.addCase(getSuggestions.fulfilled, (state, action) => {
+				state.isLoading = false;
+				state.suggestions = action.payload;
+			})
+			.addCase(getSuggestions.rejected, (state, action) => {
+				state.isLoading = false;
+				state.error = action.error.message || 'Failed to get suggestions!';
 			});
 	},
 });

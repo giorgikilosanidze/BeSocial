@@ -30,3 +30,7 @@ export interface CommentChecker {
 	postId: string;
 	commentId: string;
 }
+
+export interface GetSuggestionssRequest extends Request {
+	userId?: string;
+}

@@ -8,6 +8,7 @@ import {
 	getSinglePost,
 	addCommentToPost,
 	deleteComment,
+	getSuggestions,
 } from './feed.controller.js';
 import authGuard from '../../middlewares/authGuard/authGuard.js';
 import { permissionGuard } from '../../middlewares/permissionGuard/permissionGuard.js';
@@ -29,5 +30,7 @@ router.post('/reaction', authGuard, handleReaction);
 router.post('/comment', authGuard, addCommentToPost);
 
 router.delete('/comment', authGuard, permissionGuard(checkCommentAuthorId), deleteComment);
+
+router.get('/suggestions', authGuard, getSuggestions);
 
 export default router;

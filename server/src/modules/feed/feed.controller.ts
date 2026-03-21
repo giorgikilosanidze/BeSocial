@@ -14,6 +14,7 @@ import {
 	CreatePostRequest,
 	EditPostData,
 	GetPostsRequest,
+	GetSuggestionssRequest,
 	PostIdParams,
 } from './feed.types.js';
 import path from 'path';
@@ -21,7 +22,11 @@ import { getIO } from '../../socket.js';
 import { ReactionData } from '../reactions/reaction.types.js';
 import { addReaction, collectReactions } from '../reactions/reaction.repository.js';
 import { createNotification } from '../notification/notification.repository.js';
-import { getUsernameById, getProfilePictureUrlById } from '../user/user.repository.js';
+import {
+	getUsernameById,
+	getProfilePictureUrlById,
+	getRandomSuggestions,
+} from '../user/user.repository.js';
 
 export async function getPosts(req: GetPostsRequest, res: Response, next: NextFunction) {
 	try {
@@ -213,4 +218,20 @@ export async function deleteComment(
 	} else {
 		res.status(400).json({ message: 'Failed to delete a comment' });
 	}
+}
+
+export async function getSuggestions(
+	req: GetSuggestionssRequest,
+	res: Response,
+	next: NextFunction,
+) {
+	const userId = req.userId;
+
+	if (!userId) {
+		return res.status(400).json({ message: 'Failed to identify user' });
+	}
+
+	const suggestions = await getRandomSuggestions(userId);
+
+	res.status(200).json(suggestions);
 }

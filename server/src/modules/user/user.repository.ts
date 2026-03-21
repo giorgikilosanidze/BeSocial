@@ -129,3 +129,22 @@ export async function getProfilePictureUrlById(id: string): Promise<string> {
 	const user = await User.findById(id).select('profilePictureUrl');
 	return user?.profilePictureUrl || '';
 }
+
+export async function getRandomSuggestions(userId: string) {
+	const user = await User.findById(userId);
+
+	const excludedIds = [...(user?.following || []), userId];
+
+	const suggestions = await User.aggregate([
+		{
+			$match: {
+				_id: { $nin: excludedIds },
+			},
+		},
+		{
+			$sample: { size: 3 },
+		},
+	]);
+
+	return suggestions;
+}

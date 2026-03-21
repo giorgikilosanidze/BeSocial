@@ -4,6 +4,7 @@ export interface FeedSliceState {
 	error: string;
 	followersCount: number;
 	followingsCount: number;
+	suggestions: Suggestions;
 }
 
 export interface Post {
@@ -103,3 +104,9 @@ export interface DeleteCommentResponse {
 	postId: string;
 	commentId: string;
 }
+
+export type Suggestions = {
+	_id: string;
+	profilePictureUrl: string;
+	username: string;
+}[];
