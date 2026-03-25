@@ -5,7 +5,7 @@ const ProfileFriends = () => {
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
 			<div className="flex items-center justify-between mb-4">
 				<h3 className="text-lg font-semibold text-gray-900">
-					Friends
+					Friends (MUTUALS)
 					<span className="text-sm text-gray-500 font-normal ml-2">(531)</span>
 				</h3>
 				<a href="#" className="text-sm text-blue-600 hover:underline">
