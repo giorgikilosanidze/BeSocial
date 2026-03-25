@@ -141,3 +141,37 @@ export async function getRandomSuggestions(userId: string) {
 
 	return suggestions;
 }
+
+export async function getFollowersList(userId: string, viewerId: string) {
+	const user = await User.findById(userId);
+	if (!user) return [];
+
+	const viewer = await User.findById(viewerId);
+	const viewerFollowingStr = viewer?.following.map(id => id.toString()) || [];
+
+	const followers = await User.find({ _id: { $in: user.followers } }).select('_id username profilePictureUrl').lean();
+
+	return followers.map((f: any) => ({
+		_id: f._id.toString(),
+		username: f.username,
+		profilePictureUrl: f.profilePictureUrl || '',
+		isFollowed: viewerFollowingStr.includes(f._id.toString()),
+	}));
+}
+
+export async function getFollowingList(userId: string, viewerId: string) {
+	const user = await User.findById(userId);
+	if (!user) return [];
+
+	const viewer = await User.findById(viewerId);
+	const viewerFollowingStr = viewer?.following.map(id => id.toString()) || [];
+
+	const following = await User.find({ _id: { $in: user.following } }).select('_id username profilePictureUrl').lean();
+
+	return following.map((f: any) => ({
+		_id: f._id.toString(),
+		username: f.username,
+		profilePictureUrl: f.profilePictureUrl || '',
+		isFollowed: viewerFollowingStr.includes(f._id.toString()),
+	}));
+}

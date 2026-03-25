@@ -76,3 +76,20 @@ export async function collectAllReactions() {
 
 	return reactions;
 }
+
+export async function getPostReactionsDetailed(postId: string) {
+	const reactions = await Reaction.find({ postId })
+		.populate('userId', 'username profilePictureUrl')
+		.lean()
+		.exec();
+
+	return reactions.map((r: any) => ({
+		_id: r._id.toString(),
+		user: {
+			_id: r.userId._id.toString(),
+			username: r.userId.username,
+			profilePictureUrl: r.userId.profilePictureUrl,
+		},
+		type: r.type,
+	}));
+}

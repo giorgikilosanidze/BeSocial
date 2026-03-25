@@ -5,7 +5,7 @@ import {
 	uploadProfilePicture,
 } from '@/features/profile/profileThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
 
 interface ProfileHeaderProps {
@@ -15,6 +15,8 @@ interface ProfileHeaderProps {
 	followingCount: number;
 	isFollowed: boolean;
 	hasPermission: boolean;
+	onFollowersClick: () => void;
+	onFollowingClick: () => void;
 }
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
@@ -26,6 +28,8 @@ const ProfileHeader = ({
 	followingCount,
 	isFollowed,
 	hasPermission,
+	onFollowersClick,
+	onFollowingClick,
 }: ProfileHeaderProps) => {
 	const profilePictureUrl = useAppSelector((state) => state.profile.user.profilePictureUrl);
 	const coverPhotoUrl = useAppSelector((state) => state.profile.user.coverPhotoUrl);
@@ -33,6 +37,10 @@ const ProfileHeader = ({
 	const { userId } = useParams<{ userId: string }>();
 	const [followAction, setFollowAction] = useState<1 | 2>(isFollowed ? 2 : 1);
 	const [optimisticFollowers, setoptimisticFollowers] = useState(followersCount);
+
+	useEffect(() => {
+		setoptimisticFollowers(followersCount);
+	}, [followersCount]);
 
 	const profilePictureSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
@@ -240,17 +248,23 @@ const ProfileHeader = ({
 				{/* Stats */}
 				<div className="mt-6 pt-5 border-t border-gray-200">
 					<div className="flex flex-wrap gap-6">
-						<button className="flex flex-col hover:opacity-75 transition-opacity">
+						<button className="cursor-text flex flex-col">
 							<span className="text-2xl font-bold text-gray-900">{postsCount}</span>
 							<span className="text-sm text-gray-600">Posts</span>
 						</button>
-						<button className="flex flex-col hover:opacity-75 transition-opacity">
+						<button
+							onClick={onFollowersClick}
+							className="flex flex-col hover:opacity-75 transition-opacity"
+						>
 							<span className="text-2xl font-bold text-gray-900">
 								{optimisticFollowers}
 							</span>
 							<span className="text-sm text-gray-600">Followers</span>
 						</button>
-						<button className="flex flex-col hover:opacity-75 transition-opacity">
+						<button
+							onClick={onFollowingClick}
+							className="flex flex-col hover:opacity-75 transition-opacity"
+						>
 							<span className="text-2xl font-bold text-gray-900">
 								{followingCount}
 							</span>

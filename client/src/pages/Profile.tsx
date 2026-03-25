@@ -13,15 +13,22 @@ import CreatePost from '@/components/CreatePost';
 import ProfileSkeleton from '@/skeletons/ProfileSkeleton';
 import { socket } from '@/socket';
 import { updateFollowsInRealTime } from '@/features/profile/profileSlice';
+import UsersListModal from '@/components/UsersListModal';
+import { useState } from 'react';
 
 const Profile = () => {
 	const loggedInUserId = useAppSelector((state) => state.auth.user.id);
 	const user = useAppSelector((state) => state.profile.user);
+	const loggedInUser = useAppSelector((state) => state.auth.user);
 	const isLoading = useAppSelector((state) => state.profile.isLoading);
 	const { userId } = useParams<{ userId: string }>();
 	const dispatch = useAppDispatch();
+	const [modalType, setModalType] = useState<'followers' | 'following' | null>(null);
 
 	const hasPermission = loggedInUserId === userId;
+
+	const displayFollowersCount = hasPermission ? loggedInUser.followersCount : user.followersCount;
+	const displayFollowingCount = hasPermission ? loggedInUser.followingCount : user.followingCount;
 
 	useEffect(() => {
 		if (!userId) return;
@@ -52,10 +59,12 @@ const Profile = () => {
 				<ProfileHeader
 					username={user.username}
 					postsCount={user.postsCount}
-					followersCount={user.followersCount}
-					followingCount={user.followingCount}
+					followersCount={displayFollowersCount}
+					followingCount={displayFollowingCount}
 					isFollowed={user.isFollowed}
 					hasPermission={hasPermission}
+					onFollowersClick={() => setModalType('followers')}
+					onFollowingClick={() => setModalType('following')}
 				/>
 
 				{/* Tabs Navigation */}
@@ -82,6 +91,17 @@ const Profile = () => {
 					</div>
 				</div>
 			</div>
+
+			{modalType && (
+				<UsersListModal
+					setIsOpen={(value) => {
+						const isModalOpen = typeof value === 'function' ? value(true) : value;
+						if (!isModalOpen) setModalType(null);
+					}}
+					userId={userId!}
+					type={modalType}
+				/>
+			)}
 		</div>
 	);
 };

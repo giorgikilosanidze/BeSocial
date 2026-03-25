@@ -4,6 +4,7 @@ import type {
 	ProfilePictureReturnData,
 	UploadPicturesData,
 	UserProfile,
+	FollowListUser,
 } from '@/types/profile';
 import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
@@ -164,3 +165,67 @@ export const followOrUnfollow = createAsyncThunk<
 
 	return res;
 });
+
+export const getFollowersList = createAsyncThunk<FollowListUser[], string>(
+	'profile/getFollowersList',
+	async (userId, { rejectWithValue }) => {
+		const response = await fetch(`${SERVER_URL}/api/profile/user/${userId}/followers`, {
+			credentials: 'include',
+		});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			if (data.message === 'ACCESS_TOKEN_EXPIRED' || data.message === 'NO_ACCESS_TOKEN') {
+				try {
+					await refreshTokenRequest();
+					const retry = await fetch(`${SERVER_URL}/api/profile/user/${userId}/followers`, {
+						credentials: 'include',
+					});
+					if (!retry.ok) {
+						const retryError = await retry.json();
+						return rejectWithValue(retryError.message || 'Not authenticated');
+					}
+					return await retry.json();
+				} catch (refreshError: unknown) {
+					return rejectWithValue((refreshError as Error).message);
+				}
+			}
+			return rejectWithValue(data.message || 'Failed to fetch followers');
+		}
+
+		return data;
+	},
+);
+
+export const getFollowingList = createAsyncThunk<FollowListUser[], string>(
+	'profile/getFollowingList',
+	async (userId, { rejectWithValue }) => {
+		const response = await fetch(`${SERVER_URL}/api/profile/user/${userId}/following`, {
+			credentials: 'include',
+		});
+
+		const data = await response.json();
+
+		if (!response.ok) {
+			if (data.message === 'ACCESS_TOKEN_EXPIRED' || data.message === 'NO_ACCESS_TOKEN') {
+				try {
+					await refreshTokenRequest();
+					const retry = await fetch(`${SERVER_URL}/api/profile/user/${userId}/following`, {
+						credentials: 'include',
+					});
+					if (!retry.ok) {
+						const retryError = await retry.json();
+						return rejectWithValue(retryError.message || 'Not authenticated');
+					}
+					return await retry.json();
+				} catch (refreshError: unknown) {
+					return rejectWithValue((refreshError as Error).message);
+				}
+			}
+			return rejectWithValue(data.message || 'Failed to fetch following');
+		}
+
+		return data;
+	},
+);

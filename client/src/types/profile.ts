@@ -33,3 +33,10 @@ export interface ProfilePictureReturnData {
 export interface CoverPhotoReturnData {
 	coverPhotoUrl: string;
 }
+
+export interface FollowListUser {
+	_id: string;
+	username: string;
+	profilePictureUrl: string;
+	isFollowed: boolean;
+}

@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import SuggestionsSkeleton from '@/skeletons/SuggestionsSkeleton';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Modal from './Modal';
+import SuggestionsModal from './SuggestionsModal';
 
 const SuggestionsSidebar = () => {
 	const suggestions = useAppSelector((state) => state.feed.suggestions);
@@ -15,7 +15,9 @@ const SuggestionsSidebar = () => {
 	const [followActions, setFollowActions] = useState<Record<string, 1 | 2>>({});
 	const [hiddenSuggestions, setHiddenSuggestions] = useState<Record<string, boolean>>({});
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	const visibleSuggestions = suggestions.filter((suggestion) => !hiddenSuggestions[suggestion._id]);
+	const visibleSuggestions = suggestions.filter(
+		(suggestion) => !hiddenSuggestions[suggestion._id],
+	);
 	const previewSuggestions = visibleSuggestions.slice(0, 3);
 
 	useEffect(() => {
@@ -135,7 +137,7 @@ const SuggestionsSidebar = () => {
 				</div>
 			</aside>
 			{isModalOpen && (
-				<Modal
+				<SuggestionsModal
 					setIsModalOpen={setIsModalOpen}
 					suggestions={visibleSuggestions}
 					isSuggestionsLoading={isSuggestionsLoading}

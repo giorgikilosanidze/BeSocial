@@ -9,6 +9,7 @@ import {
 	addCommentToPost,
 	deleteComment,
 	getSuggestions,
+	getPostReactionsList,
 } from './feed.controller.js';
 import authGuard from '../../middlewares/authGuard/authGuard.js';
 import { permissionGuard } from '../../middlewares/permissionGuard/permissionGuard.js';
@@ -18,6 +19,7 @@ const router = Router();
 
 router.get('/posts', authGuard, getPosts);
 router.get('/posts/:postId', authGuard, getSinglePost);
+router.get('/posts/:postId/reactions', authGuard, getPostReactionsList);
 
 router.post('/posts', authGuard, postCreation);
 

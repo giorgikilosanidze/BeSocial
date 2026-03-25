@@ -9,6 +9,7 @@ import Love from '@/svg/Love';
 import Angry from '@/svg/Angry';
 import Comment from '@/components/Comment';
 import CommentInput from '@/components/CommentInput';
+import ReactionsModal from '@/components/ReactionsModal';
 import type { EditPostData, PostCardProps, ReactionTypes } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
@@ -25,6 +26,7 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [editedText, setEditedText] = useState('');
 	const [commentsVisible, setCommentsVisible] = useState(false);
 	const [visibleCommentsCount, setVisibleCommentsCount] = useState(3);
+	const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -137,7 +139,6 @@ const PostCard = ({ post }: PostCardProps) => {
 			console.error('Delete post failed!', error);
 		}
 	};
-	console.log(post.comments);
 
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -274,7 +275,10 @@ const PostCard = ({ post }: PostCardProps) => {
 
 			{/* Reactions Summary */}
 			<div className="px-4 py-3 flex items-center justify-between text-sm text-gray-500 border-b border-gray-100">
-				<div className="flex items-center space-x-2">
+				<div 
+					className="flex items-center space-x-2 cursor-pointer hover:underline"
+					onClick={() => setIsReactionsModalOpen(true)}
+				>
 					<div className="flex -space-x-1">
 						<Like />
 						<Love />
@@ -431,6 +435,13 @@ const PostCard = ({ post }: PostCardProps) => {
 						username={currentUser.username}
 					/>
 				</div>
+			)}
+
+			{isReactionsModalOpen && (
+				<ReactionsModal
+					setIsModalOpen={setIsReactionsModalOpen}
+					postId={post.id}
+				/>
 			)}
 		</div>
 	);

@@ -5,6 +5,8 @@ import {
 	handleFollowOrUnfollow,
 	saveCoverPhoto,
 	saveProfilePicture,
+	getFollowersList,
+	getFollowingList,
 } from '../user/user.repository.js';
 import { getPostsByUserId, getPostsCountForUsers } from '../post/post.repository.js';
 import path from 'path';
@@ -121,4 +123,30 @@ export async function followOrUnfollow(req: FollowRequest, res: Response, next: 
 	}
 
 	res.status(200).json({ isFollowing });
+}
+
+export async function getFollowers(req: Request<{ userId?: string }>, res: Response, next: NextFunction) {
+	const userId = req.params.userId;
+	const viewerId = (req as any).userId;
+	if (!userId) return res.status(400).json({ message: 'Missing params' });
+
+	try {
+		const followers = await getFollowersList(userId, viewerId);
+		return res.status(200).json(followers);
+	} catch (error) {
+		return next(error);
+	}
+}
+
+export async function getFollowing(req: Request<{ userId?: string }>, res: Response, next: NextFunction) {
+	const userId = req.params.userId;
+	const viewerId = (req as any).userId;
+	if (!userId) return res.status(400).json({ message: 'Missing params' });
+
+	try {
+		const following = await getFollowingList(userId, viewerId);
+		return res.status(200).json(following);
+	} catch (error) {
+		return next(error);
+	}
 }

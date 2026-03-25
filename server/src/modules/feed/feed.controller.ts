@@ -20,7 +20,7 @@ import {
 import path from 'path';
 import { getIO } from '../../socket.js';
 import { ReactionData } from '../reactions/reaction.types.js';
-import { addReaction, collectReactions } from '../reactions/reaction.repository.js';
+import { addReaction, collectReactions, getPostReactionsDetailed } from '../reactions/reaction.repository.js';
 import { createNotification } from '../notification/notification.repository.js';
 import {
 	getUsernameById,
@@ -234,4 +234,17 @@ export async function getSuggestions(
 	const suggestions = await getRandomSuggestions(userId);
 
 	res.status(200).json(suggestions);
+}
+
+export async function getPostReactionsList(req: Request<PostIdParams>, res: Response, next: NextFunction) {
+	if (!req.params.postId) {
+		return res.status(400).json({ message: 'postId parameter is required!' });
+	}
+
+	try {
+		const reactions = await getPostReactionsDetailed(req.params.postId);
+		return res.status(200).json(reactions);
+	} catch (error: any) {
+		return next(error);
+	}
 }

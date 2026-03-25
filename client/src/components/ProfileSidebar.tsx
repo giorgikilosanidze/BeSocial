@@ -1,12 +1,15 @@
 import routes from '@/constants/routes';
 import { useAppSelector } from '@/hooks/reduxHooks';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import UsersListModal from '@/components/UsersListModal';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
 const ProfileSidebar = () => {
 	const user = useAppSelector((state) => state.auth.user);
 	const navigate = useNavigate();
+	const [modalType, setModalType] = useState<'followers' | 'following' | null>(null);
 
 	const handleViewProfileClick = () => {
 		navigate(routes.profile.replace(':userId', user.id));
@@ -45,13 +48,19 @@ const ProfileSidebar = () => {
 								<p className="text-lg font-bold text-gray-900">{user.postsCount}</p>
 								<p className="text-xs text-gray-500">Posts</p>
 							</div>
-							<div>
+							<div 
+								className="cursor-pointer hover:opacity-75 transition-opacity"
+								onClick={() => setModalType('followers')}
+							>
 								<p className="text-lg font-bold text-gray-900">
 									{user.followersCount}
 								</p>
 								<p className="text-xs text-gray-500">Followers</p>
 							</div>
-							<div>
+							<div 
+								className="cursor-pointer hover:opacity-75 transition-opacity"
+								onClick={() => setModalType('following')}
+							>
 								<p className="text-lg font-bold text-gray-900">
 									{user.followingCount}
 								</p>
@@ -67,6 +76,17 @@ const ProfileSidebar = () => {
 					</button>
 				</div>
 			</div>
+
+			{modalType && (
+				<UsersListModal
+					setIsOpen={(value) => {
+						const isModalOpen = typeof value === 'function' ? value(true) : value;
+						if (!isModalOpen) setModalType(null);
+					}}
+					userId={user.id}
+					type={modalType}
+				/>
+			)}
 		</aside>
 	);
 };

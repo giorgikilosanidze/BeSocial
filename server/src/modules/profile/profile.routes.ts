@@ -5,6 +5,8 @@ import {
 	getUserProfile,
 	uploadCoverPhoto,
 	uploadProfilePicture,
+	getFollowers,
+	getFollowing,
 } from './profile.controller.js';
 
 const router = Router();
@@ -16,5 +18,8 @@ router.post('/profilePicture/:userId', authGuard, uploadProfilePicture);
 router.post('/coverPhoto/:userId', authGuard, uploadCoverPhoto);
 
 router.post('/follow', authGuard, followOrUnfollow);
+
+router.get('/user/:userId/followers', authGuard, getFollowers);
+router.get('/user/:userId/following', authGuard, getFollowing);
 
 export default router;

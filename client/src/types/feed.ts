@@ -111,3 +111,15 @@ export type Suggestions = {
 	profilePictureUrl: string;
 	username: string;
 }[];
+
+export interface ReactionDetail {
+	_id: string;
+	user: {
+		_id: string;
+		username: string;
+		profilePictureUrl?: string;
+	};
+	type: ReactionTypes;
+}
+
+export type GetPostReactionsResponse = ReactionDetail[];
