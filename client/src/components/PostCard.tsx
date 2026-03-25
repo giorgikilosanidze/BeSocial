@@ -14,6 +14,7 @@ import type { EditPostData, PostCardProps, ReactionTypes } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import dummyProfilePicture from '../assets/user.jpg';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -47,7 +48,7 @@ const PostCard = ({ post }: PostCardProps) => {
 
 	const profilePictureSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
-		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+		: dummyProfilePicture;
 
 	const postCreatedAgo = timeAgo(post.createdAt);
 
@@ -275,7 +276,7 @@ const PostCard = ({ post }: PostCardProps) => {
 
 			{/* Reactions Summary */}
 			<div className="px-4 py-3 flex items-center justify-between text-sm text-gray-500 border-b border-gray-100">
-				<div 
+				<div
 					className="flex items-center space-x-2 cursor-pointer hover:underline"
 					onClick={() => setIsReactionsModalOpen(true)}
 				>
@@ -438,10 +439,7 @@ const PostCard = ({ post }: PostCardProps) => {
 			)}
 
 			{isReactionsModalOpen && (
-				<ReactionsModal
-					setIsModalOpen={setIsReactionsModalOpen}
-					postId={post.id}
-				/>
+				<ReactionsModal setIsModalOpen={setIsReactionsModalOpen} postId={post.id} />
 			)}
 		</div>
 	);

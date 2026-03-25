@@ -6,6 +6,7 @@ import SuggestionsSkeleton from '@/skeletons/SuggestionsSkeleton';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SuggestionsModal from './SuggestionsModal';
+import dummyProfilePicture from '../assets/user.jpg';
 
 const SuggestionsSidebar = () => {
 	const suggestions = useAppSelector((state) => state.feed.suggestions);
@@ -85,7 +86,7 @@ const SuggestionsSidebar = () => {
 							{previewSuggestions.map((suggestion) => {
 								const profilePictureSrc = suggestion.profilePictureUrl
 									? `${SERVER_URL}/${suggestion.profilePictureUrl}`
-									: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+									: dummyProfilePicture;
 
 								const action = followActions[suggestion._id] || 1;
 

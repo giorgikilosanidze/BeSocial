@@ -3,6 +3,7 @@ import { createPost } from '@/features/feed/feedThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import dummyProfilePicture from '../assets/user.jpg';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -17,7 +18,7 @@ const CreatePost = () => {
 
 	const profilePictureSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
-		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+		: dummyProfilePicture;
 
 	const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 

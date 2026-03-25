@@ -2,6 +2,7 @@ import SERVER_URL from '@/constants/serverUrl';
 import type { NotificationType } from '@/types/notification';
 import { useNavigate } from 'react-router-dom';
 import routes from '@/constants/routes';
+import dummyProfilePicture from '../assets/user.jpg';
 
 interface FollowNotificationToastProps {
 	toast: NotificationType;
@@ -18,7 +19,7 @@ const FollowNotification = ({ toast, onRemove }: FollowNotificationToastProps) =
 
 	const profilePictureUrl = toast.sender.profilePictureUrl
 		? `${SERVER_URL}/${toast.sender.profilePictureUrl}`
-		: 'https://ui-avatars.com/api/?name=Jane+Smith&background=8b5cf6&color=fff&size=200';
+		: dummyProfilePicture;
 
 	return (
 		<div

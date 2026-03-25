@@ -2,6 +2,7 @@ import SERVER_URL from '@/constants/serverUrl';
 import type { Suggestions } from '@/types/feed';
 import { useEffect, type Dispatch, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
+import dummyProfilePicture from '../assets/user.jpg';
 
 interface ModalProps {
 	setIsModalOpen: Dispatch<SetStateAction<boolean>>;
@@ -61,7 +62,12 @@ const Modal = ({
 						onClick={closeModal}
 						className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
 					>
-						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg
+							className="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
 							<path
 								strokeLinecap="round"
 								strokeLinejoin="round"
@@ -103,9 +109,7 @@ const Modal = ({
 							{suggestions.map((suggestion) => {
 								const profilePictureSrc = suggestion.profilePictureUrl
 									? `${SERVER_URL}/${suggestion.profilePictureUrl}`
-									: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-											suggestion.username,
-										)}&background=2563eb&color=fff&size=200`;
+									: dummyProfilePicture;
 								const action = followActions[suggestion._id] || 1;
 
 								return (
@@ -115,7 +119,9 @@ const Modal = ({
 									>
 										<div className="flex items-center space-x-3 min-w-0">
 											<img
-												onClick={() => navigate(`/profile/${suggestion._id}`)}
+												onClick={() =>
+													navigate(`/profile/${suggestion._id}`)
+												}
 												src={profilePictureSrc}
 												alt={suggestion.username}
 												className="w-11 h-11 rounded-full object-cover cursor-pointer"

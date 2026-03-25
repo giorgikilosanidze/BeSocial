@@ -2,8 +2,13 @@ import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SERVER_URL from '@/constants/serverUrl';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { followOrUnfollow, getFollowersList, getFollowingList } from '@/features/profile/profileThunks';
+import {
+	followOrUnfollow,
+	getFollowersList,
+	getFollowingList,
+} from '@/features/profile/profileThunks';
 import type { FollowListUser } from '@/types/profile';
+import dummyProfilePicture from '../assets/user.jpg';
 
 interface UsersListModalProps {
 	setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -21,9 +26,10 @@ const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
 	useEffect(() => {
 		const fetchUsers = async () => {
 			try {
-				const action = type === 'followers' ? getFollowersList(userId) : getFollowingList(userId);
+				const action =
+					type === 'followers' ? getFollowersList(userId) : getFollowingList(userId);
 				const result = await dispatch(action).unwrap();
-				
+
 				// Optional: sort logged in user to the top
 				const sortedResult = [...result].sort((a, b) => {
 					if (a._id === loggedInUserId) return -1;
@@ -45,10 +51,10 @@ const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
 	const handleFollowToggle = async (targetId: string, isCurrentlyFollowed: boolean) => {
 		// Optimistic update
 		const actionType = isCurrentlyFollowed ? 2 : 1;
-		setUsers(currentUsers => 
-			currentUsers.map(u => 
-				u._id === targetId ? { ...u, isFollowed: !isCurrentlyFollowed } : u
-			)
+		setUsers((currentUsers) =>
+			currentUsers.map((u) =>
+				u._id === targetId ? { ...u, isFollowed: !isCurrentlyFollowed } : u,
+			),
 		);
 
 		try {
@@ -56,10 +62,10 @@ const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
 			await dispatch(followOrUnfollow({ targetUser: targetId, action: actionType })).unwrap();
 		} catch (error) {
 			// Revert if failed
-			setUsers(currentUsers => 
-				currentUsers.map(u => 
-					u._id === targetId ? { ...u, isFollowed: isCurrentlyFollowed } : u
-				)
+			setUsers((currentUsers) =>
+				currentUsers.map((u) =>
+					u._id === targetId ? { ...u, isFollowed: isCurrentlyFollowed } : u,
+				),
 			);
 			console.error('Failed to toggle follow', error);
 		}
@@ -103,8 +109,18 @@ const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
 						onClick={closeModal}
 						className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
 					>
-						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+						<svg
+							className="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M6 18L18 6M6 6l12 12"
+							/>
 						</svg>
 					</button>
 				</div>
@@ -127,9 +143,7 @@ const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
 							{users.map((u) => {
 								const profilePictureSrc = u.profilePictureUrl
 									? `${SERVER_URL}/${u.profilePictureUrl}`
-									: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-											u.username,
-									  )}&background=2563eb&color=fff&size=200`;
+									: dummyProfilePicture;
 
 								return (
 									<div
@@ -161,7 +175,9 @@ const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
 
 										{u._id !== loggedInUserId && (
 											<button
-												onClick={() => handleFollowToggle(u._id, u.isFollowed)}
+												onClick={() =>
+													handleFollowToggle(u._id, u.isFollowed)
+												}
 												className={`font-medium text-xs px-4 py-2 rounded-lg transition-colors ${
 													u.isFollowed
 														? 'bg-gray-100 text-gray-700 hover:bg-gray-200'

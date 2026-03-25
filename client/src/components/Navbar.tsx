@@ -9,6 +9,7 @@ import SearchSkeleton from '@/skeletons/SearchSkeleton';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toggleUnreadNotifications } from '@/features/navbar/navbarSlice';
+import dummyProfilePicture from '../assets/user.jpg';
 
 type SearchedUsers = SearchedUser[];
 
@@ -36,7 +37,7 @@ const Navbar = () => {
 
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
-		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+		: dummyProfilePicture;
 
 	useEffect(() => {
 		const loadSearchedUsers = async () => {
@@ -176,7 +177,7 @@ const Navbar = () => {
 											{searchedUsers.map((user) => {
 												const profilePictureSrc = user.profilePictureUrl
 													? `${SERVER_URL}/${user.profilePictureUrl}`
-													: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+													: dummyProfilePicture;
 
 												return (
 													<div

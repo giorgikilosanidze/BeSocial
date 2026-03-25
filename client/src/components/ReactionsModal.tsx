@@ -7,6 +7,7 @@ import type { GetPostReactionsResponse } from '@/types/feed';
 import Like from '@/svg/Like';
 import Love from '@/svg/Love';
 import Angry from '@/svg/Angry';
+import dummyProfilePicture from '../assets/user.jpg';
 
 interface ReactionsModalProps {
 	setIsModalOpen: Dispatch<SetStateAction<boolean>>;
@@ -24,14 +25,14 @@ const ReactionsModal = ({ setIsModalOpen, postId }: ReactionsModalProps) => {
 		const fetchReactions = async () => {
 			try {
 				const result = await dispatch(getPostReactionsList(postId)).unwrap();
-				
+
 				// Sort reactions to place current user at the top
 				const sortedResult = [...result].sort((a, b) => {
 					if (a.user._id === userId) return -1;
 					if (b.user._id === userId) return 1;
 					return 0;
 				});
-				
+
 				setReactions(sortedResult);
 			} catch (error) {
 				console.error('Failed to fetch reactions', error);
@@ -41,7 +42,7 @@ const ReactionsModal = ({ setIsModalOpen, postId }: ReactionsModalProps) => {
 		};
 
 		fetchReactions();
-	}, [dispatch, postId]);
+	}, [dispatch, postId, userId]);
 
 	const closeModal = () => {
 		setIsModalOpen(false);
@@ -64,8 +65,10 @@ const ReactionsModal = ({ setIsModalOpen, postId }: ReactionsModalProps) => {
 	}, [setIsModalOpen]);
 
 	const renderReactionIcon = (type: string) => {
-		if (type === 'love') return <Love divWidth="w-5" divHeight="h-5" svgWidth="w-3" svgHeight="h-3" />;
-		if (type === 'angry') return <Angry divWidth="w-5" divHeight="h-5" svgWidth="w-3" svgHeight="h-3" />;
+		if (type === 'love')
+			return <Love divWidth="w-5" divHeight="h-5" svgWidth="w-3" svgHeight="h-3" />;
+		if (type === 'angry')
+			return <Angry divWidth="w-5" divHeight="h-5" svgWidth="w-3" svgHeight="h-3" />;
 		return <Like divWidth="w-5" divHeight="h-5" svgWidth="w-3" svgHeight="h-3" />;
 	};
 
@@ -90,8 +93,18 @@ const ReactionsModal = ({ setIsModalOpen, postId }: ReactionsModalProps) => {
 						onClick={closeModal}
 						className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
 					>
-						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+						<svg
+							className="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M6 18L18 6M6 6l12 12"
+							/>
 						</svg>
 					</button>
 				</div>
@@ -114,9 +127,7 @@ const ReactionsModal = ({ setIsModalOpen, postId }: ReactionsModalProps) => {
 							{reactions.map((reaction) => {
 								const profilePictureSrc = reaction.user.profilePictureUrl
 									? `${SERVER_URL}/${reaction.user.profilePictureUrl}`
-									: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-											reaction.user.username,
-									  )}&background=2563eb&color=fff&size=200`;
+									: dummyProfilePicture;
 
 								return (
 									<div
@@ -126,7 +137,9 @@ const ReactionsModal = ({ setIsModalOpen, postId }: ReactionsModalProps) => {
 										<div className="flex items-center space-x-3 min-w-0">
 											<div className="relative">
 												<img
-													onClick={() => navigate(`/profile/${reaction.user._id}`)}
+													onClick={() =>
+														navigate(`/profile/${reaction.user._id}`)
+													}
 													src={profilePictureSrc}
 													alt={reaction.user.username}
 													className="w-11 h-11 rounded-full object-cover cursor-pointer"
@@ -139,7 +152,9 @@ const ReactionsModal = ({ setIsModalOpen, postId }: ReactionsModalProps) => {
 											</div>
 											<div className="min-w-0">
 												<p
-													onClick={() => navigate(`/profile/${reaction.user._id}`)}
+													onClick={() =>
+														navigate(`/profile/${reaction.user._id}`)
+													}
 													className="font-semibold text-sm text-gray-900 truncate cursor-pointer hover:underline"
 												>
 													{reaction.user.username}

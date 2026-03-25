@@ -1,6 +1,7 @@
 import { addComment } from '@/features/feed/feedThunks';
 import { useAppDispatch } from '@/hooks/reduxHooks';
 import { useState } from 'react';
+import dummyProfilePicture from '../assets/user.jpg';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -10,13 +11,13 @@ interface CommentInputProps {
 	username?: string;
 }
 
-const CommentInput = ({ postId, profilePictureUrl, username }: CommentInputProps) => {
+const CommentInput = ({ postId, profilePictureUrl }: CommentInputProps) => {
 	const [text, setText] = useState('');
 	const dispatch = useAppDispatch();
 
 	const avatarSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
-		: `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}&background=2563eb&color=fff&size=64`;
+		: dummyProfilePicture;
 
 	const handleAddComment = () => {
 		dispatch(addComment({ postId, text }));

@@ -3,6 +3,7 @@ import { useAppSelector } from '@/hooks/reduxHooks';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import UsersListModal from '@/components/UsersListModal';
+import dummyProfilePicture from '../assets/user.jpg';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -17,7 +18,7 @@ const ProfileSidebar = () => {
 
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
-		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+		: dummyProfilePicture;
 
 	const coverPhotoSrc = user.coverPhotoUrl
 		? `${SERVER_URL}/${user.coverPhotoUrl}`
@@ -48,7 +49,7 @@ const ProfileSidebar = () => {
 								<p className="text-lg font-bold text-gray-900">{user.postsCount}</p>
 								<p className="text-xs text-gray-500">Posts</p>
 							</div>
-							<div 
+							<div
 								className="cursor-pointer hover:opacity-75 transition-opacity"
 								onClick={() => setModalType('followers')}
 							>
@@ -57,7 +58,7 @@ const ProfileSidebar = () => {
 								</p>
 								<p className="text-xs text-gray-500">Followers</p>
 							</div>
-							<div 
+							<div
 								className="cursor-pointer hover:opacity-75 transition-opacity"
 								onClick={() => setModalType('following')}
 							>

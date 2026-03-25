@@ -7,6 +7,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
+import dummyProfilePicture from '../assets/user.jpg';
 
 interface ProfileHeaderProps {
 	username: string;
@@ -44,7 +45,7 @@ const ProfileHeader = ({
 
 	const profilePictureSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
-		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+		: dummyProfilePicture;
 
 	const coverPhotoSrc = coverPhotoUrl
 		? `${SERVER_URL}/${coverPhotoUrl}`

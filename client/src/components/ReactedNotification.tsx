@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import routes from '@/constants/routes';
 import { markNotificationAsRead } from '@/features/notifications/notificationsThunks';
 import { useAppDispatch } from '@/hooks/reduxHooks';
+import dummyProfilePicture from '../assets/user.jpg';
 
 interface ReactedNotificationProps {
 	notification: NotificationType;
@@ -30,7 +31,7 @@ const ReactedNotification = ({ notification, onNotificationClick }: ReactedNotif
 
 	const profilePictureUrl = notification.sender.profilePictureUrl
 		? `${SERVER_URL}/${notification.sender.profilePictureUrl}`
-		: `https://ui-avatars.com/api/?name=${notification.sender.username}&background=2563eb&color=fff&size=200`;
+		: dummyProfilePicture;
 
 	const reactionTimeAgo = timeAgo(notification.createdAt);
 
@@ -38,7 +39,9 @@ const ReactedNotification = ({ notification, onNotificationClick }: ReactedNotif
 		<div
 			onClick={handleNavigate}
 			className={`flex items-start px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer border-l-[3px] ${
-				!notification.isRead ? `${config.borderColor} ${config.bgTint}` : 'border-l-transparent bg-white'
+				!notification.isRead
+					? `${config.borderColor} ${config.bgTint}`
+					: 'border-l-transparent bg-white'
 			}`}
 		>
 			<div className="relative flex-shrink-0">

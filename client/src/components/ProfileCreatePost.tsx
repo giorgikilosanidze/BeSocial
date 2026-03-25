@@ -1,10 +1,12 @@
+import dummyProfilePicture from '../assets/user.jpg';
+
 const ProfileCreatePost = () => {
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
 			<div className="flex space-x-3">
 				<div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
 					<img
-						src="https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=100"
+						src={dummyProfilePicture}
 						alt="Profile"
 						className="w-full h-full object-cover"
 					/>
@@ -33,9 +35,7 @@ const ProfileCreatePost = () => {
 								d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
 							/>
 						</svg>
-						<span className="text-sm font-medium text-gray-700">
-							Photo
-						</span>
+						<span className="text-sm font-medium text-gray-700">Photo</span>
 					</button>
 				</div>
 			</div>
