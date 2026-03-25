@@ -14,7 +14,9 @@ import { toggleUnreadNotifications } from './features/navbar/navbarSlice';
 function App() {
 	const [toasts, setToasts] = useState<NotificationType[]>([]);
 	const dispatch = useAppDispatch();
-	const { isLoggedIn, user } = useAppSelector((state) => state.auth);
+	const { isLoggedIn, user, isLoading } = useAppSelector((state) => state.auth);
+	
+	const isServerAwake = sessionStorage.getItem('isServerAwake') === 'true';
 	// const location = useLocation();
 
 	useEffect(() => {
@@ -33,6 +35,12 @@ function App() {
 		dispatch(getUserOnRefresh());
 		// }
 	}, [dispatch]); // locationic iko ak dependency arrayshi.
+
+	useEffect(() => {
+		if (!isServerAwake && !isLoading) {
+			sessionStorage.setItem('isServerAwake', 'true');
+		}
+	}, [isLoading, isServerAwake]);
 
 	useEffect(() => {
 		if (isLoggedIn && user.id) {
@@ -65,6 +73,19 @@ function App() {
 	const removeToast = () => {
 		setToasts([]);
 	};
+
+	if (!isServerAwake && isLoading) {
+		return (
+			<div className="flex items-center justify-center min-h-screen bg-gray-50">
+				<div className="flex flex-col items-center space-y-4">
+					<div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+					<p className="text-lg font-medium text-gray-700 animate-pulse">
+						Please wait, server is waking up.
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div>
