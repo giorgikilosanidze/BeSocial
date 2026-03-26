@@ -6,6 +6,7 @@ import { getUserOnRefresh } from './features/auth/authThunks';
 import { socket, connectWithUser } from './socket';
 import type { NotificationType } from './types/notification';
 import { toggleUnreadNotifications } from './features/navbar/navbarSlice';
+import ScrollToTop from './components/ScrollToTop';
 
 // import { useLocation } from 'react-router-dom';
 // import routes from './constants/routes';
@@ -15,7 +16,7 @@ function App() {
 	const [toasts, setToasts] = useState<NotificationType[]>([]);
 	const dispatch = useAppDispatch();
 	const { isLoggedIn, user, isLoading } = useAppSelector((state) => state.auth);
-	
+
 	const isServerAwake = sessionStorage.getItem('isServerAwake') === 'true';
 	// const location = useLocation();
 
@@ -89,6 +90,7 @@ function App() {
 
 	return (
 		<div>
+			<ScrollToTop />
 			<AppRoutes />
 			<NotificationToast toasts={toasts} onRemove={removeToast} />
 		</div>
