@@ -31,12 +31,18 @@ const PostCard = ({ post }: PostCardProps) => {
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+
 	const [reactionsAmount, setReactionsAmount] = useState(
 		(post.likes || 0) + (post.loves || 0) + (post.angry || 0),
 	);
+
 	const [instantReact, setInstantReact] = useState<ReactionTypes | null>(
 		post.userReaction || null,
 	);
+
+	const [isLikeShown, setIsLikeShown] = useState(post.likes ? true : false);
+	const [isLoveShown, setIsLoveShown] = useState(post.loves ? true : false);
+	const [isAngryShown, setIsAngryShown] = useState(post.angry ? true : false);
 
 	const hasPermission = post.author._id === userId;
 
@@ -79,6 +85,69 @@ const PostCard = ({ post }: PostCardProps) => {
 			setReactionsAmount(reactionsAmount - 1);
 		} else if (!instantReact) {
 			setReactionsAmount(reactionsAmount + 1);
+		}
+
+		if (reactionType === 'like') {
+			if (instantReact === 'like') {
+				if (post.likes - 1 < 1) {
+					setIsLikeShown(false);
+				}
+			} else {
+				setIsLikeShown(true);
+			}
+		} else {
+			if (instantReact === 'love') {
+				if (post.loves - 1 < 1) {
+					setIsLoveShown(false);
+				}
+			}
+			if (instantReact === 'angry') {
+				if (post.angry - 1 < 1) {
+					setIsAngryShown(false);
+				}
+			}
+		}
+
+		if (reactionType === 'love') {
+			if (instantReact === 'love') {
+				if (post.loves - 1 < 1) {
+					setIsLoveShown(false);
+				}
+			} else {
+				setIsLoveShown(true);
+			}
+		} else {
+			if (instantReact === 'like') {
+				if (post.likes - 1 < 1) {
+					setIsLikeShown(false);
+				}
+			}
+			if (instantReact === 'angry') {
+				if (post.angry - 1 < 1) {
+					setIsAngryShown(false);
+				}
+			}
+		}
+
+		if (reactionType === 'angry') {
+			if (instantReact === 'angry') {
+				if (post.angry - 1 < 1) {
+					setIsAngryShown(false);
+				}
+			} else {
+				setIsAngryShown(true);
+			}
+		} else {
+			if (instantReact === 'like') {
+				if (post.likes - 1 < 1) {
+					setIsLikeShown(false);
+				}
+			}
+			if (instantReact === 'love') {
+				if (post.loves - 1 < 1) {
+					setIsLoveShown(false);
+				}
+			}
 		}
 
 		dispatch(sendReactionData({ postId: post.id, userId: userId, reactionType }));
@@ -277,16 +346,21 @@ const PostCard = ({ post }: PostCardProps) => {
 			{/* Reactions Summary */}
 			<div className="px-4 py-3 flex items-center justify-between text-sm text-gray-500 border-b border-gray-100">
 				<div
-					className="flex items-center space-x-2 cursor-pointer hover:underline"
-					onClick={() => setIsReactionsModalOpen(true)}
+					className={`flex items-center ${reactionsAmount > 0 ? 'space-x-2 cursor-pointer hover:underline' : ''}`}
+					onClick={() => {
+						if (reactionsAmount === 0) return;
+						setIsReactionsModalOpen(true);
+					}}
 				>
 					<div className="flex -space-x-1">
-						<Like />
-						<Love />
-						<Angry />
+						{isLikeShown ? <Like /> : null}
+						{isLoveShown ? <Love /> : null}
+						{isAngryShown ? <Angry /> : null}
 					</div>
 					<span>
-						{`${reactionsAmount} ${reactionsAmount > 1 ? 'reactions' : 'reaction'}`}{' '}
+						{reactionsAmount > 0
+							? `${reactionsAmount} ${reactionsAmount > 1 ? 'reactions' : 'reaction'}`
+							: 'No reactions'}
 					</span>
 				</div>
 				<div className="flex items-center space-x-4">
@@ -389,17 +463,6 @@ const PostCard = ({ post }: PostCardProps) => {
 					</svg>
 					<span className="font-medium text-sm">Comment</span>
 				</button>
-				{/* <button className="flex items-center space-x-2 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-all">
-					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-						/>
-					</svg>
-					<span className="font-medium text-sm">Share</span>
-				</button> */}
 			</div>
 
 			{/* Comments Section */}

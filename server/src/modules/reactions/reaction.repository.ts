@@ -34,7 +34,9 @@ export async function addReaction(reactionData: ReactionData): Promise<boolean> 
 	return true;
 }
 
-export async function collectReactions(postId: string): Promise<Record<string, number>> {
+export async function collectReactions(
+	postId: string,
+): Promise<{ likes: number; loves: number; angry: number }> {
 	const reactions = await Reaction.aggregate([
 		{ $match: { postId: new mongoose.Types.ObjectId(postId) } },
 		{
@@ -53,7 +55,11 @@ export async function collectReactions(postId: string): Promise<Record<string, n
 		{} as Record<string, number>,
 	);
 
-	return formattedReactions;
+	return {
+		likes: formattedReactions.like ?? 0,
+		loves: formattedReactions.love ?? 0,
+		angry: formattedReactions.angry ?? 0,
+	};
 }
 
 export async function collectAllReactions() {

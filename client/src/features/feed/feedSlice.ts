@@ -45,10 +45,11 @@ const feedSlice = createSlice({
 				const post = state.posts[i];
 
 				if (post.id === action.payload.postId) {
+					const { reactions } = action.payload;
 					post.userReaction = action.payload.userReaction;
-					post.likes = action.payload.reactions.likes;
-					post.loves = action.payload.reactions.loves;
-					post.angry = action.payload.reactions.angry;
+					post.likes = reactions.likes ?? reactions.like ?? 0;
+					post.loves = reactions.loves ?? reactions.love ?? 0;
+					post.angry = reactions.angry ?? 0;
 					return;
 				}
 			}

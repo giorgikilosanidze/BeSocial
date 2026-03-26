@@ -83,9 +83,11 @@ export interface SocketReactionData {
 	userId: string;
 	userReaction: ReactionTypes;
 	reactions: {
-		likes: number;
-		loves: number;
-		angry: number;
+		likes?: number;
+		loves?: number;
+		angry?: number;
+		like?: number;
+		love?: number;
 	};
 }
 

@@ -155,6 +155,7 @@ export async function handleReaction(
 
 		const returnObject = {
 			postId,
+			userId,
 			reactions,
 			userReaction: isAdded ? reactionType : null,
 		};
