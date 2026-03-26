@@ -9,9 +9,9 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 const Login = () => {
-	const isLoading = useAppSelector((state) => state.auth.isLoading);
 	const backendErrors = useAppSelector((state) => state.auth.loginValidationErrors);
 	const [showPassword, setShowPassword] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 
@@ -40,6 +40,10 @@ const Login = () => {
 	const handleLogIn = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
 
+		if (isSubmitting) {
+			return;
+		}
+
 		const validationResult = logInSchema.safeParse(user);
 
 		if (!validationResult.success) {
@@ -63,11 +67,14 @@ const Login = () => {
 			return;
 		}
 
+		setIsSubmitting(true);
 		try {
 			await dispatch(loginUser(user)).unwrap();
 			navigate(routes.feed);
 		} catch (error) {
 			console.error('Login failed:', error);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -99,10 +106,7 @@ const Login = () => {
 					</div>
 
 					{/* Login Form */}
-					<form
-						className="space-y-4"
-						onSubmit={(e: FormEvent<HTMLFormElement>) => handleLogIn(e)}
-					>
+					<form className="space-y-4" onSubmit={handleLogIn}>
 						{/* Email Input */}
 						<div>
 							<label
@@ -205,8 +209,9 @@ const Login = () => {
 						{/* Sign In Button */}
 						<button
 							type="submit"
+							disabled={isSubmitting}
 							className={`w-full bg-blue-600 text-white font-semibold py-3 text-sm rounded-lg hover:bg-blue-700 ${
-								isLoading ? 'opacity-50 pointer-events-none' : ''
+								isSubmitting ? 'opacity-50 pointer-events-none' : ''
 							}`}
 						>
 							Sign In

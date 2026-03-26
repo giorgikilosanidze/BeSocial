@@ -9,8 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 
 const Signup = () => {
-	const isLoading = useAppSelector((state) => state.auth.isLoading);
 	const backendErrors = useAppSelector((state) => state.auth.signupValidationErrors);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [user, setUser] = useState<UserSignup>({
 		username: '',
 		email: '',
@@ -40,6 +40,10 @@ const Signup = () => {
 
 	const handleSignUp = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
+
+		if (isSubmitting) {
+			return;
+		}
 
 		const validationResult = signUpSchema.safeParse(user);
 
@@ -75,11 +79,14 @@ const Signup = () => {
 			return;
 		}
 
+		setIsSubmitting(true);
 		try {
 			await dispatch(signupUser(user)).unwrap();
 			navigate(routes.feed);
 		} catch (error) {
 			console.error('Signup failed:', error);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -115,10 +122,7 @@ const Signup = () => {
 					</div>
 
 					{/* Signup Form */}
-					<form
-						onSubmit={(e: FormEvent<HTMLFormElement>) => handleSignUp(e)}
-						className="space-y-4"
-					>
+					<form onSubmit={handleSignUp} className="space-y-4">
 						{/* Username Input */}
 						<div>
 							<label
@@ -306,8 +310,9 @@ const Signup = () => {
 						{/* Sign Up Button */}
 						<button
 							type="submit"
+							disabled={isSubmitting}
 							className={`w-full bg-blue-600 text-white font-semibold py-3 text-sm rounded-lg hover:bg-blue-700 mt-2 ${
-								isLoading ? 'opacity-50 pointer-events-none' : ''
+								isSubmitting ? 'opacity-50 pointer-events-none' : ''
 							}`}
 						>
 							Create Account
