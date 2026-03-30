@@ -20,13 +20,18 @@ import {
 import path from 'path';
 import { getIO } from '../../socket.js';
 import { ReactionData } from '../reactions/reaction.types.js';
-import { addReaction, collectReactions, getPostReactionsDetailed } from '../reactions/reaction.repository.js';
+import {
+	addReaction,
+	collectReactions,
+	getPostReactionsDetailed,
+} from '../reactions/reaction.repository.js';
 import { createNotification } from '../notification/notification.repository.js';
 import {
 	getUsernameById,
 	getProfilePictureUrlById,
 	getRandomSuggestions,
 } from '../user/user.repository.js';
+import { log } from 'console';
 
 export async function getPosts(req: GetPostsRequest, res: Response, next: NextFunction) {
 	try {
@@ -144,6 +149,11 @@ export async function handleReaction(
 		const reactions = await collectReactions(postId);
 
 		const postAuthorId = await getUserIdByPost(postId);
+
+		if (postAuthorId.toString() === userId.toString()) {
+			return;
+		}
+
 		const notification = await createNotification({
 			recipient: postAuthorId,
 			sender: userId,
@@ -237,7 +247,11 @@ export async function getSuggestions(
 	res.status(200).json(suggestions);
 }
 
-export async function getPostReactionsList(req: Request<PostIdParams>, res: Response, next: NextFunction) {
+export async function getPostReactionsList(
+	req: Request<PostIdParams>,
+	res: Response,
+	next: NextFunction,
+) {
 	if (!req.params.postId) {
 		return res.status(400).json({ message: 'postId parameter is required!' });
 	}
