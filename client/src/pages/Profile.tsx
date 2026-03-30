@@ -8,6 +8,7 @@ import ProfileFriends from '@/components/ProfileFriends';
 import PostCard from '@/components/PostCard';
 import CreatePost from '@/components/CreatePost';
 import ProfileSkeleton from '@/skeletons/ProfileSkeleton';
+import PostSkeleton from '@/skeletons/PostSkeleton';
 import { socket } from '@/socket';
 import { updateFollowsInRealTime } from '@/features/profile/profileSlice';
 import UsersListModal from '@/components/UsersListModal';
@@ -18,6 +19,7 @@ const Profile = () => {
 	const user = useAppSelector((state) => state.profile.user);
 	const loggedInUser = useAppSelector((state) => state.auth.user);
 	const isLoading = useAppSelector((state) => state.profile.isLoading);
+	const isPostsLoading = useAppSelector((state) => state.profile.isPostsLoading);
 	const { userId } = useParams<{ userId: string }>();
 	const dispatch = useAppDispatch();
 	const [modalType, setModalType] = useState<'followers' | 'following' | null>(null);
@@ -77,9 +79,16 @@ const Profile = () => {
 						{hasPermission && <CreatePost />}
 
 						{/* Posts */}
-						{user.posts.map((post) => (
-							<PostCard key={post.id} post={post} />
-						))}
+						{isPostsLoading ? (
+							<>
+								<PostSkeleton />
+								<PostSkeleton />
+							</>
+						) : (
+							user.posts.map((post) => (
+								<PostCard key={post.id} post={post} />
+							))
+						)}
 					</div>
 				</div>
 			</div>

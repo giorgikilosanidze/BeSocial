@@ -3,6 +3,7 @@ import type { FetchPostsResponse } from './feed';
 export interface UserSliceState {
 	user: UserProfile;
 	isLoading: boolean;
+	isPostsLoading: boolean;
 	error: string;
 }
 

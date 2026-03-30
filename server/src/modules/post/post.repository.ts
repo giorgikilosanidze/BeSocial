@@ -212,7 +212,7 @@ export async function getPostById(postId: string, viewerId?: string) {
 	return posts[0];
 }
 
-export async function editPostDB(editedPostData: EditPostDB) {
+export async function editPostDB(editedPostData: EditPostDB, viewerId?: string) {
 	const post = await Post.findByIdAndUpdate(
 		editedPostData.postId,
 		{
@@ -230,11 +230,9 @@ export async function editPostDB(editedPostData: EditPostDB) {
 		throw new Error('Post was not found!');
 	}
 
-	const editedPost = await post.save();
+	const fullPost = await getPostById(editedPostData.postId, viewerId);
 
-	await editedPost.populate('author', '_id username profilePictureUrl');
-
-	return editedPost;
+	return fullPost;
 }
 
 export async function deletePostDB(postId: string) {

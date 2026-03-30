@@ -103,13 +103,14 @@ export async function editPost(
 	const postId = req.params.postId;
 	const editedText = req.body.text;
 	const editedImageUrls = req.body.imageUrls;
+	const userId = (req as any).userId as string | undefined;
 
 	if (!editedText && !editedImageUrls) {
 		return res.status(400).json({ message: 'Not enough data to edit post!' });
 	}
 
 	try {
-		const editedPost = await editPostDB({ postId, editedText, editedImageUrls });
+		const editedPost = await editPostDB({ postId, editedText, editedImageUrls }, userId);
 		getIO().emit('postEdited', editedPost);
 		return res.status(200).json(editedPost);
 	} catch (error: any) {
