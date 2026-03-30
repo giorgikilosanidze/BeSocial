@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { Comments } from '@/types/feed';
 import {
 	fetchProfileInfo,
 	followOrUnfollow,
@@ -37,6 +38,19 @@ const profileSlice = createSlice({
 				state.user.followersCount++;
 			} else {
 				state.user.followersCount--;
+			}
+		},
+		addCommentInRealTime: (state, action: PayloadAction<Comments>) => {
+			for (let i = 0; i < state.user.posts.length; i++) {
+				const post = state.user.posts[i];
+
+				if (post.id === action.payload.postId) {
+					if (!post.comments) {
+						post.comments = [];
+					}
+					post.comments.unshift(action.payload);
+					return;
+				}
 			}
 		},
 	},
@@ -129,6 +143,6 @@ const profileSlice = createSlice({
 	},
 });
 
-export const { updateFollowsInRealTime } = profileSlice.actions;
+export const { updateFollowsInRealTime, addCommentInRealTime } = profileSlice.actions;
 
 export default profileSlice.reducer;

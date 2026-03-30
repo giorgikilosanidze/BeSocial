@@ -20,7 +20,9 @@ const CommentInput = ({ postId, profilePictureUrl }: CommentInputProps) => {
 		: dummyProfilePicture;
 
 	const handleAddComment = () => {
+		if (!text.trim()) return;
 		dispatch(addComment({ postId, text }));
+		setText('');
 	};
 
 	return (

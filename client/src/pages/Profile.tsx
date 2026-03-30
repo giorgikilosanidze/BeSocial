@@ -10,7 +10,7 @@ import CreatePost from '@/components/CreatePost';
 import ProfileSkeleton from '@/skeletons/ProfileSkeleton';
 import PostSkeleton from '@/skeletons/PostSkeleton';
 import { socket } from '@/socket';
-import { updateFollowsInRealTime } from '@/features/profile/profileSlice';
+import { updateFollowsInRealTime, addCommentInRealTime } from '@/features/profile/profileSlice';
 import UsersListModal from '@/components/UsersListModal';
 import { useState } from 'react';
 
@@ -39,8 +39,13 @@ const Profile = () => {
 			dispatch(updateFollowsInRealTime(followsData));
 		});
 
+		socket.on('commentAdded', (comment) => {
+			dispatch(addCommentInRealTime(comment));
+		});
+
 		return () => {
 			socket.off('followedOrUnfollowed');
+			socket.off('commentAdded');
 		};
 	}, [dispatch]);
 
