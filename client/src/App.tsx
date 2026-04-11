@@ -71,6 +71,17 @@ function App() {
 		};
 	}, [dispatch]);
 
+	useEffect(() => {
+		socket.on('commentNotification', (notification) => {
+			setToasts((prev) => [...prev, notification]);
+			dispatch(toggleUnreadNotifications(true));
+		});
+
+		return () => {
+			socket.off('commentNotification');
+		};
+	}, [dispatch]);
+
 	const removeToast = () => {
 		setToasts([]);
 	};

@@ -16,8 +16,8 @@ interface ReactedNotificationProps {
 const ReactedNotification = ({ notification, onNotificationClick }: ReactedNotificationProps) => {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
-	const reactionType = notification.reactionType || 'like';
-	const config = reactionConfig[reactionType];
+	const notificationType = notification.type === 'comment' ? 'comment' : notification.reactionType || 'like';
+	const config = reactionConfig[notificationType];
 
 	const handleNavigate = () => {
 		if (!notification.isRead) {

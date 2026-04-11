@@ -201,6 +201,7 @@ export async function addCommentToPost(req: CommentRequest, res: Response, next:
 	const profilePictureUrl = await getProfilePictureUrlById(userId);
 
 	const comment = await addComment({ userId, postId, text, username, profilePictureUrl });
+	const postAuthorId = await getUserIdByPost(postId);
 
 	const commentDoc = comment as any;
 	const commentObject = commentDoc.toObject ? commentDoc.toObject() : commentDoc;
@@ -211,6 +212,18 @@ export async function addCommentToPost(req: CommentRequest, res: Response, next:
 	};
 
 	getIO().emit('commentAdded', formattedComment);
+
+	if (postAuthorId.toString() !== userId.toString()) {
+		const notification = await createNotification({
+			recipient: postAuthorId,
+			sender: userId,
+			type: 'comment',
+			isRead: false,
+			post: postId,
+		});
+
+		getIO().to(postAuthorId.toString()).emit('commentNotification', notification);
+	}
 
 	res.status(200).json(formattedComment);
 }

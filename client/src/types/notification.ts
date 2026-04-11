@@ -5,7 +5,7 @@ export interface NotificationType {
 		profilePictureUrl?: string;
 		_id: string;
 	};
-	type: 'follow' | 'reaction';
+	type: 'follow' | 'reaction' | 'comment';
 	isRead: boolean;
 	post?: string;
 	reactionType?: 'like' | 'love' | 'angry';

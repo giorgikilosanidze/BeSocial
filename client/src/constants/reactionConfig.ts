@@ -1,4 +1,5 @@
 import AngryNotification from '@/svg/AngryNotification';
+import CommentNotification from '@/svg/CommentNotification';
 import LikeNotification from '@/svg/LikeNotification';
 import LoveNotificaiton from '@/svg/LoveNotificaiton';
 
@@ -26,6 +27,14 @@ const reactionConfig = {
 		textColor: 'text-orange-600',
 		label: 'reacted angry to your post',
 		icon: AngryNotification,
+	},
+	comment: {
+		bgColor: 'bg-emerald-500',
+		borderColor: 'border-l-emerald-400',
+		bgTint: 'bg-emerald-50/40',
+		textColor: 'text-emerald-600',
+		label: 'commented on your post',
+		icon: CommentNotification,
 	},
 };
 
