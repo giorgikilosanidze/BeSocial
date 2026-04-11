@@ -17,6 +17,7 @@ interface SearchedUser {
 	id: string;
 	username: string;
 	profilePictureUrl?: string;
+	followersCount: number;
 }
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
@@ -199,7 +200,10 @@ const Navbar = () => {
 																{user.username}
 															</p>
 															<p className="text-xs text-gray-500 truncate">
-																245 followers
+																{user.followersCount}{' '}
+																{user.followersCount === 1
+																	? 'follower'
+																	: 'followers'}
 															</p>
 														</div>
 													</div>

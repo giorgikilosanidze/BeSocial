@@ -81,7 +81,7 @@ export async function saveCoverPhoto(userId: string, coverPhotoUrl: string) {
 
 export async function searchUsers(query: string) {
 	const users = await User.find({ username: { $regex: query, $options: 'i' } })
-		.select('username _id profilePictureUrl')
+		.select('username _id profilePictureUrl followers')
 		.limit(5);
 
 	return users;

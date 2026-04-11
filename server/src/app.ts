@@ -78,6 +78,7 @@ app.get(
 					id: user._id,
 					username: user.username,
 					profilePictureUrl: user.profilePictureUrl,
+					followersCount: user.followers?.length || 0,
 				};
 			});
 			return res.status(200).json(normalizedUsers);
