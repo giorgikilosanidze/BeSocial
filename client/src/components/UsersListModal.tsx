@@ -1,5 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import routes from '@/constants/routes';
 import SERVER_URL from '@/constants/serverUrl';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import {
@@ -17,7 +18,6 @@ interface UsersListModalProps {
 }
 
 const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
-	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 	const loggedInUserId = useAppSelector((state) => state.auth.user.id);
 	const [users, setUsers] = useState<FollowListUser[]>([]);
@@ -151,25 +151,25 @@ const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
 										className="flex items-center justify-between rounded-xl p-3 hover:bg-gray-50 transition-colors"
 									>
 										<div className="flex items-center space-x-3 min-w-0">
-											<img
-												onClick={() => {
-													navigate(`/profile/${u._id}`);
-													closeModal();
-												}}
-												src={profilePictureSrc}
-												alt={u.username}
-												className="w-11 h-11 rounded-full object-cover cursor-pointer"
-											/>
+											<Link
+												to={routes.profile.replace(':userId', u._id)}
+												onClick={closeModal}
+												className="block"
+											>
+												<img
+													src={profilePictureSrc}
+													alt={u.username}
+													className="w-11 h-11 rounded-full object-cover"
+												/>
+											</Link>
 											<div className="min-w-0">
-												<p
-													onClick={() => {
-														navigate(`/profile/${u._id}`);
-														closeModal();
-													}}
-													className="font-semibold text-sm text-gray-900 truncate cursor-pointer hover:underline"
+												<Link
+													to={routes.profile.replace(':userId', u._id)}
+													onClick={closeModal}
+													className="font-semibold text-sm text-gray-900 truncate hover:underline"
 												>
 													{u.username}
-												</p>
+												</Link>
 											</div>
 										</div>
 

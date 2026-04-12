@@ -1,6 +1,8 @@
+import routes from '@/constants/routes';
 import { deleteComment } from '@/features/feed/feedThunks';
 import { useAppDispatch } from '@/hooks/reduxHooks';
 import { timeAgo } from '@/utils/formatTime';
+import { Link } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
@@ -8,6 +10,7 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 interface CommentProps {
 	id: string;
 	postId: string;
+	userId: string;
 	hasPermission: boolean;
 	username: string;
 	text: string;
@@ -18,6 +21,7 @@ interface CommentProps {
 const Comment = ({
 	id,
 	postId,
+	userId,
 	hasPermission,
 	username,
 	text,
@@ -38,15 +42,21 @@ const Comment = ({
 
 	return (
 		<div className="flex space-x-2.5 py-2">
-			<div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+			<Link
+				to={routes.profile.replace(':userId', userId)}
+				className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 block"
+			>
 				<img src={avatarSrc} alt={username} className="w-full h-full object-cover" />
-			</div>
+			</Link>
 			<div className="flex-1 min-w-0">
 				<div className="bg-gray-100 rounded-2xl px-3.5 py-2.5">
 					<div className="flex items-center justify-between">
-						<p className="font-semibold text-[13px] text-gray-900 leading-tight">
+						<Link
+							to={routes.profile.replace(':userId', userId)}
+							className="font-semibold text-[13px] text-gray-900 leading-tight hover:underline"
+						>
 							{username}
-						</p>
+						</Link>
 						{hasPermission && (
 							<button
 								onClick={handleDelete}

@@ -1,7 +1,8 @@
+import routes from '@/constants/routes';
 import SERVER_URL from '@/constants/serverUrl';
 import type { Suggestions } from '@/types/feed';
 import { useEffect, type Dispatch, type SetStateAction } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
 
 interface ModalProps {
@@ -19,8 +20,6 @@ const Modal = ({
 	followActions,
 	handleFollow,
 }: ModalProps) => {
-	const navigate = useNavigate();
-
 	const closeModal = () => {
 		setIsModalOpen(false);
 	};
@@ -118,23 +117,23 @@ const Modal = ({
 										className="flex items-center justify-between rounded-xl p-3 hover:bg-gray-50 transition-colors"
 									>
 										<div className="flex items-center space-x-3 min-w-0">
-											<img
-												onClick={() =>
-													navigate(`/profile/${suggestion._id}`)
-												}
-												src={profilePictureSrc}
-												alt={suggestion.username}
-												className="w-11 h-11 rounded-full object-cover cursor-pointer"
-											/>
+											<Link
+												to={routes.profile.replace(':userId', suggestion._id)}
+												className="block"
+											>
+												<img
+													src={profilePictureSrc}
+													alt={suggestion.username}
+													className="w-11 h-11 rounded-full object-cover"
+												/>
+											</Link>
 											<div className="min-w-0">
-												<p
-													onClick={() =>
-														navigate(`/profile/${suggestion._id}`)
-													}
-													className="font-semibold text-sm text-gray-900 truncate cursor-pointer hover:underline"
+												<Link
+													to={routes.profile.replace(':userId', suggestion._id)}
+													className="font-semibold text-sm text-gray-900 truncate hover:underline"
 												>
 													{suggestion.username}
-												</p>
+												</Link>
 												<p className="text-xs text-gray-500">
 													Suggested for you
 												</p>

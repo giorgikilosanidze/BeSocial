@@ -13,7 +13,7 @@ import ReactionsModal from '@/components/ReactionsModal';
 import type { EditPostData, PostCardProps, ReactionTypes } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
@@ -38,7 +38,6 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [isDeletingPost, setIsDeletingPost] = useState(false);
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
-	const navigate = useNavigate();
 
 	const [reactionsAmount, setReactionsAmount] = useState(
 		(post.likes || 0) + (post.loves || 0) + (post.angry || 0),
@@ -162,10 +161,6 @@ const PostCard = ({ post }: PostCardProps) => {
 		dispatch(sendReactionData({ postId: post.id, userId: userId, reactionType }));
 	};
 
-	const handleGoToProfilePage = () => {
-		navigate(routes.profile.replace(':userId', post.author._id));
-	};
-
 	const toggleOptionsVisibility = () => {
 		setOptionsVisibility(!optionsVisibility);
 	};
@@ -253,23 +248,23 @@ const PostCard = ({ post }: PostCardProps) => {
 			{/* Post Header */}
 			<div className="p-4 flex items-start justify-between">
 				<div className="flex space-x-3">
-					<div
-						onClick={handleGoToProfilePage}
-						className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 cursor-pointer"
+					<Link
+						to={routes.profile.replace(':userId', post.author._id)}
+						className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 block"
 					>
 						<img
 							src={profilePictureSrc}
 							alt={post.author.username}
 							className="w-full h-full object-cover"
 						/>
-					</div>
+					</Link>
 					<div>
-						<h4
-							onClick={handleGoToProfilePage}
-							className="font-semibold text-gray-900 text-sm cursor-pointer"
+						<Link
+							to={routes.profile.replace(':userId', post.author._id)}
+							className="font-semibold text-gray-900 text-sm hover:underline"
 						>
 							{post.author.username}
-						</h4>
+						</Link>
 						<p className="text-xs text-gray-500">
 							{postCreatedAgo}
 							{/* Edited indicator */}
@@ -522,18 +517,24 @@ const PostCard = ({ post }: PostCardProps) => {
 						)}
 						{pendingComments.map((comment) => (
 							<div key={comment.id} className="flex space-x-2.5 py-2 animate-pulse">
-								<div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+								<Link
+									to={routes.profile.replace(':userId', currentUser.id)}
+									className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 block"
+								>
 									<img
 										src={currentUser.profilePictureUrl ? `${SERVER_URL}/${currentUser.profilePictureUrl}` : dummyProfilePicture}
 										alt={currentUser.username}
 										className="w-full h-full object-cover opacity-80"
 									/>
-								</div>
+								</Link>
 								<div className="flex-1 min-w-0">
 									<div className="bg-gray-100 rounded-2xl px-3.5 py-2.5">
-										<p className="font-semibold text-[13px] text-gray-900 leading-tight">
+										<Link
+											to={routes.profile.replace(':userId', currentUser.id)}
+											className="font-semibold text-[13px] text-gray-900 leading-tight hover:underline"
+										>
 											{currentUser.username}
-										</p>
+										</Link>
 										<p className="text-sm text-gray-500 mt-1 leading-snug break-words">
 											{comment.text}
 										</p>
@@ -549,6 +550,7 @@ const PostCard = ({ post }: PostCardProps) => {
 								key={comment._id}
 								id={comment._id}
 								postId={post.id}
+								userId={comment.userId}
 								hasPermission={userId === comment.userId}
 								username={comment.username}
 								text={comment.text}

@@ -1,10 +1,11 @@
+import routes from '@/constants/routes';
 import SERVER_URL from '@/constants/serverUrl';
 import { getSuggestions } from '@/features/feed/feedThunks';
 import { followOrUnfollow } from '@/features/profile/profileThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import SuggestionsSkeleton from '@/skeletons/SuggestionsSkeleton';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import SuggestionsModal from './SuggestionsModal';
 import dummyProfilePicture from '../assets/user.jpg';
 
@@ -12,7 +13,6 @@ const SuggestionsSidebar = () => {
 	const suggestions = useAppSelector((state) => state.feed.suggestions);
 	const isSuggestionsLoading = useAppSelector((state) => state.feed.isSuggestionsLoading);
 	const dispatch = useAppDispatch();
-	const navigate = useNavigate();
 	const [followActions, setFollowActions] = useState<Record<string, 1 | 2>>({});
 	const [hiddenSuggestions, setHiddenSuggestions] = useState<Record<string, boolean>>({});
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -96,25 +96,23 @@ const SuggestionsSidebar = () => {
 										className="flex items-center justify-between"
 									>
 										<div className="flex items-center space-x-3">
-											<div className="w-10 h-10 rounded-full overflow-hidden">
+											<Link
+												to={routes.profile.replace(':userId', suggestion._id)}
+												className="w-10 h-10 rounded-full overflow-hidden block"
+											>
 												<img
-													onClick={() =>
-														navigate(`/profile/${suggestion._id}`)
-													}
 													src={profilePictureSrc}
 													alt={suggestion.username}
-													className="w-full h-full object-cover cursor-pointer"
+													className="w-full h-full object-cover"
 												/>
-											</div>
+											</Link>
 											<div>
-												<p
-													onClick={() =>
-														navigate(`/profile/${suggestion._id}`)
-													}
-													className="font-medium text-sm text-gray-900 cursor-pointer hover:underline"
+												<Link
+													to={routes.profile.replace(':userId', suggestion._id)}
+													className="font-medium text-sm text-gray-900 hover:underline"
 												>
 													{suggestion.username}
-												</p>
+												</Link>
 											</div>
 										</div>
 										<button

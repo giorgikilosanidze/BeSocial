@@ -27,6 +27,7 @@ const Navbar = () => {
 	const hasUnreadNotifications = useAppSelector((state) => state.navbar.hasUnreadNotifications);
 	const [isAccountMenuShown, setIsAccountMenuShown] = useState(false);
 	const userIconParentRef = useRef<HTMLDivElement>(null);
+	const notificationParentRef = useRef<HTMLDivElement>(null);
 	const [searchValue, setSearchValue] = useState('');
 	const [searchedUsers, setSearchedUsers] = useState<SearchedUsers>([]);
 	const debouncedSearch = useDebounce(searchValue);
@@ -58,6 +59,10 @@ const Navbar = () => {
 
 			if (userIconParentRef.current && !path.includes(userIconParentRef.current)) {
 				setIsAccountMenuShown(false);
+			}
+
+			if (notificationParentRef.current && !path.includes(notificationParentRef.current)) {
+				setIsNotificationsOpen(false);
 			}
 		};
 
@@ -245,7 +250,7 @@ const Navbar = () => {
 									/>
 								</svg>
 							</button>
-							<div className="relative">
+							<div className="relative" ref={notificationParentRef}>
 								<button
 									onClick={toggleNotifications}
 									className="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
