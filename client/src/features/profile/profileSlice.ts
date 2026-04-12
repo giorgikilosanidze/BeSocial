@@ -7,7 +7,7 @@ import {
 	uploadProfilePicture,
 } from './profileThunks';
 import type { UserSliceState } from '@/types/profile';
-import { createPost, deletePost, editPost } from '../feed/feedThunks';
+import { addComment, createPost, deletePost, editPost } from '../feed/feedThunks';
 
 const initialState: UserSliceState = {
 	user: {
@@ -48,7 +48,13 @@ const profileSlice = createSlice({
 					if (!post.comments) {
 						post.comments = [];
 					}
-					post.comments.unshift(action.payload);
+					const hasComment = post.comments.some(
+						(comment) => comment._id === action.payload._id,
+					);
+
+					if (!hasComment) {
+						post.comments.unshift(action.payload);
+					}
 					return;
 				}
 			}
@@ -108,6 +114,23 @@ const profileSlice = createSlice({
 			.addCase(deletePost.rejected, (state, action) => {
 				state.isPostsLoading = false;
 				state.error = action.error.message || 'Failed to delete post!';
+			})
+			.addCase(addComment.fulfilled, (state, action) => {
+				const post = state.user.posts.find((post) => post.id === action.payload.postId);
+
+				if (post) {
+					if (!post.comments) {
+						post.comments = [];
+					}
+
+					const hasComment = post.comments.some(
+						(comment) => comment._id === action.payload._id,
+					);
+
+					if (!hasComment) {
+						post.comments.unshift(action.payload);
+					}
+				}
 			})
 
 			.addCase(uploadProfilePicture.pending, (state) => {

@@ -62,7 +62,13 @@ const feedSlice = createSlice({
 					if (!post.comments) {
 						post.comments = [];
 					}
-					post.comments.unshift(action.payload);
+					const hasComment = post.comments.some(
+						(comment) => comment._id === action.payload._id,
+					);
+
+					if (!hasComment) {
+						post.comments.unshift(action.payload);
+					}
 					return;
 				}
 			}
@@ -117,26 +123,35 @@ const feedSlice = createSlice({
 			})
 
 			.addCase(addComment.pending, (state) => {
-				state.isLoading = true;
+				state.error = '';
 			})
-			.addCase(addComment.fulfilled, (state) => {
-				state.isLoading = false;
+			.addCase(addComment.fulfilled, (state, action) => {
+				const post = state.posts.find((post) => post.id === action.payload.postId);
 
-				// const post = state.posts.find((post) => post.id === action.payload.postId);
-				// post?.comments?.push(action.payload);
+				if (post) {
+					if (!post.comments) {
+						post.comments = [];
+					}
+
+					const hasComment = post.comments.some(
+						(comment) => comment._id === action.payload._id,
+					);
+
+					if (!hasComment) {
+						post.comments.unshift(action.payload);
+					}
+				}
 			})
 			.addCase(addComment.rejected, (state, action) => {
-				state.isLoading = false;
 				state.error = action.error.message || 'Failed to delete post!';
 			})
 
 			.addCase(deleteComment.pending, (state) => {
-				state.isLoading = true;
+				state.error = '';
 			})
 			.addCase(
 				deleteComment.fulfilled,
 				(state, action: PayloadAction<DeleteCommentPayload>) => {
-					state.isLoading = false;
 					const post = state.posts.find((post) => post.id === action.payload.postId);
 
 					if (post?.comments) {
@@ -147,7 +162,6 @@ const feedSlice = createSlice({
 				},
 			)
 			.addCase(deleteComment.rejected, (state, action) => {
-				state.isLoading = false;
 				state.error = action.error.message || 'Failed to delete post!';
 			})
 

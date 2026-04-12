@@ -1,5 +1,5 @@
 import routes from '@/constants/routes';
-import { deletePost, editPost, sendReactionData } from '@/features/feed/feedThunks';
+import { addComment, deletePost, editPost, sendReactionData } from '@/features/feed/feedThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import Like from '@/svg/Like';
 import LikeButtonSvg from '@/svg/LikeButtonSvg';
@@ -18,6 +18,11 @@ import dummyProfilePicture from '../assets/user.jpg';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
+interface PendingComment {
+	id: string;
+	text: string;
+}
+
 const PostCard = ({ post }: PostCardProps) => {
 	const userId = useAppSelector((state) => state.auth.user.id);
 	const currentUser = useAppSelector((state) => state.auth.user);
@@ -27,6 +32,7 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [editedText, setEditedText] = useState('');
 	const [commentsVisible, setCommentsVisible] = useState(false);
 	const [visibleCommentsCount, setVisibleCommentsCount] = useState(3);
+	const [pendingComments, setPendingComments] = useState<PendingComment[]>([]);
 	const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
@@ -57,6 +63,7 @@ const PostCard = ({ post }: PostCardProps) => {
 		: dummyProfilePicture;
 
 	const postCreatedAgo = timeAgo(post.createdAt);
+	const commentsCount = (post.comments?.length || 0) + pendingComments.length;
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -207,6 +214,24 @@ const PostCard = ({ post }: PostCardProps) => {
 			setIsEditMode(false);
 		} catch (error) {
 			console.error('Delete post failed!', error);
+		}
+	};
+
+	const handleAddComment = async (text: string) => {
+		const pendingCommentId = `pending-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+		setPendingComments((previous) => [{ id: pendingCommentId, text }, ...previous]);
+
+		try {
+			await dispatch(addComment({ postId: post.id, text })).unwrap();
+			return true;
+		} catch (error) {
+			console.error('Add comment failed!', error);
+			return false;
+		} finally {
+			setPendingComments((previous) =>
+				previous.filter((comment) => comment.id !== pendingCommentId),
+			);
 		}
 	};
 
@@ -365,7 +390,7 @@ const PostCard = ({ post }: PostCardProps) => {
 				</div>
 				<div className="flex items-center space-x-4">
 					<button onClick={toggleComments} className="hover:underline">
-						{post.comments?.length || 0} comments
+						{commentsCount} comments
 					</button>
 				</div>
 			</div>
@@ -478,6 +503,30 @@ const PostCard = ({ post }: PostCardProps) => {
 								Show more comments
 							</button>
 						)}
+						{pendingComments.map((comment) => (
+							<div key={comment.id} className="flex space-x-2.5 py-2 animate-pulse">
+								<div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+									<img
+										src={currentUser.profilePictureUrl ? `${SERVER_URL}/${currentUser.profilePictureUrl}` : dummyProfilePicture}
+										alt={currentUser.username}
+										className="w-full h-full object-cover opacity-80"
+									/>
+								</div>
+								<div className="flex-1 min-w-0">
+									<div className="bg-gray-100 rounded-2xl px-3.5 py-2.5">
+										<p className="font-semibold text-[13px] text-gray-900 leading-tight">
+											{currentUser.username}
+										</p>
+										<p className="text-sm text-gray-500 mt-1 leading-snug break-words">
+											{comment.text}
+										</p>
+									</div>
+									<span className="text-xs text-gray-400 ml-3 mt-1 block">
+										Sending...
+									</span>
+								</div>
+							</div>
+						))}
 						{post.comments?.slice(0, visibleCommentsCount).map((comment) => (
 							<Comment
 								key={comment._id}
@@ -494,9 +543,8 @@ const PostCard = ({ post }: PostCardProps) => {
 
 					{/* Comment Input */}
 					<CommentInput
-						postId={post.id}
 						profilePictureUrl={currentUser.profilePictureUrl}
-						username={currentUser.username}
+						onSubmitComment={handleAddComment}
 					/>
 				</div>
 			)}
