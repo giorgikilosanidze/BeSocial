@@ -8,12 +8,15 @@ export async function createNotification(data: NotificationModel) {
 }
 
 export async function getUserNotifications(userId: string) {
-	const notifications = await Notification.find({ recipient: userId })
-		.sort({ createdAt: -1 })
-		.limit(5)
-		.populate('sender', 'username profilePictureUrl');
+	const [notifications, unreadCount] = await Promise.all([
+		Notification.find({ recipient: userId })
+			.sort({ createdAt: -1 })
+			.limit(5)
+			.populate('sender', 'username profilePictureUrl'),
+		Notification.countDocuments({ recipient: userId, isRead: false }),
+	]);
 
-	return notifications;
+	return { notifications, unreadCount };
 }
 
 export async function getAllUserNotifications(userId: string) {

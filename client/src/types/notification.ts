@@ -16,7 +16,13 @@ export interface NotificationType {
 
 export interface NotificationState {
 	data: NotificationType[];
+	unreadCount: number;
 	error: string;
 	isLoading: boolean;
 	status: 'idle' | 'loading' | 'fullfiled' | 'error';
+}
+
+export interface NotificationListResponse {
+	notifications: NotificationType[];
+	unreadCount: number;
 }

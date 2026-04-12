@@ -5,6 +5,11 @@ import { useAppDispatch, useAppSelector } from './hooks/reduxHooks';
 import { getUserOnRefresh } from './features/auth/authThunks';
 import { socket, connectWithUser } from './socket';
 import type { NotificationType } from './types/notification';
+import { fetchNotifications } from './features/notifications/notificationsThunks';
+import {
+	incrementUnreadCount,
+	prependNotificationInRealTime,
+} from './features/notifications/notificationsSlice';
 import { toggleUnreadNotifications } from './features/navbar/navbarSlice';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -50,8 +55,23 @@ function App() {
 	}, [isLoggedIn, user.id]);
 
 	useEffect(() => {
+		if (isLoggedIn && user.id) {
+			dispatch(fetchNotifications())
+				.unwrap()
+				.then((data) => {
+					dispatch(toggleUnreadNotifications(data.unreadCount > 0));
+				})
+				.catch((error) => {
+					console.error('Failed to fetch notifications on app load:', error);
+				});
+		}
+	}, [dispatch, isLoggedIn, user.id]);
+
+	useEffect(() => {
 		socket.on('followNotification', (notification) => {
 			setToasts((prev) => [...prev, notification]);
+			dispatch(prependNotificationInRealTime(notification));
+			dispatch(incrementUnreadCount());
 			dispatch(toggleUnreadNotifications(true));
 		});
 
@@ -63,6 +83,8 @@ function App() {
 	useEffect(() => {
 		socket.on('reactionNotification', (notification) => {
 			setToasts((prev) => [...prev, notification]);
+			dispatch(prependNotificationInRealTime(notification));
+			dispatch(incrementUnreadCount());
 			dispatch(toggleUnreadNotifications(true));
 		});
 
@@ -74,6 +96,8 @@ function App() {
 	useEffect(() => {
 		socket.on('commentNotification', (notification) => {
 			setToasts((prev) => [...prev, notification]);
+			dispatch(prependNotificationInRealTime(notification));
+			dispatch(incrementUnreadCount());
 			dispatch(toggleUnreadNotifications(true));
 		});
 

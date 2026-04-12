@@ -1,9 +1,9 @@
 import SERVER_URL from '@/constants/serverUrl';
-import type { NotificationType } from '@/types/notification';
+import type { NotificationListResponse, NotificationType } from '@/types/notification';
 import { refreshTokenRequest } from '@/utils/refreshTokenRequest';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-export const fetchNotifications = createAsyncThunk<NotificationType[]>(
+export const fetchNotifications = createAsyncThunk<NotificationListResponse>(
 	'notifications/fetchNotifications',
 	async (_, { rejectWithValue }) => {
 		try {

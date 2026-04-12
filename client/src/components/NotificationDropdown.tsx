@@ -11,14 +11,12 @@ interface NotificationDropdownProps {
 
 const NotificationDropdown = ({ onSeeAll, onClose }: NotificationDropdownProps) => {
 	const notifications = useAppSelector((state) => state.notification.data);
-	const status = useAppSelector((state) => state.notification.status);
+	const unreadCount = useAppSelector((state) => state.notification.unreadCount);
 	const dispatch = useAppDispatch();
 
 	useEffect(() => {
-		if (status === 'idle') {
-			dispatch(fetchNotifications());
-		}
-	}, [dispatch, status]);
+		dispatch(fetchNotifications());
+	}, [dispatch]);
 
 	return (
 		<div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 z-50 overflow-hidden">
@@ -27,7 +25,7 @@ const NotificationDropdown = ({ onSeeAll, onClose }: NotificationDropdownProps) 
 				<div className="flex items-center space-x-2">
 					<h3 className="text-base font-bold text-gray-900">Notifications</h3>
 					<span className="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
-						{notifications.filter((n) => !n.isRead).length}
+						{unreadCount}
 					</span>
 				</div>
 			</div>
