@@ -9,3 +9,8 @@ export const connectWithUser = (userId: string) => {
 	socket.io.opts.query = { userId };
 	socket.disconnect().connect();
 };
+
+export const disconnectSocket = () => {
+	socket.io.opts.query = {};
+	socket.disconnect();
+};

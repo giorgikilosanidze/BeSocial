@@ -1,6 +1,4 @@
-import { fetchNotifications } from '@/features/notifications/notificationsThunks';
-import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { useEffect } from 'react';
+import { useAppSelector } from '@/hooks/reduxHooks';
 import ReactedNotification from './ReactedNotification';
 import FollowingNotification from './FollowingNotification';
 
@@ -12,11 +10,6 @@ interface NotificationDropdownProps {
 const NotificationDropdown = ({ onSeeAll, onClose }: NotificationDropdownProps) => {
 	const notifications = useAppSelector((state) => state.notification.data);
 	const unreadCount = useAppSelector((state) => state.notification.unreadCount);
-	const dispatch = useAppDispatch();
-
-	useEffect(() => {
-		dispatch(fetchNotifications());
-	}, [dispatch]);
 
 	return (
 		<div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 z-50 overflow-hidden">

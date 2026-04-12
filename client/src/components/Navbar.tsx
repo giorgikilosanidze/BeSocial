@@ -3,12 +3,14 @@ import NotificationDropdown from './NotificationDropdown';
 import NotificationModal from './NotificationModal';
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
+import { fetchNotifications } from '@/features/notifications/notificationsThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useDebounce } from '@/hooks/useDebounce';
 import SearchSkeleton from '@/skeletons/SearchSkeleton';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toggleUnreadNotifications } from '@/features/navbar/navbarSlice';
+import { markNotificationDotSeen } from '@/utils/notificationDot';
 import dummyProfilePicture from '../assets/user.jpg';
 
 type SearchedUsers = SearchedUser[];
@@ -25,6 +27,7 @@ const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 const Navbar = () => {
 	const user = useAppSelector((state) => state.auth.user);
 	const hasUnreadNotifications = useAppSelector((state) => state.navbar.hasUnreadNotifications);
+	const notifications = useAppSelector((state) => state.notification.data);
 	const [isAccountMenuShown, setIsAccountMenuShown] = useState(false);
 	const userIconParentRef = useRef<HTMLDivElement>(null);
 	const notificationParentRef = useRef<HTMLDivElement>(null);
@@ -76,6 +79,16 @@ const Navbar = () => {
 	const toggleNotifications = () => {
 		if (!isNotificationsOpen) {
 			dispatch(toggleUnreadNotifications(false));
+			markNotificationDotSeen(user.id, notifications[0]?.createdAt);
+
+			dispatch(fetchNotifications())
+				.unwrap()
+				.then((data) => {
+					markNotificationDotSeen(user.id, data.notifications[0]?.createdAt);
+				})
+				.catch((error) => {
+					console.error('Failed to refresh notifications on open:', error);
+				});
 		}
 
 		setIsNotificationsOpen(!isNotificationsOpen);

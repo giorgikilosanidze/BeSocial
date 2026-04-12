@@ -3,7 +3,7 @@ import AppRoutes from './AppRoutes';
 import NotificationToast from './components/NotificationToast';
 import { useAppDispatch, useAppSelector } from './hooks/reduxHooks';
 import { getUserOnRefresh } from './features/auth/authThunks';
-import { socket, connectWithUser } from './socket';
+import { socket, connectWithUser, disconnectSocket } from './socket';
 import type { NotificationType } from './types/notification';
 import { fetchNotifications } from './features/notifications/notificationsThunks';
 import {
@@ -12,10 +12,7 @@ import {
 } from './features/notifications/notificationsSlice';
 import { toggleUnreadNotifications } from './features/navbar/navbarSlice';
 import ScrollToTop from './components/ScrollToTop';
-
-// import { useLocation } from 'react-router-dom';
-// import routes from './constants/routes';
-// import { stopLoader } from './features/auth/authSlice';
+import { hasNewNotificationForDot } from './utils/notificationDot';
 
 function App() {
 	const [toasts, setToasts] = useState<NotificationType[]>([]);
@@ -23,24 +20,10 @@ function App() {
 	const { isLoggedIn, user, isLoading } = useAppSelector((state) => state.auth);
 
 	const isServerAwake = sessionStorage.getItem('isServerAwake') === 'true';
-	// const location = useLocation();
 
 	useEffect(() => {
-		// if (
-		// 	location.pathname === routes.login ||
-		// 	location.pathname === routes.signup ||
-		// 	location.pathname === routes.notFound
-		// ) {
-		// 	dispatch(stopLoader());
-		// }
-		// if (
-		// 	location.pathname !== routes.login &&
-		// 	location.pathname !== routes.signup &&
-		// 	location.pathname !== routes.notFound
-		// ) {
 		dispatch(getUserOnRefresh());
-		// }
-	}, [dispatch]); // locationic iko ak dependency arrayshi.
+	}, [dispatch]);
 
 	useEffect(() => {
 		if (!isServerAwake && !isLoading) {
@@ -51,6 +34,8 @@ function App() {
 	useEffect(() => {
 		if (isLoggedIn && user.id) {
 			connectWithUser(user.id);
+		} else {
+			disconnectSocket();
 		}
 	}, [isLoggedIn, user.id]);
 
@@ -59,52 +44,72 @@ function App() {
 			dispatch(fetchNotifications())
 				.unwrap()
 				.then((data) => {
-					dispatch(toggleUnreadNotifications(data.unreadCount > 0));
+					const latestNotificationCreatedAt = data.notifications[0]?.createdAt;
+					const shouldShowDot = hasNewNotificationForDot(
+						user.id,
+						latestNotificationCreatedAt,
+					);
+
+					dispatch(toggleUnreadNotifications(shouldShowDot));
 				})
 				.catch((error) => {
 					console.error('Failed to fetch notifications on app load:', error);
 				});
+		} else {
+			dispatch(toggleUnreadNotifications(false));
 		}
 	}, [dispatch, isLoggedIn, user.id]);
 
 	useEffect(() => {
-		socket.on('followNotification', (notification) => {
+		if (!isLoggedIn) return;
+
+		const handleFollowNotification = (notification: NotificationType) => {
 			setToasts((prev) => [...prev, notification]);
 			dispatch(prependNotificationInRealTime(notification));
 			dispatch(incrementUnreadCount());
 			dispatch(toggleUnreadNotifications(true));
-		});
+		};
+
+		socket.on('followNotification', handleFollowNotification);
 
 		return () => {
-			socket.off('followNotification');
+			socket.off('followNotification', handleFollowNotification);
 		};
-	}, [dispatch]);
+	}, [dispatch, isLoggedIn]);
 
 	useEffect(() => {
-		socket.on('reactionNotification', (notification) => {
+		if (!isLoggedIn) return;
+
+		const handleReactionNotification = (notification: NotificationType) => {
 			setToasts((prev) => [...prev, notification]);
 			dispatch(prependNotificationInRealTime(notification));
 			dispatch(incrementUnreadCount());
 			dispatch(toggleUnreadNotifications(true));
-		});
+		};
+
+		socket.on('reactionNotification', handleReactionNotification);
 
 		return () => {
-			socket.off('reactionNotification');
+			socket.off('reactionNotification', handleReactionNotification);
 		};
-	}, [dispatch]);
+	}, [dispatch, isLoggedIn]);
 
 	useEffect(() => {
-		socket.on('commentNotification', (notification) => {
+		if (!isLoggedIn) return;
+
+		const handleCommentNotification = (notification: NotificationType) => {
 			setToasts((prev) => [...prev, notification]);
 			dispatch(prependNotificationInRealTime(notification));
 			dispatch(incrementUnreadCount());
 			dispatch(toggleUnreadNotifications(true));
-		});
+		};
+
+		socket.on('commentNotification', handleCommentNotification);
 
 		return () => {
-			socket.off('commentNotification');
+			socket.off('commentNotification', handleCommentNotification);
 		};
-	}, [dispatch]);
+	}, [dispatch, isLoggedIn]);
 
 	const removeToast = () => {
 		setToasts([]);
