@@ -34,6 +34,8 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [visibleCommentsCount, setVisibleCommentsCount] = useState(3);
 	const [pendingComments, setPendingComments] = useState<PendingComment[]>([]);
 	const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
+	const [isSavingPost, setIsSavingPost] = useState(false);
+	const [isDeletingPost, setIsDeletingPost] = useState(false);
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
@@ -189,7 +191,10 @@ const PostCard = ({ post }: PostCardProps) => {
 	};
 
 	const handleEditSave = async () => {
+		if (isSavingPost) return;
+
 		if (post.text === editedText) {
+			setIsEditMode(false);
 			return;
 		}
 
@@ -201,19 +206,27 @@ const PostCard = ({ post }: PostCardProps) => {
 		};
 
 		try {
+			setIsSavingPost(true);
 			await dispatch(editPost(editPostData)).unwrap();
 			setIsEditMode(false);
 		} catch (error) {
 			console.error('Edit post failed!', error);
+		} finally {
+			setIsSavingPost(false);
 		}
 	};
 
 	const handleDelete = async () => {
+		if (isDeletingPost) return;
+
 		try {
-			dispatch(deletePost(post.id)).unwrap();
+			setIsDeletingPost(true);
+			await dispatch(deletePost(post.id)).unwrap();
 			setIsEditMode(false);
 		} catch (error) {
 			console.error('Delete post failed!', error);
+		} finally {
+			setIsDeletingPost(false);
 		}
 	};
 
@@ -279,6 +292,7 @@ const PostCard = ({ post }: PostCardProps) => {
 							<div className="absolute right-0 w-32 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
 								<button
 									onClick={() => handleEditMode(true)}
+									disabled={isSavingPost || isDeletingPost}
 									className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors rounded-t-lg"
 								>
 									<svg
@@ -298,6 +312,7 @@ const PostCard = ({ post }: PostCardProps) => {
 								</button>
 								<button
 									onClick={handleDelete}
+									disabled={isSavingPost || isDeletingPost}
 									className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-red-600 hover:bg-red-50 transition-colors rounded-b-lg"
 								>
 									<svg
@@ -313,7 +328,7 @@ const PostCard = ({ post }: PostCardProps) => {
 											d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
 										/>
 									</svg>
-									<span>Delete</span>
+									<span>{isDeletingPost ? 'Deleting...' : 'Delete'}</span>
 								</button>
 							</div>
 						)}
@@ -341,15 +356,17 @@ const PostCard = ({ post }: PostCardProps) => {
 						<div className="flex justify-end space-x-2 mt-2">
 							<button
 								onClick={() => handleEditMode(false)}
+								disabled={isSavingPost || isDeletingPost}
 								className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
 							>
 								Cancel
 							</button>
 							<button
 								onClick={handleEditSave}
+								disabled={isSavingPost || isDeletingPost}
 								className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm"
 							>
-								Save
+								{isSavingPost ? 'Saving...' : 'Save'}
 							</button>
 						</div>
 					</div>

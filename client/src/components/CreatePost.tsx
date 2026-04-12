@@ -14,6 +14,7 @@ const CreatePost = () => {
 	const dispatch = useAppDispatch();
 	const [images, setImages] = useState<File[]>([]);
 	const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+	const [isPosting, setIsPosting] = useState(false);
 	const navigate = useNavigate();
 
 	const profilePictureSrc = profilePictureUrl
@@ -32,23 +33,26 @@ const CreatePost = () => {
 		navigate(routes.profile.replace(':userId', userId));
 	};
 
-	const handleCreatePost = () => {
+	const handleCreatePost = async () => {
+		if (isPosting) return;
+		if (!postText.trim() && images.length === 0) return;
+
 		const formData = new FormData();
 
 		images.forEach((img) => formData.append('image', img));
 		formData.append('text', postText);
 
-		if (!postText && images.length === 0) {
-			return;
-		}
+		setIsPosting(true);
 
 		try {
-			dispatch(createPost(formData)).unwrap();
+			await dispatch(createPost(formData)).unwrap();
 			setPostText('');
 			setImagePreviews([]);
 			setImages([]);
 		} catch (error) {
 			console.error(error);
+		} finally {
+			setIsPosting(false);
 		}
 	};
 
@@ -182,9 +186,10 @@ const CreatePost = () => {
 				</div>
 				<button
 					onClick={handleCreatePost}
-					className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors"
+					disabled={isPosting || (!postText.trim() && images.length === 0)}
+					className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
 				>
-					Post
+					{isPosting ? 'Posting...' : 'Post'}
 				</button>
 			</div>
 		</div>

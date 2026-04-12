@@ -77,14 +77,12 @@ const feedSlice = createSlice({
 	extraReducers: (builder) => {
 		builder
 			.addCase(createPost.pending, (state) => {
-				state.isLoading = true;
+				state.error = '';
 			})
-			.addCase(createPost.fulfilled, (state) => {
-				state.isLoading = false;
+			.addCase(createPost.fulfilled, () => {
 				// state.posts.unshift(action.payload);
 			})
 			.addCase(createPost.rejected, (state, action) => {
-				state.isLoading = false;
 				state.error = action.error.message || 'Failed to create post!';
 			})
 
@@ -101,24 +99,22 @@ const feedSlice = createSlice({
 			})
 
 			.addCase(editPost.pending, (state) => {
-				state.isLoading = true;
+				state.error = '';
 			})
 			.addCase(editPost.fulfilled, (state) => {
-				state.isLoading = false;
+				state.error = '';
 			})
 			.addCase(editPost.rejected, (state, action) => {
-				state.isLoading = false;
 				state.error = action.error.message || 'Failed to edit post!';
 			})
 
 			.addCase(deletePost.pending, (state) => {
-				state.isLoading = true;
+				state.error = '';
 			})
 			.addCase(deletePost.fulfilled, (state) => {
-				state.isLoading = false;
+				state.error = '';
 			})
 			.addCase(deletePost.rejected, (state, action) => {
-				state.isLoading = false;
 				state.error = action.error.message || 'Failed to delete post!';
 			})
 
