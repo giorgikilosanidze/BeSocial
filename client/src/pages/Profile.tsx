@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import ProfileHeader from '@/components/ProfileHeader';
-import ProfileFriends from '@/components/ProfileFriends';
+import FollowedBy from '@/components/FollowedBy';
 import PostCard from '@/components/PostCard';
 import CreatePost from '@/components/CreatePost';
 import ProfileSkeleton from '@/skeletons/ProfileSkeleton';
@@ -73,7 +73,7 @@ const Profile = () => {
 				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
 					{/* Left Sidebar - About/Info */}
 					<div className="lg:col-span-1 space-y-6">
-						<ProfileFriends />
+						<FollowedBy />
 					</div>
 
 					{/* Right Content - Posts/Timeline */}

@@ -20,6 +20,7 @@ export interface UserProfile {
 	following: [];
 	followers: [];
 	isFollowed: boolean;
+	followedBy: FollowedByUser[];
 }
 
 export interface UploadPicturesData {
@@ -40,4 +41,10 @@ export interface FollowListUser {
 	username: string;
 	profilePictureUrl: string;
 	isFollowed: boolean;
+}
+
+export interface FollowedByUser {
+	_id: string;
+	username: string;
+	profilePictureUrl: string;
 }

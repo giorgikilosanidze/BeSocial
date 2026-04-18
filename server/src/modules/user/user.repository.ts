@@ -147,9 +147,11 @@ export async function getFollowersList(userId: string, viewerId: string) {
 	if (!user) return [];
 
 	const viewer = await User.findById(viewerId);
-	const viewerFollowingStr = viewer?.following.map(id => id.toString()) || [];
+	const viewerFollowingStr = viewer?.following.map((id) => id.toString()) || [];
 
-	const followers = await User.find({ _id: { $in: user.followers } }).select('_id username profilePictureUrl').lean();
+	const followers = await User.find({ _id: { $in: user.followers } })
+		.select('_id username profilePictureUrl')
+		.lean();
 
 	return followers.map((f: any) => ({
 		_id: f._id.toString(),
@@ -164,9 +166,11 @@ export async function getFollowingList(userId: string, viewerId: string) {
 	if (!user) return [];
 
 	const viewer = await User.findById(viewerId);
-	const viewerFollowingStr = viewer?.following.map(id => id.toString()) || [];
+	const viewerFollowingStr = viewer?.following.map((id) => id.toString()) || [];
 
-	const following = await User.find({ _id: { $in: user.following } }).select('_id username profilePictureUrl').lean();
+	const following = await User.find({ _id: { $in: user.following } })
+		.select('_id username profilePictureUrl')
+		.lean();
 
 	return following.map((f: any) => ({
 		_id: f._id.toString(),
@@ -174,4 +178,58 @@ export async function getFollowingList(userId: string, viewerId: string) {
 		profilePictureUrl: f.profilePictureUrl || '',
 		isFollowed: viewerFollowingStr.includes(f._id.toString()),
 	}));
+}
+
+export async function handleFollowedBy(
+	loggedInUserId: string,
+	visitedUserId: string,
+): Promise<Array<{ _id: string; username: string; profilePictureUrl: string }>> {
+	if (loggedInUserId === visitedUserId) {
+		return [];
+	}
+
+	const currentUser = await User.findById(loggedInUserId).select('following').lean();
+	const visitedUser = await User.findById(visitedUserId).select('followers').lean();
+
+	if (!currentUser) {
+		throw new Error('Failed to identify logged in user!');
+	}
+
+	if (!visitedUser) {
+		throw new Error('Failed to identify visited user!');
+	}
+
+	const currentUserFollowing = (currentUser.following || []).map((id) => id.toString());
+	const visitedUserFollowers = (visitedUser.followers || []).map((id) => id.toString());
+
+	const mutualConnectionIds = visitedUserFollowers.filter((id) =>
+		currentUserFollowing.includes(id),
+	);
+
+	if (mutualConnectionIds.length === 0) {
+		return [];
+	}
+
+	const mutualConnections = (await User.find({ _id: { $in: mutualConnectionIds } })
+		.select('_id username profilePictureUrl')
+		.lean()) as unknown as Array<{
+		_id: { toString: () => string };
+		username: string;
+		profilePictureUrl?: string;
+	}>;
+
+	const byId = new Map(
+		mutualConnections.map((user) => [user._id.toString(), user] as const),
+	);
+
+	return mutualConnectionIds
+		.map((id) => byId.get(id))
+		.filter((user): user is { _id: string; username: string; profilePictureUrl?: string } =>
+			Boolean(user),
+		)
+		.map((user) => ({
+			_id: user._id.toString(),
+			username: user.username,
+			profilePictureUrl: user.profilePictureUrl || '',
+		}));
 }

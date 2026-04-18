@@ -23,6 +23,7 @@ const initialState: UserSliceState = {
 		followers: [],
 		following: [],
 		isFollowed: false,
+		followedBy: [],
 	},
 	error: '',
 	isLoading: false,
