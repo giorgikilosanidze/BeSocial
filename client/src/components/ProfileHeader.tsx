@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
+import ImageCropModal from './ImageCropModal';
 
 interface ProfileHeaderProps {
 	username: string;
@@ -19,6 +20,8 @@ interface ProfileHeaderProps {
 	onFollowersClick: () => void;
 	onFollowingClick: () => void;
 }
+
+type CropTarget = 'profile' | 'cover';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -38,6 +41,9 @@ const ProfileHeader = ({
 	const { userId } = useParams<{ userId: string }>();
 	const [followAction, setFollowAction] = useState<1 | 2>(isFollowed ? 2 : 1);
 	const [optimisticFollowers, setoptimisticFollowers] = useState(followersCount);
+	const [cropTarget, setCropTarget] = useState<CropTarget | null>(null);
+	const [cropImage, setCropImage] = useState<File | null>(null);
+	const [isImageSaving, setIsImageSaving] = useState(false);
 
 	useEffect(() => {
 		setoptimisticFollowers(followersCount);
@@ -59,37 +65,45 @@ const ProfileHeader = ({
 		);
 	};
 
-	const handleProfilePicture = async (image: FileList | null) => {
-		if (!image || !userId) return;
-
-		const formData = new FormData();
-		formData.append('image', image[0]);
-
-		try {
-			const newProfilePictureUrl = await dispatch(
-				uploadProfilePicture({ userId, formData }),
-			).unwrap();
-
-			dispatch(updateProfilePicture(newProfilePictureUrl));
-		} catch (error) {
-			console.error(error);
-		}
+	const resetCropper = () => {
+		setCropTarget(null);
+		setCropImage(null);
 	};
 
-	const handleCoverPhoto = async (image: FileList | null) => {
-		if (!image || !userId) return;
+	const startCrop = (target: CropTarget, image: FileList | null) => {
+		if (!image || image.length === 0) return;
+		setCropTarget(target);
+		setCropImage(image[0]);
+	};
+
+	const handleCroppedUpload = async (processedImage: File) => {
+		if (!userId || !cropTarget) return;
 
 		const formData = new FormData();
-		formData.append('image', image[0]);
+		formData.append('image', processedImage);
+
+		setIsImageSaving(true);
 
 		try {
-			const newCoverPhotoUrl = await dispatch(
-				uploadCoverPhoto({ userId, formData }),
-			).unwrap();
+			if (cropTarget === 'profile') {
+				const newProfilePictureUrl = await dispatch(
+					uploadProfilePicture({ userId, formData }),
+				).unwrap();
 
-			dispatch(updateCoverPhoto(newCoverPhotoUrl));
+				dispatch(updateProfilePicture(newProfilePictureUrl));
+			} else {
+				const newCoverPhotoUrl = await dispatch(
+					uploadCoverPhoto({ userId, formData }),
+				).unwrap();
+
+				dispatch(updateCoverPhoto(newCoverPhotoUrl));
+			}
+
+			resetCropper();
 		} catch (error) {
 			console.error(error);
+		} finally {
+			setIsImageSaving(false);
 		}
 	};
 
@@ -124,7 +138,7 @@ const ProfileHeader = ({
 						<span>Edit Cover</span>
 						<input
 							onChange={(e: ChangeEvent<HTMLInputElement>) => {
-								handleCoverPhoto(e.target.files);
+								startCrop('cover', e.target.files);
 								e.target.value = '';
 							}}
 							type="file"
@@ -172,7 +186,7 @@ const ProfileHeader = ({
 									</svg>
 									<input
 										onChange={(e: ChangeEvent<HTMLInputElement>) => {
-											handleProfilePicture(e.target.files);
+											startCrop('profile', e.target.files);
 											e.target.value = '';
 										}}
 										type="file"
@@ -274,6 +288,16 @@ const ProfileHeader = ({
 					</div>
 				</div>
 			</div>
+
+			{cropTarget && cropImage && (
+				<ImageCropModal
+					mode={cropTarget}
+					imageFile={cropImage}
+					isSaving={isImageSaving}
+					onCancel={resetCropper}
+					onConfirm={handleCroppedUpload}
+				/>
+			)}
 		</div>
 	);
 };
