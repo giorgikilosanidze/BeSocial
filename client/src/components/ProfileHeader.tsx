@@ -9,6 +9,7 @@ import { useEffect, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
 import ImageCropModal from './ImageCropModal';
+import ImagePreviewModal from './ImagePreviewModal';
 
 interface ProfileHeaderProps {
 	username: string;
@@ -22,6 +23,7 @@ interface ProfileHeaderProps {
 }
 
 type CropTarget = 'profile' | 'cover';
+type PreviewTarget = 'profile' | 'cover';
 
 const SERVER_URL = import.meta.env.VITE_SERVER_URL;
 
@@ -44,6 +46,7 @@ const ProfileHeader = ({
 	const [cropTarget, setCropTarget] = useState<CropTarget | null>(null);
 	const [cropImage, setCropImage] = useState<File | null>(null);
 	const [isImageSaving, setIsImageSaving] = useState(false);
+	const [previewTarget, setPreviewTarget] = useState<PreviewTarget | null>(null);
 
 	useEffect(() => {
 		setoptimisticFollowers(followersCount);
@@ -68,6 +71,20 @@ const ProfileHeader = ({
 	const resetCropper = () => {
 		setCropTarget(null);
 		setCropImage(null);
+	};
+
+	const openPreview = (target: PreviewTarget) => {
+		setPreviewTarget(target);
+	};
+
+	const handleImageKeyDown = (
+		event: React.KeyboardEvent<HTMLImageElement>,
+		target: PreviewTarget,
+	) => {
+		if (event.key === 'Enter' || event.key === ' ') {
+			event.preventDefault();
+			openPreview(target);
+		}
 	};
 
 	const startCrop = (target: CropTarget, image: FileList | null) => {
@@ -112,7 +129,15 @@ const ProfileHeader = ({
 			{/* Cover Photo Section */}
 			<div className="relative h-80 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600">
 				{/* Cover Photo - will be replaced with actual image */}
-				<img src={coverPhotoSrc} alt="Cover" className="w-full h-full object-cover" />
+				<img
+					src={coverPhotoSrc}
+					alt="Cover"
+					onClick={() => openPreview('cover')}
+					onKeyDown={(event) => handleImageKeyDown(event, 'cover')}
+					role="button"
+					tabIndex={0}
+					className="w-full h-full object-cover cursor-pointer"
+				/>
 				{/* Edit Cover Photo Button */}
 				{hasPermission && (
 					<label className="absolute bottom-4 right-4 bg-white text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors shadow-md flex items-center space-x-2 cursor-pointer">
@@ -159,7 +184,11 @@ const ProfileHeader = ({
 								<img
 									src={profilePictureSrc}
 									alt="Profile"
-									className="w-full h-full object-cover"
+									onClick={() => openPreview('profile')}
+									onKeyDown={(event) => handleImageKeyDown(event, 'profile')}
+									role="button"
+									tabIndex={0}
+									className="w-full h-full object-cover cursor-pointer"
 								/>
 							</div>
 							{/* Edit Profile Photo Button */}
@@ -296,6 +325,19 @@ const ProfileHeader = ({
 					isSaving={isImageSaving}
 					onCancel={resetCropper}
 					onConfirm={handleCroppedUpload}
+				/>
+			)}
+
+			{previewTarget && (
+				<ImagePreviewModal
+					imageSrc={previewTarget === 'profile' ? profilePictureSrc : coverPhotoSrc}
+					imageAlt={
+						previewTarget === 'profile'
+							? 'Profile image preview'
+							: 'Cover image preview'
+					}
+					variant={previewTarget}
+					onClose={() => setPreviewTarget(null)}
 				/>
 			)}
 		</div>
