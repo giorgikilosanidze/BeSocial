@@ -19,16 +19,16 @@ const ProfileSidebar = () => {
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
 		: dummyProfilePicture;
-
-	const coverPhotoSrc = user.coverPhotoUrl
-		? `${SERVER_URL}/${user.coverPhotoUrl}`
-		: 'https://ui-avatars.com/api/?name=John+Doe&background=2563eb&color=fff&size=200';
+	const hasCoverPhoto = Boolean(user.coverPhotoUrl);
+	const coverPhotoSrc = user.coverPhotoUrl ? `${SERVER_URL}/${user.coverPhotoUrl}` : '';
 
 	return (
 		<aside className="hidden lg:block lg:col-span-3">
 			<div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden sticky top-20">
-				<div className="h-20 bg-gradient-to-r from-blue-500 to-blue-600">
-					<img src={coverPhotoSrc} alt="Profile" className="w-full h-full object-cover" />
+				<div className="h-20 bg-gray-700">
+					{hasCoverPhoto && (
+						<img src={coverPhotoSrc} alt="Profile cover" className="w-full h-full object-cover" />
+					)}
 				</div>
 				<div className="px-4 pb-4">
 					<div className="flex flex-col items-center -mt-10">

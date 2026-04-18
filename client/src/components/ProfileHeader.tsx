@@ -55,10 +55,9 @@ const ProfileHeader = ({
 	const profilePictureSrc = profilePictureUrl
 		? `${SERVER_URL}/${profilePictureUrl}`
 		: dummyProfilePicture;
+	const hasCoverPhoto = Boolean(coverPhotoUrl);
 
-	const coverPhotoSrc = coverPhotoUrl
-		? `${SERVER_URL}/${coverPhotoUrl}`
-		: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1200';
+	const coverPhotoSrc = coverPhotoUrl ? `${SERVER_URL}/${coverPhotoUrl}` : '';
 
 	const handleFollow = () => {
 		dispatch(followOrUnfollow({ targetUser: userId!, action: followAction }));
@@ -127,17 +126,18 @@ const ProfileHeader = ({
 	return (
 		<div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mt-6">
 			{/* Cover Photo Section */}
-			<div className="relative h-80 bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600">
-				{/* Cover Photo - will be replaced with actual image */}
-				<img
-					src={coverPhotoSrc}
-					alt="Cover"
-					onClick={() => openPreview('cover')}
-					onKeyDown={(event) => handleImageKeyDown(event, 'cover')}
-					role="button"
-					tabIndex={0}
-					className="w-full h-full object-cover cursor-pointer"
-				/>
+			<div className="relative h-80 bg-gray-700">
+				{hasCoverPhoto && (
+					<img
+						src={coverPhotoSrc}
+						alt="Cover"
+						onClick={() => openPreview('cover')}
+						onKeyDown={(event) => handleImageKeyDown(event, 'cover')}
+						role="button"
+						tabIndex={0}
+						className="w-full h-full object-cover cursor-pointer"
+					/>
+				)}
 				{/* Edit Cover Photo Button */}
 				{hasPermission && (
 					<label className="absolute bottom-4 right-4 bg-white text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors shadow-md flex items-center space-x-2 cursor-pointer">
@@ -328,7 +328,7 @@ const ProfileHeader = ({
 				/>
 			)}
 
-			{previewTarget && (
+			{previewTarget && (previewTarget === 'profile' || hasCoverPhoto) && (
 				<ImagePreviewModal
 					imageSrc={previewTarget === 'profile' ? profilePictureSrc : coverPhotoSrc}
 					imageAlt={
