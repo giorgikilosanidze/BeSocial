@@ -197,14 +197,14 @@ const Login = () => {
 						</div>
 
 						{/* Forgot Password */}
-						<div className="flex items-center justify-end">
+						{/* <div className="flex items-center justify-end">
 							<a
 								href="#"
 								className="text-sm text-blue-600 hover:text-blue-700 font-medium"
 							>
 								Forgot password?
 							</a>
-						</div>
+						</div> */}
 
 						{/* Sign In Button */}
 						<button
