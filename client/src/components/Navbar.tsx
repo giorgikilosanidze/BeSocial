@@ -37,6 +37,8 @@ const Navbar = () => {
 	const [isSearchLoading, setIsSearchLoading] = useState(false);
 	const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 	const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+	const mobileMenuParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 
@@ -67,6 +69,10 @@ const Navbar = () => {
 			if (notificationParentRef.current && !path.includes(notificationParentRef.current)) {
 				setIsNotificationsOpen(false);
 			}
+
+			if (mobileMenuParentRef.current && !path.includes(mobileMenuParentRef.current)) {
+				setIsMobileMenuOpen(false);
+			}
 		};
 
 		document.addEventListener('mousedown', handleClickOutside);
@@ -74,29 +80,40 @@ const Navbar = () => {
 		return () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
-	}, [isAccountMenuShown]);
+	}, []);
+
+	const refreshNotificationsOnOpen = () => {
+		dispatch(toggleUnreadNotifications(false));
+		markNotificationDotSeen(user.id, notifications[0]?.createdAt);
+
+		dispatch(fetchNotifications())
+			.unwrap()
+			.then((data) => {
+				markNotificationDotSeen(user.id, data.notifications[0]?.createdAt);
+			})
+			.catch((error) => {
+				console.error('Failed to refresh notifications on open:', error);
+			});
+	};
 
 	const toggleNotifications = () => {
 		if (!isNotificationsOpen) {
-			dispatch(toggleUnreadNotifications(false));
-			markNotificationDotSeen(user.id, notifications[0]?.createdAt);
-
-			dispatch(fetchNotifications())
-				.unwrap()
-				.then((data) => {
-					markNotificationDotSeen(user.id, data.notifications[0]?.createdAt);
-				})
-				.catch((error) => {
-					console.error('Failed to refresh notifications on open:', error);
-				});
+			refreshNotificationsOnOpen();
 		}
 
 		setIsNotificationsOpen(!isNotificationsOpen);
 	};
 
+	const handleOpenNotificationsFromMobile = () => {
+		refreshNotificationsOnOpen();
+		setIsNotificationModalOpen(true);
+		setIsMobileMenuOpen(false);
+	};
+
 	const handleSeeAllNotifications = () => {
 		setIsNotificationsOpen(false);
 		setIsNotificationModalOpen(true);
+		setIsMobileMenuOpen(false);
 	};
 
 	const handleSearchValue = (value: string) => {
@@ -109,6 +126,10 @@ const Navbar = () => {
 	};
 
 	const handleGoToProfilePage = (userId?: string) => {
+		setIsMobileMenuOpen(false);
+		setIsAccountMenuShown(false);
+		setIsNotificationsOpen(false);
+
 		if (!userId) {
 			navigate(routes.profile.replace(':userId', user.id));
 		} else {
@@ -120,6 +141,8 @@ const Navbar = () => {
 	};
 
 	const handleNavigationToHome = () => {
+		setIsMobileMenuOpen(false);
+		setIsNotificationsOpen(false);
 		navigate(routes.feed);
 	};
 
@@ -129,6 +152,8 @@ const Navbar = () => {
 
 	const handleLogOut = async () => {
 		try {
+			setIsMobileMenuOpen(false);
+			setIsAccountMenuShown(false);
 			await dispatch(logOutUser()).unwrap();
 			navigate(routes.login, { replace: true });
 		} catch (error) {
@@ -140,11 +165,11 @@ const Navbar = () => {
 		<>
 			<nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
 				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="flex justify-between items-center h-16">
+					<div className="flex items-center gap-2 h-16">
 						{/* Logo */}
 						<div
 							onClick={handleNavigationToHome}
-							className="flex items-center space-x-2 cursor-pointer"
+							className="flex items-center space-x-2 cursor-pointer shrink-0"
 						>
 							<div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
 								<svg
@@ -161,12 +186,14 @@ const Navbar = () => {
 									/>
 								</svg>
 							</div>
-							<span className="text-xl font-bold text-gray-900">BeSocial</span>
+							<span className="text-xl font-bold text-gray-900 max-[600px]:hidden">
+								BeSocial
+							</span>
 						</div>
 
 						{/* Search Bar */}
-						<div className="hidden md:flex flex-1 max-w-md mx-8">
-							<div className="relative w-full">
+						<div className="flex-1 min-w-0">
+							<div className="relative w-full md:max-w-md md:mx-auto">
 								<input
 									onChange={(e: ChangeEvent<HTMLInputElement>) =>
 										handleSearchValue(e.target.value)
@@ -244,7 +271,7 @@ const Navbar = () => {
 						</div>
 
 						{/* Right Icons */}
-						<div className="flex items-center space-x-4">
+						<div className="hidden md:flex items-center space-x-4">
 							<button
 								onClick={handleNavigationToHome}
 								className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -359,6 +386,140 @@ const Navbar = () => {
 									</div>
 								)}
 							</div>
+						</div>
+
+						<div className="md:hidden relative" ref={mobileMenuParentRef}>
+							<button
+								onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+								className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+								aria-label="Toggle menu"
+							>
+								{isMobileMenuOpen ? (
+									<svg
+										className="w-6 h-6 text-gray-600"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M6 18L18 6M6 6l12 12"
+										/>
+									</svg>
+								) : (
+									<svg
+										className="w-6 h-6 text-gray-600"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M4 6h16M4 12h16M4 18h16"
+										/>
+									</svg>
+								)}
+							</button>
+
+							{isMobileMenuOpen && (
+								<div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50">
+									<div
+										onClick={() => handleGoToProfilePage()}
+										className="px-4 py-1 mb-2 hover:bg-gray-100 transition-colors cursor-pointer"
+									>
+										<p className="text-sm font-semibold text-gray-900">
+											{user.username}
+										</p>
+										<p className="text-xs text-gray-500 truncate">
+											{user.email}
+										</p>
+									</div>
+									<div className="border-t border-gray-100 my-2"></div>
+									<button
+										onClick={handleNavigationToHome}
+										className="w-full px-4 py-2.5 text-sm text-left text-gray-700 hover:bg-gray-50 transition-colors flex items-center"
+									>
+										<svg
+											className="w-4 h-4 mr-3"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+											/>
+										</svg>
+										<span>Home</span>
+									</button>
+									<button
+										onClick={handleOpenNotificationsFromMobile}
+										className="w-full px-4 py-2.5 text-sm text-left text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between"
+									>
+										<span className="flex items-center">
+											<svg
+												className="w-4 h-4 mr-3"
+												fill="none"
+												stroke="currentColor"
+												viewBox="0 0 24 24"
+											>
+												<path
+													strokeLinecap="round"
+													strokeLinejoin="round"
+													strokeWidth={2}
+													d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+												/>
+											</svg>
+											Notifications
+										</span>
+										{hasUnreadNotifications && (
+											<span className="w-2 h-2 bg-red-500 rounded-full"></span>
+										)}
+									</button>
+									<button className="w-full px-4 py-2.5 text-sm text-left text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
+										<svg
+											className="w-4 h-4 mr-3"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+											/>
+										</svg>
+										<span>Messages</span>
+									</button>
+									<div className="border-t border-gray-100 my-2"></div>
+									<button
+										onClick={handleLogOut}
+										className="w-full flex items-center px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
+									>
+										<svg
+											className="w-4 h-4 mr-3"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+											/>
+										</svg>
+										Log Out
+									</button>
+								</div>
+							)}
 						</div>
 					</div>
 				</div>

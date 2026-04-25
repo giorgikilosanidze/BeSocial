@@ -75,8 +75,19 @@ const NotificationModal = ({ onClose }: NotificationModalProps) => {
 				{/* Notification List */}
 				<div className="max-h-[60vh] overflow-y-auto">
 					{isLoading && (
-						<div className="flex items-center justify-center py-12">
-							<div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+						<div className="py-2">
+							{[1, 2, 3].map((item) => (
+								<div key={item} className="px-4 py-3 border-l-[3px] border-l-transparent">
+									<div className="flex items-start animate-pulse">
+										<div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0"></div>
+										<div className="ml-3 flex-1 min-w-0">
+											<div className="h-3.5 bg-gray-200 rounded w-3/4"></div>
+											<div className="h-3 bg-gray-100 rounded w-1/3 mt-2"></div>
+										</div>
+										<div className="ml-2 mt-1.5 w-2.5 h-2.5 rounded-full bg-gray-200"></div>
+									</div>
+								</div>
+							))}
 						</div>
 					)}
 

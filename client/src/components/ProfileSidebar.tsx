@@ -23,7 +23,7 @@ const ProfileSidebar = () => {
 	const coverPhotoSrc = user.coverPhotoUrl ? `${SERVER_URL}/${user.coverPhotoUrl}` : '';
 
 	return (
-		<aside className="hidden lg:block lg:col-span-3">
+		<aside className="hidden md:block md:col-span-3 lg:col-span-3">
 			<div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden sticky top-20">
 				<div className="h-20 bg-gray-700">
 					{hasCoverPhoto && (

@@ -82,11 +82,11 @@ const Feed = () => {
 			{/* Main Content */}
 
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+				<div className="grid grid-cols-1 md:grid-cols-12 gap-6">
 					<ProfileSidebar />
 
 					{/* Main Feed */}
-					<main className="lg:col-span-6">
+					<main className="md:col-span-9 lg:col-span-6">
 						<CreatePost />
 
 						<div className="space-y-6">
