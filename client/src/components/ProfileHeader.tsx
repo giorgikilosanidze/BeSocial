@@ -7,7 +7,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
-import { openChatFromProfile } from './chat/chatUiEvents';
+import { useChatUi } from './chat/useChatUi';
 import dummyProfilePicture from '../assets/user.jpg';
 import ImageCropModal from './ImageCropModal';
 import ImagePreviewModal from './ImagePreviewModal';
@@ -42,6 +42,7 @@ const ProfileHeader = ({
 	const coverPhotoUrl = useAppSelector((state) => state.profile.user.coverPhotoUrl);
 	const dispatch = useAppDispatch();
 	const { userId } = useParams<{ userId: string }>();
+	const { openChatWithUser } = useChatUi();
 	const [followAction, setFollowAction] = useState<1 | 2>(isFollowed ? 2 : 1);
 	const [optimisticFollowers, setoptimisticFollowers] = useState(followersCount);
 	const [cropTarget, setCropTarget] = useState<CropTarget | null>(null);
@@ -95,7 +96,7 @@ const ProfileHeader = ({
 
 	const handleOpenChat = () => {
 		if (!userId) return;
-		openChatFromProfile({
+		openChatWithUser({
 			userId,
 			username,
 			avatarUrl: profilePictureSrc,

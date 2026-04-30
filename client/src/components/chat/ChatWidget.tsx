@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import dummyProfilePicture from '@/assets/user.jpg';
 import type { ChatThreadItem } from './chatUiMock';
 
@@ -10,11 +10,6 @@ interface ChatWidgetProps {
 const ChatWidget = ({ chat, onClose }: ChatWidgetProps) => {
 	const [draft, setDraft] = useState('');
 	const [localMessages, setLocalMessages] = useState(chat?.messages || []);
-
-	useEffect(() => {
-		setLocalMessages(chat?.messages || []);
-		setDraft('');
-	}, [chat]);
 
 	if (!chat) return null;
 
@@ -44,7 +39,9 @@ const ChatWidget = ({ chat, onClose }: ChatWidgetProps) => {
 						className="w-9 h-9 rounded-full object-cover"
 					/>
 					<div className="min-w-0">
-						<p className="text-sm font-semibold text-gray-900 truncate">{chat.username}</p>
+						<p className="text-sm font-semibold text-gray-900 truncate">
+							{chat.username}
+						</p>
 						<p className="text-[11px] text-green-600">Active now</p>
 					</div>
 				</div>

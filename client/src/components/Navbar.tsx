@@ -2,13 +2,7 @@ import fetchSearchedUsers from '@/api/fetchSearchedUsers';
 import NotificationDropdown from './NotificationDropdown';
 import NotificationModal from './NotificationModal';
 import ChatPreviewDropdown from './chat/ChatPreviewDropdown';
-import AllChatsModal from './chat/AllChatsModal';
-import ChatWidget from './chat/ChatWidget';
-import { CHAT_UI_MOCK_THREADS, type ChatThreadItem } from './chat/chatUiMock';
-import {
-	OPEN_CHAT_FROM_PROFILE_EVENT,
-	type OpenChatFromProfilePayload,
-} from './chat/chatUiEvents';
+import { useChatUi } from './chat/useChatUi';
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
 import { fetchNotifications } from '@/features/notifications/notificationsThunks';
@@ -46,16 +40,12 @@ const Navbar = () => {
 	const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 	const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 	const [isChatsOpen, setIsChatsOpen] = useState(false);
-	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
-	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
-	const [chatThreads, setChatThreads] = useState<ChatThreadItem[]>(CHAT_UI_MOCK_THREADS);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const mobileMenuParentRef = useRef<HTMLDivElement>(null);
 	const chatParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const hasUnreadChats = chatThreads.some((chat) => chat.unreadCount > 0);
-	const selectedChat = chatThreads.find((chat) => chat.id === selectedChatId) || null;
+	const { chatThreads, hasUnreadChats, openAllChats, openChatById } = useChatUi();
 
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
@@ -101,62 +91,6 @@ const Navbar = () => {
 		};
 	}, []);
 
-	useEffect(() => {
-		const handleOpenChatFromProfile = (event: Event) => {
-			const customEvent = event as CustomEvent<OpenChatFromProfilePayload>;
-			const payload = customEvent.detail;
-
-			if (!payload?.userId || !payload.username) return;
-
-			const normalizedUsername = payload.username.trim().toLowerCase();
-			const existingChat = chatThreads.find(
-				(chat) =>
-					chat.id === payload.userId || chat.username.trim().toLowerCase() === normalizedUsername,
-			);
-
-			if (existingChat) {
-				setSelectedChatId(existingChat.id);
-			} else {
-				const newChatThread: ChatThreadItem = {
-					id: payload.userId,
-					username: payload.username,
-					avatarUrl: payload.avatarUrl,
-					lastMessage: 'Start your conversation here.',
-					lastMessageAt: 'Now',
-					unreadCount: 0,
-					messages: [
-						{
-							id: `seed-${payload.userId}`,
-							sender: 'them',
-							text: `You opened a chat with ${payload.username}.`,
-							time: 'Now',
-						},
-					],
-				};
-
-				setChatThreads((prev) => [newChatThread, ...prev]);
-				setSelectedChatId(newChatThread.id);
-			}
-
-			setIsAllChatsModalOpen(false);
-			setIsChatsOpen(false);
-			setIsMobileMenuOpen(false);
-			setIsNotificationsOpen(false);
-		};
-
-		window.addEventListener(
-			OPEN_CHAT_FROM_PROFILE_EVENT,
-			handleOpenChatFromProfile as EventListener,
-		);
-
-		return () => {
-			window.removeEventListener(
-				OPEN_CHAT_FROM_PROFILE_EVENT,
-				handleOpenChatFromProfile as EventListener,
-			);
-		};
-	}, [chatThreads]);
-
 	const refreshNotificationsOnOpen = () => {
 		dispatch(toggleUnreadNotifications(false));
 		markNotificationDotSeen(user.id, notifications[0]?.createdAt);
@@ -198,18 +132,17 @@ const Navbar = () => {
 
 	const handleSeeAllChats = () => {
 		setIsChatsOpen(false);
-		setIsAllChatsModalOpen(true);
+		openAllChats();
 	};
 
 	const handleOpenChat = (chatId: string) => {
-		setSelectedChatId(chatId);
+		openChatById(chatId);
 		setIsChatsOpen(false);
-		setIsAllChatsModalOpen(false);
 		setIsMobileMenuOpen(false);
 	};
 
 	const handleOpenChatsFromMobile = () => {
-		setIsAllChatsModalOpen(true);
+		openAllChats();
 		setIsMobileMenuOpen(false);
 	};
 
@@ -647,13 +580,6 @@ const Navbar = () => {
 			{isNotificationModalOpen && (
 				<NotificationModal onClose={() => setIsNotificationModalOpen(false)} />
 			)}
-			<AllChatsModal
-				isOpen={isAllChatsModalOpen}
-				chats={chatThreads}
-				onClose={() => setIsAllChatsModalOpen(false)}
-				onOpenChat={handleOpenChat}
-			/>
-			<ChatWidget chat={selectedChat} onClose={() => setSelectedChatId(null)} />
 		</>
 	);
 };

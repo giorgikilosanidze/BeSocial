@@ -13,6 +13,7 @@ import {
 import { toggleUnreadNotifications } from './features/navbar/navbarSlice';
 import ScrollToTop from './components/ScrollToTop';
 import { hasNewNotificationForDot } from './utils/notificationDot';
+import { ChatUiProvider } from './components/chat/ChatUiContext';
 
 function App() {
 	const [toasts, setToasts] = useState<NotificationType[]>([]);
@@ -130,8 +131,10 @@ function App() {
 
 	return (
 		<div>
-			<ScrollToTop />
-			<AppRoutes />
+			<ChatUiProvider>
+				<ScrollToTop />
+				<AppRoutes />
+			</ChatUiProvider>
 			<NotificationToast toasts={toasts} onRemove={removeToast} />
 		</div>
 	);
