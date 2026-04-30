@@ -7,6 +7,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
+import { openChatFromProfile } from './chat/chatUiEvents';
 import dummyProfilePicture from '../assets/user.jpg';
 import ImageCropModal from './ImageCropModal';
 import ImagePreviewModal from './ImagePreviewModal';
@@ -90,6 +91,15 @@ const ProfileHeader = ({
 		if (!image || image.length === 0) return;
 		setCropTarget(target);
 		setCropImage(image[0]);
+	};
+
+	const handleOpenChat = () => {
+		if (!userId) return;
+		openChatFromProfile({
+			userId,
+			username,
+			avatarUrl: profilePictureSrc,
+		});
 	};
 
 	const handleCroppedUpload = async (processedImage: File) => {
@@ -272,22 +282,27 @@ const ProfileHeader = ({
 									<span>{followAction === 1 ? 'Follow' : 'Unfollow'}</span>
 								</button>
 							)}
-							<button className="flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors max-[520px]:w-10 max-[520px]:h-10 max-[520px]:px-0 max-[520px]:justify-center">
-								<svg
-									className="w-4 h-4"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
+							{!hasPermission && (
+								<button
+									onClick={handleOpenChat}
+									className="flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors max-[520px]:w-10 max-[520px]:h-10 max-[520px]:px-0 max-[520px]:justify-center"
 								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-									/>
-								</svg>
-								<span className="max-[520px]:hidden">Message</span>
-							</button>
+									<svg
+										className="w-4 h-4"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+										/>
+									</svg>
+									<span className="max-[520px]:hidden">Message</span>
+								</button>
+							)}
 						</div>
 					</div>
 				</div>

@@ -1,6 +1,14 @@
 import fetchSearchedUsers from '@/api/fetchSearchedUsers';
 import NotificationDropdown from './NotificationDropdown';
 import NotificationModal from './NotificationModal';
+import ChatPreviewDropdown from './chat/ChatPreviewDropdown';
+import AllChatsModal from './chat/AllChatsModal';
+import ChatWidget from './chat/ChatWidget';
+import { CHAT_UI_MOCK_THREADS, type ChatThreadItem } from './chat/chatUiMock';
+import {
+	OPEN_CHAT_FROM_PROFILE_EVENT,
+	type OpenChatFromProfilePayload,
+} from './chat/chatUiEvents';
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
 import { fetchNotifications } from '@/features/notifications/notificationsThunks';
@@ -37,10 +45,17 @@ const Navbar = () => {
 	const [isSearchLoading, setIsSearchLoading] = useState(false);
 	const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 	const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+	const [isChatsOpen, setIsChatsOpen] = useState(false);
+	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
+	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+	const [chatThreads, setChatThreads] = useState<ChatThreadItem[]>(CHAT_UI_MOCK_THREADS);
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const mobileMenuParentRef = useRef<HTMLDivElement>(null);
+	const chatParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const hasUnreadChats = chatThreads.some((chat) => chat.unreadCount > 0);
+	const selectedChat = chatThreads.find((chat) => chat.id === selectedChatId) || null;
 
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
@@ -70,6 +85,10 @@ const Navbar = () => {
 				setIsNotificationsOpen(false);
 			}
 
+			if (chatParentRef.current && !path.includes(chatParentRef.current)) {
+				setIsChatsOpen(false);
+			}
+
 			if (mobileMenuParentRef.current && !path.includes(mobileMenuParentRef.current)) {
 				setIsMobileMenuOpen(false);
 			}
@@ -81,6 +100,62 @@ const Navbar = () => {
 			document.removeEventListener('mousedown', handleClickOutside);
 		};
 	}, []);
+
+	useEffect(() => {
+		const handleOpenChatFromProfile = (event: Event) => {
+			const customEvent = event as CustomEvent<OpenChatFromProfilePayload>;
+			const payload = customEvent.detail;
+
+			if (!payload?.userId || !payload.username) return;
+
+			const normalizedUsername = payload.username.trim().toLowerCase();
+			const existingChat = chatThreads.find(
+				(chat) =>
+					chat.id === payload.userId || chat.username.trim().toLowerCase() === normalizedUsername,
+			);
+
+			if (existingChat) {
+				setSelectedChatId(existingChat.id);
+			} else {
+				const newChatThread: ChatThreadItem = {
+					id: payload.userId,
+					username: payload.username,
+					avatarUrl: payload.avatarUrl,
+					lastMessage: 'Start your conversation here.',
+					lastMessageAt: 'Now',
+					unreadCount: 0,
+					messages: [
+						{
+							id: `seed-${payload.userId}`,
+							sender: 'them',
+							text: `You opened a chat with ${payload.username}.`,
+							time: 'Now',
+						},
+					],
+				};
+
+				setChatThreads((prev) => [newChatThread, ...prev]);
+				setSelectedChatId(newChatThread.id);
+			}
+
+			setIsAllChatsModalOpen(false);
+			setIsChatsOpen(false);
+			setIsMobileMenuOpen(false);
+			setIsNotificationsOpen(false);
+		};
+
+		window.addEventListener(
+			OPEN_CHAT_FROM_PROFILE_EVENT,
+			handleOpenChatFromProfile as EventListener,
+		);
+
+		return () => {
+			window.removeEventListener(
+				OPEN_CHAT_FROM_PROFILE_EVENT,
+				handleOpenChatFromProfile as EventListener,
+			);
+		};
+	}, [chatThreads]);
 
 	const refreshNotificationsOnOpen = () => {
 		dispatch(toggleUnreadNotifications(false));
@@ -116,6 +191,28 @@ const Navbar = () => {
 		setIsMobileMenuOpen(false);
 	};
 
+	const toggleChats = () => {
+		setIsChatsOpen((prev) => !prev);
+		setIsNotificationsOpen(false);
+	};
+
+	const handleSeeAllChats = () => {
+		setIsChatsOpen(false);
+		setIsAllChatsModalOpen(true);
+	};
+
+	const handleOpenChat = (chatId: string) => {
+		setSelectedChatId(chatId);
+		setIsChatsOpen(false);
+		setIsAllChatsModalOpen(false);
+		setIsMobileMenuOpen(false);
+	};
+
+	const handleOpenChatsFromMobile = () => {
+		setIsAllChatsModalOpen(true);
+		setIsMobileMenuOpen(false);
+	};
+
 	const handleSearchValue = (value: string) => {
 		setSearchValue(value);
 		setIsSearchLoading(value ? true : false);
@@ -143,6 +240,7 @@ const Navbar = () => {
 	const handleNavigationToHome = () => {
 		setIsMobileMenuOpen(false);
 		setIsNotificationsOpen(false);
+		setIsChatsOpen(false);
 		navigate(routes.feed);
 	};
 
@@ -320,21 +418,37 @@ const Navbar = () => {
 									/>
 								)}
 							</div>
-							<button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-								<svg
-									className="w-6 h-6 text-gray-600"
-									fill="none"
-									stroke="currentColor"
-									viewBox="0 0 24 24"
+							<div className="relative" ref={chatParentRef}>
+								<button
+									onClick={toggleChats}
+									className="p-2 hover:bg-gray-100 rounded-full transition-colors relative"
 								>
-									<path
-										strokeLinecap="round"
-										strokeLinejoin="round"
-										strokeWidth={2}
-										d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+									<svg
+										className="w-6 h-6 text-gray-600"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+									>
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											strokeWidth={2}
+											d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+										/>
+									</svg>
+									{hasUnreadChats && (
+										<span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
+									)}
+								</button>
+
+								{isChatsOpen && (
+									<ChatPreviewDropdown
+										chats={chatThreads}
+										onOpenChat={handleOpenChat}
+										onSeeAll={handleSeeAllChats}
 									/>
-								</svg>
-							</button>
+								)}
+							</div>
 							<div className="relative" ref={userIconParentRef}>
 								<button
 									onClick={toggleAccountMenuVisibility}
@@ -482,7 +596,10 @@ const Navbar = () => {
 											<span className="w-2 h-2 bg-red-500 rounded-full"></span>
 										)}
 									</button>
-									<button className="w-full px-4 py-2.5 text-sm text-left text-gray-700 hover:bg-gray-50 transition-colors flex items-center">
+									<button
+										onClick={handleOpenChatsFromMobile}
+										className="w-full px-4 py-2.5 text-sm text-left text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-between"
+									>
 										<svg
 											className="w-4 h-4 mr-3"
 											fill="none"
@@ -497,6 +614,9 @@ const Navbar = () => {
 											/>
 										</svg>
 										<span>Messages</span>
+										{hasUnreadChats && (
+											<span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+										)}
 									</button>
 									<div className="border-t border-gray-100 my-2"></div>
 									<button
@@ -527,6 +647,13 @@ const Navbar = () => {
 			{isNotificationModalOpen && (
 				<NotificationModal onClose={() => setIsNotificationModalOpen(false)} />
 			)}
+			<AllChatsModal
+				isOpen={isAllChatsModalOpen}
+				chats={chatThreads}
+				onClose={() => setIsAllChatsModalOpen(false)}
+				onOpenChat={handleOpenChat}
+			/>
+			<ChatWidget chat={selectedChat} onClose={() => setSelectedChatId(null)} />
 		</>
 	);
 };
