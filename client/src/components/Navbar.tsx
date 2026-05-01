@@ -2,7 +2,9 @@ import fetchSearchedUsers from '@/api/fetchSearchedUsers';
 import NotificationDropdown from './NotificationDropdown';
 import NotificationModal from './NotificationModal';
 import ChatPreviewDropdown from './chat/ChatPreviewDropdown';
-import { useChatUi } from './chat/useChatUi';
+import AllChatsModal from './chat/AllChatsModal';
+import ChatWidget from './chat/ChatWidget';
+import { chatUiData } from './chat/chatUiData';
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
 import { fetchNotifications } from '@/features/notifications/notificationsThunks';
@@ -45,7 +47,12 @@ const Navbar = () => {
 	const chatParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const { chatThreads, hasUnreadChats, openAllChats, openChatById } = useChatUi();
+	const [chatThreads] = useState(chatUiData);
+	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
+
+	const selectedChat = chatThreads.find((chat) => chat.id === selectedChatId) || null;
+	const hasUnreadChats = chatThreads.some((chat) => chat.unreadCount > 0);
 
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
@@ -132,18 +139,27 @@ const Navbar = () => {
 
 	const handleSeeAllChats = () => {
 		setIsChatsOpen(false);
-		openAllChats();
+		setIsAllChatsModalOpen(true);
 	};
 
 	const handleOpenChat = (chatId: string) => {
-		openChatById(chatId);
+		setSelectedChatId(chatId);
+		setIsAllChatsModalOpen(false);
 		setIsChatsOpen(false);
 		setIsMobileMenuOpen(false);
 	};
 
 	const handleOpenChatsFromMobile = () => {
-		openAllChats();
+		setIsAllChatsModalOpen(true);
 		setIsMobileMenuOpen(false);
+	};
+
+	const handleCloseAllChats = () => {
+		setIsAllChatsModalOpen(false);
+	};
+
+	const handleCloseChatWidget = () => {
+		setSelectedChatId(null);
 	};
 
 	const handleSearchValue = (value: string) => {
@@ -580,6 +596,13 @@ const Navbar = () => {
 			{isNotificationModalOpen && (
 				<NotificationModal onClose={() => setIsNotificationModalOpen(false)} />
 			)}
+			<AllChatsModal
+				isOpen={isAllChatsModalOpen}
+				chats={chatThreads}
+				onClose={handleCloseAllChats}
+				onOpenChat={handleOpenChat}
+			/>
+			<ChatWidget chat={selectedChat} onClose={handleCloseChatWidget} />
 		</>
 	);
 };

@@ -7,7 +7,6 @@ import {
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
-import { useChatUi } from './chat/useChatUi';
 import dummyProfilePicture from '../assets/user.jpg';
 import ImageCropModal from './ImageCropModal';
 import ImagePreviewModal from './ImagePreviewModal';
@@ -42,7 +41,6 @@ const ProfileHeader = ({
 	const coverPhotoUrl = useAppSelector((state) => state.profile.user.coverPhotoUrl);
 	const dispatch = useAppDispatch();
 	const { userId } = useParams<{ userId: string }>();
-	const { openChatWithUser } = useChatUi();
 	const [followAction, setFollowAction] = useState<1 | 2>(isFollowed ? 2 : 1);
 	const [optimisticFollowers, setoptimisticFollowers] = useState(followersCount);
 	const [cropTarget, setCropTarget] = useState<CropTarget | null>(null);
@@ -92,15 +90,6 @@ const ProfileHeader = ({
 		if (!image || image.length === 0) return;
 		setCropTarget(target);
 		setCropImage(image[0]);
-	};
-
-	const handleOpenChat = () => {
-		if (!userId) return;
-		openChatWithUser({
-			userId,
-			username,
-			avatarUrl: profilePictureSrc,
-		});
 	};
 
 	const handleCroppedUpload = async (processedImage: File) => {
@@ -285,7 +274,6 @@ const ProfileHeader = ({
 							)}
 							{!hasPermission && (
 								<button
-									onClick={handleOpenChat}
 									className="flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors max-[520px]:w-10 max-[520px]:h-10 max-[520px]:px-0 max-[520px]:justify-center"
 								>
 									<svg

@@ -1,23 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
 import dummyProfilePicture from '@/assets/user.jpg';
-import type { ChatPreviewItem } from './chatUiMock';
-
-interface AllChatsModalProps {
-	isOpen: boolean;
-	chats: ChatPreviewItem[];
-	onClose: () => void;
-	onOpenChat: (chatId: string) => void;
-}
+import type { AllChatsModalProps } from '@/types/chat';
 
 const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProps) => {
-	const [searchValue, setSearchValue] = useState('');
-
-	const filteredChats = useMemo(() => {
-		const query = searchValue.trim().toLowerCase();
-		if (!query) return chats;
-		return chats.filter((chat) => chat.username.toLowerCase().includes(query));
-	}, [chats, searchValue]);
-
 	useEffect(() => {
 		if (!isOpen) return;
 
@@ -52,7 +37,12 @@ const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProp
 						onClick={onClose}
 						className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
 					>
-						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg
+							className="w-5 h-5"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+						>
 							<path
 								strokeLinecap="round"
 								strokeLinejoin="round"
@@ -68,9 +58,8 @@ const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProp
 						<input
 							type="text"
 							placeholder="Search chats..."
-							value={searchValue}
-							onChange={(e) => setSearchValue(e.target.value)}
-							className="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
+							className="w-full bg-gray-100 border-0 rounded-full px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white cursor-not-allowed"
+							disabled
 						/>
 						<svg
 							className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"
@@ -89,11 +78,13 @@ const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProp
 				</div>
 
 				<div className="max-h-[65vh] overflow-y-auto p-2">
-					{filteredChats.length === 0 && (
-						<div className="py-12 text-center text-sm text-gray-500">No chats found</div>
+					{chats.length === 0 && (
+						<div className="py-12 text-center text-sm text-gray-500">
+							No chats found
+						</div>
 					)}
 
-					{filteredChats.map((chat) => (
+					{chats.map((chat) => (
 						<button
 							key={chat.id}
 							onClick={() => onOpenChat(chat.id)}
@@ -107,10 +98,16 @@ const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProp
 								/>
 								<div className="min-w-0 flex-1">
 									<div className="flex items-center justify-between gap-2">
-										<p className="text-sm font-semibold text-gray-900 truncate">{chat.username}</p>
-										<span className="text-[11px] text-gray-500 shrink-0">{chat.lastMessageAt}</span>
+										<p className="text-sm font-semibold text-gray-900 truncate">
+											{chat.username}
+										</p>
+										<span className="text-[11px] text-gray-500 shrink-0">
+											{chat.lastMessageAt}
+										</span>
 									</div>
-									<p className="text-xs text-gray-500 truncate">{chat.lastMessage}</p>
+									<p className="text-xs text-gray-500 truncate">
+										{chat.lastMessage}
+									</p>
 								</div>
 								{chat.unreadCount > 0 && (
 									<span className="min-w-5 h-5 px-1 rounded-full bg-blue-600 text-white text-[11px] font-semibold flex items-center justify-center">

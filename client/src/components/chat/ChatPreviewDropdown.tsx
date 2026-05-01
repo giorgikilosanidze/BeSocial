@@ -1,11 +1,5 @@
 import dummyProfilePicture from '@/assets/user.jpg';
-import type { ChatPreviewItem } from './chatUiMock';
-
-interface ChatPreviewDropdownProps {
-	chats: ChatPreviewItem[];
-	onOpenChat: (chatId: string) => void;
-	onSeeAll: () => void;
-}
+import type { ChatPreviewDropdownProps } from '@/types/chat';
 
 const ChatPreviewDropdown = ({ chats, onOpenChat, onSeeAll }: ChatPreviewDropdownProps) => {
 	const previewChats = chats.slice(0, 5);
@@ -35,8 +29,12 @@ const ChatPreviewDropdown = ({ chats, onOpenChat, onSeeAll }: ChatPreviewDropdow
 							/>
 							<div className="min-w-0 flex-1">
 								<div className="flex items-center justify-between gap-2">
-									<p className="text-sm font-semibold text-gray-900 truncate">{chat.username}</p>
-									<span className="text-[11px] text-gray-500 shrink-0">{chat.lastMessageAt}</span>
+									<p className="text-sm font-semibold text-gray-900 truncate">
+										{chat.username}
+									</p>
+									<span className="text-[11px] text-gray-500 shrink-0">
+										{chat.lastMessageAt}
+									</span>
 								</div>
 								<p className="text-xs text-gray-500 truncate">{chat.lastMessage}</p>
 							</div>
