@@ -5,6 +5,7 @@ import ChatPreviewDropdown from './chat/ChatPreviewDropdown';
 import AllChatsModal from './chat/AllChatsModal';
 import ChatWidget from './chat/ChatWidget';
 import { chatUiData } from './chat/chatUiData';
+import type { Message } from '@/types/chat';
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
 import { fetchNotifications } from '@/features/notifications/notificationsThunks';
@@ -47,7 +48,7 @@ const Navbar = () => {
 	const chatParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const [chatThreads] = useState(chatUiData);
+	const [chatThreads, setChatThreads] = useState(chatUiData);
 	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
 	const selectedChat = chatThreads.find((chat) => chat.id === selectedChatId) || null;
@@ -159,6 +160,23 @@ const Navbar = () => {
 
 	const handleCloseChatWidget = () => {
 		setSelectedChatId(null);
+	};
+
+	const handleSendMessage = (message: Message) => {
+		if (!selectedChatId) return;
+
+		setChatThreads((prev) =>
+			prev.map((chat) =>
+				chat.id === selectedChatId
+					? {
+							...chat,
+							lastMessage: message.text,
+							lastMessageAt: message.time,
+							messages: [...chat.messages, message],
+						}
+					: chat,
+			),
+		);
 	};
 
 	const handleSearchValue = (value: string) => {
@@ -601,7 +619,11 @@ const Navbar = () => {
 				onClose={handleCloseAllChats}
 				onOpenChat={handleOpenChat}
 			/>
-			<ChatWidget chat={selectedChat} onClose={handleCloseChatWidget} />
+			<ChatWidget
+				chat={selectedChat}
+				onMessage={handleSendMessage}
+				onClose={handleCloseChatWidget}
+			/>
 		</>
 	);
 };
