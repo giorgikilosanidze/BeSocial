@@ -1,7 +1,30 @@
 import dummyProfilePicture from '@/assets/user.jpg';
 import type { ChatComponentProps } from '@/types/chat';
+import { useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
-const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
+const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
+	const [message, setMessage] = useState('');
+
+	const handleSend = () => {
+		onMessage({
+			sender: 'me',
+			text: message,
+			id: uuidv4(),
+			time: new Date().toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false,
+			}),
+		});
+
+		setMessage('');
+	};
+
+	const handleMessageTyping = (value: string) => {
+		setMessage(value);
+	};
+
 	if (!chat) return null;
 
 	return (
@@ -66,14 +89,21 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 			<div className="p-3 border-t border-gray-100 bg-white">
 				<div className="flex items-center gap-2">
 					<input
+						value={message}
+						onKeyDown={(e) => {
+							if (e.key === 'Enter' && message) {
+								handleSend();
+							}
+						}}
+						onChange={(e) => handleMessageTyping(e.target.value)}
 						type="text"
 						placeholder="Write a message..."
-						className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white cursor-not-allowed"
-						disabled
+						className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white"
 					/>
 					<button
-						className="h-9 px-4 rounded-full bg-blue-600 text-white text-sm font-medium opacity-60 cursor-not-allowed"
-						disabled
+						onClick={handleSend}
+						className={`h-9 px-4 rounded-full bg-blue-600 text-white text-sm font-medium ${message ? 'cursor-pointer' : 'cursor-not-allowed opacity-60'}`}
+						disabled={message ? false : true}
 					>
 						Send
 					</button>

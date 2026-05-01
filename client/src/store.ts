@@ -4,6 +4,7 @@ import feedReducer from './features/feed/feedSlice';
 import profileReducer from './features/profile/profileSlice';
 import navbarReducer from './features/navbar/navbarSlice';
 import notificationReducer from './features/notifications/notificationsSlice';
+import chatReducer from './features/chat/chatSlice';
 
 export const store = configureStore({
 	reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
 		profile: profileReducer,
 		navbar: navbarReducer,
 		notification: notificationReducer,
+		chat: chatReducer,
 	},
 });
 

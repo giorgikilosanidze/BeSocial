@@ -50,7 +50,6 @@ const Navbar = () => {
 	const [chatThreads] = useState(chatUiData);
 	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
-
 	const selectedChat = chatThreads.find((chat) => chat.id === selectedChatId) || null;
 	const hasUnreadChats = chatThreads.some((chat) => chat.unreadCount > 0);
 
