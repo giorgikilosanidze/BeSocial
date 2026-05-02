@@ -25,9 +25,8 @@
 		"noUncheckedSideEffectImports": true,
 
 		/* Added for shadcn import alias */
-		"baseUrl": "src",
 		"paths": {
-			"@/*": ["*"]
+			"@/*": ["./src/*"]
 		}
 	},
 	"include": ["src"]

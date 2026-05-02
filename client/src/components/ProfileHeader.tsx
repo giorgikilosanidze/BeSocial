@@ -72,7 +72,7 @@ const ProfileHeader = ({
 	};
 
 	const handleMessage = () => {
-		const chatData = createChatData(username, profilePictureSrc);
+		const chatData = createChatData(userId!, username, profilePictureSrc);
 		setChat(chatData);
 		// dispatch(createChat(chatData));
 	};

@@ -1,22 +1,90 @@
 import dummyProfilePicture from '@/assets/user.jpg';
+import { sendMessage } from '@/features/chat/chatThunks';
+import { useAppDispatch } from '@/hooks/reduxHooks';
+import { socket } from '@/socket';
 import type { ChatComponentProps } from '@/types/chat';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+
+interface NewMessageSocketPayload {
+	status?: string;
+	error?: string;
+	message?: string;
+	messageId?: string;
+	clientMessageId?: string;
+	id?: string;
+	text?: string;
+}
 
 const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
 	const [message, setMessage] = useState('');
+	const [failedMessages, setFailedMessages] = useState<Record<string, string>>({});
+	const pendingMessagesRef = useRef<{ id: string; text: string }[]>([]);
+	const dispatch = useAppDispatch();
+
+	useEffect(() => {
+		const resolvePendingMessageId = (payload: NewMessageSocketPayload) => {
+			const directId = payload.clientMessageId || payload.messageId || payload.id;
+
+			if (directId && pendingMessagesRef.current.some((item) => item.id === directId)) {
+				return directId;
+			}
+
+			if (payload.text) {
+				const matchedByText = [...pendingMessagesRef.current]
+					.reverse()
+					.find((item) => item.text === payload.text);
+
+				if (matchedByText) return matchedByText.id;
+			}
+
+			return pendingMessagesRef.current[pendingMessagesRef.current.length - 1]?.id;
+		};
+
+		const handleNewMessage = (payload: NewMessageSocketPayload) => {
+			const errorMessage =
+				payload.error ||
+				(payload.status === 'error' ? payload.message || 'Failed to send message.' : '');
+			const messageId = resolvePendingMessageId(payload);
+
+			if (!messageId) return;
+
+			pendingMessagesRef.current = pendingMessagesRef.current.filter(
+				(item) => item.id !== messageId,
+			);
+
+			if (!errorMessage) return;
+
+			setFailedMessages((prev) => ({
+				...prev,
+				[messageId]: errorMessage,
+			}));
+		};
+
+		socket.on('newMessage', handleNewMessage);
+
+		return () => {
+			socket.off('newMessage', handleNewMessage);
+		};
+	}, []);
 
 	const handleSend = () => {
+		const messageId = uuidv4();
+
 		onMessage({
 			sender: 'me',
 			text: message,
-			id: uuidv4(),
+			id: messageId,
 			time: new Date().toLocaleTimeString([], {
 				hour: '2-digit',
 				minute: '2-digit',
 				hour12: false,
 			}),
 		});
+
+		pendingMessagesRef.current = [...pendingMessagesRef.current, { id: messageId, text: message }];
+
+		dispatch(sendMessage({ recieverId: chat?.id, text: message }));
 
 		setMessage('');
 	};
@@ -60,29 +128,36 @@ const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
 
 			<div className="h-[300px] overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white">
 				<div className="space-y-2">
-					{chat.messages.map((message) => (
-						<div
-							key={message.id}
-							className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
-						>
+					{chat.messages.map((message) => {
+						const failedMessageError = failedMessages[message.id];
+
+						return (
 							<div
-								className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-									message.sender === 'me'
-										? 'bg-blue-600 text-white rounded-br-md'
-										: 'bg-gray-100 text-gray-800 rounded-bl-md'
-								}`}
+								key={message.id}
+								className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
 							>
-								<p>{message.text}</p>
-								<p
-									className={`text-[10px] mt-1 ${
-										message.sender === 'me' ? 'text-blue-100' : 'text-gray-400'
-									}`}
+								<div
+									className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
+										message.sender === 'me'
+											? 'bg-blue-600 text-white rounded-br-md'
+											: 'bg-gray-100 text-gray-800 rounded-bl-md'
+									} ${failedMessageError ? 'opacity-60' : ''}`}
 								>
-									{message.time}
-								</p>
+									<p>{message.text}</p>
+									<p
+										className={`text-[10px] mt-1 ${
+											message.sender === 'me' ? 'text-blue-100' : 'text-gray-400'
+										}`}
+									>
+										{message.time}
+									</p>
+									{failedMessageError && (
+										<p className="text-[11px] mt-1 text-red-400">{failedMessageError}</p>
+									)}
+								</div>
 							</div>
-						</div>
-					))}
+						);
+					})}
 				</div>
 			</div>
 

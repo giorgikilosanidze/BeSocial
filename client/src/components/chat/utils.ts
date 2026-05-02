@@ -1,9 +1,12 @@
 import type { ChatProps } from '@/types/chat';
-import { v4 as uuidv4 } from 'uuid';
 
-export function createChatData(username: string, avatarUrl: string | undefined): ChatProps | null {
+export function createChatData(
+	recieverId: string,
+	username: string,
+	avatarUrl: string | undefined,
+): ChatProps | null {
 	const chatData: ChatProps = {
-		id: uuidv4(),
+		id: recieverId,
 		username,
 		avatarUrl,
 		messages: [],
