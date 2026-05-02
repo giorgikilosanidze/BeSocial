@@ -82,9 +82,12 @@ const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
 			}),
 		});
 
-		pendingMessagesRef.current = [...pendingMessagesRef.current, { id: messageId, text: message }];
+		pendingMessagesRef.current = [
+			...pendingMessagesRef.current,
+			{ id: messageId, text: message },
+		];
 
-		dispatch(sendMessage({ recieverId: chat?.id, text: message }));
+		dispatch(sendMessage({ receiverId: chat?.id, text: message }));
 
 		setMessage('');
 	};
@@ -146,13 +149,17 @@ const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
 									<p>{message.text}</p>
 									<p
 										className={`text-[10px] mt-1 ${
-											message.sender === 'me' ? 'text-blue-100' : 'text-gray-400'
+											message.sender === 'me'
+												? 'text-blue-100'
+												: 'text-gray-400'
 										}`}
 									>
 										{message.time}
 									</p>
 									{failedMessageError && (
-										<p className="text-[11px] mt-1 text-red-400">{failedMessageError}</p>
+										<p className="text-[11px] mt-1 text-red-400">
+											{failedMessageError}
+										</p>
 									)}
 								</div>
 							</div>

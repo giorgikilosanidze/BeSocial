@@ -1,5 +1,6 @@
 import type { ChatSlice } from '@/types/chat';
 import { createSlice } from '@reduxjs/toolkit';
+import { getMessages } from './chatThunks';
 
 const initialState: ChatSlice = {
 	chats: [],
@@ -18,7 +19,21 @@ const chatSlice = createSlice({
 			selectedChat?.messages.push(message);
 		},
 	},
-	// extraReducers: (builder) => {},
+	extraReducers: (builder) => {
+		builder
+			.addCase(getMessages.pending, (state, action) => {
+				console.log(state);
+				console.log(action);
+			})
+			.addCase(getMessages.fulfilled, (state, action) => {
+				console.log(state);
+				console.log(action);
+			})
+			.addCase(getMessages.rejected, (state, action) => {
+				console.log(state);
+				console.log(action);
+			});
+	},
 });
 
 export const { createChat, addMessage } = chatSlice.actions;

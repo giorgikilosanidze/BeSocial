@@ -13,6 +13,7 @@ import ImagePreviewModal from './ImagePreviewModal';
 import { createChatData } from './chat/utils';
 import ChatWidget from './chat/ChatWidget';
 import type { ChatProps, Message } from '@/types/chat';
+import { getMessages } from '@/features/chat/chatThunks';
 // import { createChat } from '@/features/chat/chatSlice';
 
 interface ProfileHeaderProps {
@@ -74,6 +75,7 @@ const ProfileHeader = ({
 	const handleMessage = () => {
 		const chatData = createChatData(userId!, username, profilePictureSrc);
 		setChat(chatData);
+		dispatch(getMessages(chatData.id));
 		// dispatch(createChat(chatData));
 	};
 

@@ -1,6 +1,6 @@
 export interface ChatModel {
 	senderId: string;
-	recieverId: string;
+	receiverId: string;
 	text: string;
 	seenAt: Date | null;
 }
@@ -8,7 +8,14 @@ export interface ChatModel {
 export interface PostChatRequest {
 	userId?: string;
 	body: {
-		recieverId: string;
+		receiverId: string;
 		text: string;
+	};
+}
+
+export interface GetChatRequest {
+	userId?: string;
+	params: {
+		receiverId?: string;
 	};
 }

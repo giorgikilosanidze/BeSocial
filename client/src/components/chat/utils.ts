@@ -1,12 +1,12 @@
 import type { ChatProps } from '@/types/chat';
 
 export function createChatData(
-	recieverId: string,
+	receiverId: string,
 	username: string,
 	avatarUrl: string | undefined,
-): ChatProps | null {
+): ChatProps {
 	const chatData: ChatProps = {
-		id: recieverId,
+		id: receiverId,
 		username,
 		avatarUrl,
 		messages: [],
