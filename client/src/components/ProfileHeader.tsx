@@ -12,9 +12,9 @@ import ImageCropModal from './ImageCropModal';
 import ImagePreviewModal from './ImagePreviewModal';
 import { createChatData } from './chat/utils';
 import ChatWidget from './chat/ChatWidget';
-import type { ChatProps, Message } from '@/types/chat';
+import type { ChatProps } from '@/types/chat';
 import { getMessages } from '@/features/chat/chatThunks';
-// import { createChat } from '@/features/chat/chatSlice';
+import { createChat } from '@/features/chat/chatSlice';
 
 interface ProfileHeaderProps {
 	username: string;
@@ -65,18 +65,11 @@ const ProfileHeader = ({
 
 	const coverPhotoSrc = coverPhotoUrl ? `${SERVER_URL}/${coverPhotoUrl}` : '';
 
-	const handleSend = (message: Message) => {
-		setChat((prev) => {
-			if (!prev) return prev;
-			return { ...prev, messages: [...prev.messages, message] };
-		});
-	};
-
 	const handleMessage = () => {
 		const chatData = createChatData(userId!, username, profilePictureSrc);
 		setChat(chatData);
+		dispatch(createChat(chatData));
 		dispatch(getMessages(chatData.id));
-		// dispatch(createChat(chatData));
 	};
 
 	const handleCloseChat = () => {
@@ -376,7 +369,7 @@ const ProfileHeader = ({
 					/>
 				)}
 			</div>
-			<ChatWidget chat={chat} onMessage={handleSend} onClose={handleCloseChat} />
+			<ChatWidget chat={chat} onClose={handleCloseChat} />
 		</>
 	);
 };

@@ -19,3 +19,12 @@ export interface GetChatRequest {
 		receiverId?: string;
 	};
 }
+
+export interface ChatThread {
+	id: string;
+	username: string;
+	avatarUrl?: string;
+	lastMessage: string;
+	lastMessageAt: string;
+	unreadCount: number;
+}

@@ -4,11 +4,11 @@ import NotificationModal from './NotificationModal';
 import ChatPreviewDropdown from './chat/ChatPreviewDropdown';
 import AllChatsModal from './chat/AllChatsModal';
 import ChatWidget from './chat/ChatWidget';
-import { chatUiData } from './chat/chatUiData';
-import type { Message } from '@/types/chat';
 import routes from '@/constants/routes';
 import { logOutUser } from '@/features/auth/authThunks';
 import { fetchNotifications } from '@/features/notifications/notificationsThunks';
+import { createChat } from '@/features/chat/chatSlice';
+import { getMessages } from '@/features/chat/chatThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useDebounce } from '@/hooks/useDebounce';
 import SearchSkeleton from '@/skeletons/SearchSkeleton';
@@ -17,6 +17,9 @@ import { useNavigate } from 'react-router-dom';
 import { toggleUnreadNotifications } from '@/features/navbar/navbarSlice';
 import { markNotificationDotSeen } from '@/utils/notificationDot';
 import dummyProfilePicture from '../assets/user.jpg';
+import SERVER_URL from '@/constants/serverUrl';
+import type { GetChatsResponse } from '@/types/chat';
+import { socket } from '@/socket';
 
 type SearchedUsers = SearchedUser[];
 
@@ -27,7 +30,13 @@ interface SearchedUser {
 	followersCount: number;
 }
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+interface IncomingSocketMessage {
+	id: string;
+	senderId: string;
+	receiverId: string;
+	text: string;
+	createdAt?: string;
+}
 
 const Navbar = () => {
 	const user = useAppSelector((state) => state.auth.user);
@@ -48,7 +57,7 @@ const Navbar = () => {
 	const chatParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
-	const [chatThreads, setChatThreads] = useState(chatUiData);
+	const [chatThreads, setChatThreads] = useState<GetChatsResponse['data']['chats']>([]);
 	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
 	const selectedChat = chatThreads.find((chat) => chat.id === selectedChatId) || null;
@@ -57,6 +66,102 @@ const Navbar = () => {
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
 		: dummyProfilePicture;
+
+	useEffect(() => {
+		const loadChats = async () => {
+			try {
+				const response = await fetch(`${SERVER_URL}/api/chat`, {
+					credentials: 'include',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				});
+
+				const data = (await response.json()) as GetChatsResponse | { message?: string };
+
+				if (!response.ok) {
+					throw new Error(
+						(data as { message?: string }).message || 'Failed to load chats',
+					);
+				}
+
+				const chats = (data as GetChatsResponse).data.chats.map((chat) => ({
+					...chat,
+					lastMessageAt: chat.lastMessageAt
+						? new Date(chat.lastMessageAt).toLocaleTimeString([], {
+								hour: '2-digit',
+								minute: '2-digit',
+								hour12: false,
+							})
+						: '',
+				}));
+
+				setChatThreads(chats);
+			} catch (error) {
+				console.error(error);
+			}
+		};
+
+		loadChats();
+	}, []);
+
+	useEffect(() => {
+		const handleIncomingMessage = (payload: IncomingSocketMessage) => {
+			const isRelatedToCurrentUser =
+				payload.senderId === user.id || payload.receiverId === user.id;
+
+			if (!isRelatedToCurrentUser) return;
+
+			const partnerId = payload.senderId === user.id ? payload.receiverId : payload.senderId;
+			const formattedTime = payload.createdAt
+				? new Date(payload.createdAt).toLocaleTimeString([], {
+						hour: '2-digit',
+						minute: '2-digit',
+						hour12: false,
+					})
+				: new Date().toLocaleTimeString([], {
+						hour: '2-digit',
+						minute: '2-digit',
+						hour12: false,
+					});
+
+			setChatThreads((prev) => {
+				const existingIndex = prev.findIndex((chat) => chat.id === partnerId);
+				const isMessageFromPartner = payload.senderId === partnerId;
+				const shouldIncreaseUnread = isMessageFromPartner && selectedChatId !== partnerId;
+
+				if (existingIndex === -1) {
+					return [
+						{
+							id: partnerId,
+							username: 'Unknown user',
+							avatarUrl: '',
+							lastMessage: payload.text,
+							lastMessageAt: formattedTime,
+							unreadCount: shouldIncreaseUnread ? 1 : 0,
+						},
+						...prev,
+					];
+				}
+
+				const existing = prev[existingIndex];
+				const updated = {
+					...existing,
+					lastMessage: payload.text,
+					lastMessageAt: formattedTime,
+					unreadCount: shouldIncreaseUnread ? existing.unreadCount + 1 : existing.unreadCount,
+				};
+
+				return [updated, ...prev.filter((chat) => chat.id !== partnerId)];
+			});
+		};
+
+		socket.on('newMessage', handleIncomingMessage);
+
+		return () => {
+			socket.off('newMessage', handleIncomingMessage);
+		};
+	}, [selectedChatId, user.id]);
 
 	useEffect(() => {
 		const loadSearchedUsers = async () => {
@@ -143,6 +248,24 @@ const Navbar = () => {
 	};
 
 	const handleOpenChat = (chatId: string) => {
+		const chat = chatThreads.find((item) => item.id === chatId);
+		if (chat) {
+			dispatch(
+				createChat({
+					id: chat.id,
+					username: chat.username,
+					avatarUrl: chat.avatarUrl,
+					messages: [],
+				}),
+			);
+			dispatch(getMessages(chatId));
+		}
+		setChatThreads((prev) =>
+			prev.map((thread) =>
+				thread.id === chatId ? { ...thread, unreadCount: 0 } : thread,
+			),
+		);
+
 		setSelectedChatId(chatId);
 		setIsAllChatsModalOpen(false);
 		setIsChatsOpen(false);
@@ -160,23 +283,6 @@ const Navbar = () => {
 
 	const handleCloseChatWidget = () => {
 		setSelectedChatId(null);
-	};
-
-	const handleSendMessage = (message: Message) => {
-		if (!selectedChatId) return;
-
-		setChatThreads((prev) =>
-			prev.map((chat) =>
-				chat.id === selectedChatId
-					? {
-							...chat,
-							lastMessage: message.text,
-							lastMessageAt: message.time,
-							messages: [...chat.messages, message],
-						}
-					: chat,
-			),
-		);
 	};
 
 	const handleSearchValue = (value: string) => {
@@ -619,11 +725,7 @@ const Navbar = () => {
 				onClose={handleCloseAllChats}
 				onOpenChat={handleOpenChat}
 			/>
-			<ChatWidget
-				chat={selectedChat}
-				onMessage={handleSendMessage}
-				onClose={handleCloseChatWidget}
-			/>
+			<ChatWidget chat={selectedChat} onClose={handleCloseChatWidget} />
 		</>
 	);
 };

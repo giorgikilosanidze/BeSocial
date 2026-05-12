@@ -9,6 +9,8 @@ export interface Chat {
 
 export interface ChatSlice {
 	chats: ChatProps[];
+	isLoading: boolean;
+	error: string;
 }
 
 export interface ChatProps {
@@ -19,8 +21,7 @@ export interface ChatProps {
 }
 
 export interface ChatComponentProps {
-	chat: ChatProps | null;
-	onMessage: (message: Message) => void;
+	chat: Omit<ChatProps, 'messages'> | null;
 	onClose: () => void;
 }
 
@@ -29,6 +30,41 @@ export interface Message {
 	sender: 'me' | 'them';
 	text: string;
 	time: string;
+}
+
+export interface ChatMessageDto {
+	id: string;
+	senderId: string;
+	receiverId: string;
+	text: string;
+	seenAt: string | null;
+	createdAt?: string;
+	updatedAt?: string;
+}
+
+export interface GetMessagesResponse {
+	data: {
+		messages: ChatMessageDto[];
+	};
+}
+
+export interface SendMessageResponse {
+	data: {
+		message: ChatMessageDto;
+	};
+}
+
+export interface GetChatsResponse {
+	data: {
+		chats: Array<{
+			id: string;
+			username: string;
+			avatarUrl?: string;
+			lastMessage: string;
+			lastMessageAt: string;
+			unreadCount: number;
+		}>;
+	};
 }
 
 export interface ChatPreviewDropdownProps {

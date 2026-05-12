@@ -1,8 +1,10 @@
 import dummyProfilePicture from '@/assets/user.jpg';
+import SERVER_URL from '@/constants/serverUrl';
+import { addMessage } from '@/features/chat/chatSlice';
 import { sendMessage } from '@/features/chat/chatThunks';
-import { useAppDispatch } from '@/hooks/reduxHooks';
+import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { socket } from '@/socket';
-import type { ChatComponentProps } from '@/types/chat';
+import type { ChatComponentProps, Message } from '@/types/chat';
 import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,11 +18,15 @@ interface NewMessageSocketPayload {
 	text?: string;
 }
 
-const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
+const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 	const [message, setMessage] = useState('');
 	const [failedMessages, setFailedMessages] = useState<Record<string, string>>({});
 	const pendingMessagesRef = useRef<{ id: string; text: string }[]>([]);
 	const dispatch = useAppDispatch();
+	const chatMessages = useAppSelector((state) => {
+		if (!chat) return [];
+		return state.chat.chats.find((currentChat) => currentChat.id === chat.id)?.messages || [];
+	});
 
 	useEffect(() => {
 		const resolvePendingMessageId = (payload: NewMessageSocketPayload) => {
@@ -69,25 +75,37 @@ const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
 	}, []);
 
 	const handleSend = () => {
-		const messageId = uuidv4();
+		if (!chat || !message.trim()) return;
 
-		onMessage({
+		const messageId = uuidv4();
+		const nextMessage: Message = {
 			sender: 'me',
-			text: message,
+			text: message.trim(),
 			id: messageId,
 			time: new Date().toLocaleTimeString([], {
 				hour: '2-digit',
 				minute: '2-digit',
 				hour12: false,
 			}),
-		});
+		};
+
+		dispatch(addMessage({ id: chat.id, message: nextMessage }));
 
 		pendingMessagesRef.current = [
 			...pendingMessagesRef.current,
 			{ id: messageId, text: message },
 		];
 
-		dispatch(sendMessage({ receiverId: chat?.id, text: message }));
+		dispatch(sendMessage({ receiverId: chat.id, text: message.trim() }))
+			.unwrap()
+			.catch((error) => {
+				const errorMessage =
+					typeof error === 'string' ? error : 'Failed to send message. Please try again.';
+				setFailedMessages((prev) => ({
+					...prev,
+					[messageId]: errorMessage,
+				}));
+			});
 
 		setMessage('');
 	};
@@ -103,7 +121,9 @@ const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
 			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
 				<div className="flex items-center gap-3 min-w-0">
 					<img
-						src={chat.avatarUrl || dummyProfilePicture}
+						src={
+							chat.avatarUrl ? `${SERVER_URL}/${chat.avatarUrl}` : dummyProfilePicture
+						}
 						alt={chat.username}
 						className="w-9 h-9 rounded-full object-cover"
 					/>
@@ -131,7 +151,7 @@ const ChatWidget = ({ chat, onMessage, onClose }: ChatComponentProps) => {
 
 			<div className="h-[300px] overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white">
 				<div className="space-y-2">
-					{chat.messages.map((message) => {
+					{chatMessages.map((message) => {
 						const failedMessageError = failedMessages[message.id];
 
 						return (

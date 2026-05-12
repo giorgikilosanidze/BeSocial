@@ -4,6 +4,8 @@ import { getMessages } from './chatThunks';
 
 const initialState: ChatSlice = {
 	chats: [],
+	isLoading: false,
+	error: '',
 };
 
 const chatSlice = createSlice({
@@ -11,6 +13,12 @@ const chatSlice = createSlice({
 	initialState,
 	reducers: {
 		createChat: (state, action) => {
+			const existingChat = state.chats.find((chat) => chat.id === action.payload.id);
+			if (existingChat) {
+				existingChat.username = action.payload.username || existingChat.username;
+				existingChat.avatarUrl = action.payload.avatarUrl || existingChat.avatarUrl;
+				return;
+			}
 			state.chats.push(action.payload);
 		},
 		addMessage: (state, action) => {
@@ -21,17 +29,29 @@ const chatSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
-			.addCase(getMessages.pending, (state, action) => {
-				console.log(state);
-				console.log(action);
+			.addCase(getMessages.pending, (state) => {
+				state.isLoading = true;
 			})
 			.addCase(getMessages.fulfilled, (state, action) => {
-				console.log(state);
-				console.log(action);
+				state.isLoading = false;
+
+				const selectedChat = state.chats.find((chat) => chat.id === action.payload.receiverId);
+
+				if (selectedChat) {
+					selectedChat.messages = action.payload.messages;
+					return;
+				}
+
+				state.chats.push({
+					id: action.payload.receiverId,
+					username: '',
+					avatarUrl: '',
+					messages: action.payload.messages,
+				});
 			})
 			.addCase(getMessages.rejected, (state, action) => {
-				console.log(state);
-				console.log(action);
+				state.isLoading = false;
+				state.error = action.payload || action.error.message || 'Something went wrong!';
 			});
 	},
 });
