@@ -24,7 +24,47 @@ const chatSlice = createSlice({
 		addMessage: (state, action) => {
 			const { id, message } = action.payload;
 			const selectedChat = state.chats.find((chat) => chat.id === id);
-			selectedChat?.messages.push(message);
+			if (!selectedChat) return;
+
+			const alreadyExists = selectedChat.messages.some(
+				(existingMessage) => existingMessage.id === message.id,
+			);
+
+			if (alreadyExists) return;
+
+			selectedChat.messages.push(message);
+		},
+		reconcileOutgoingMessage: (state, action) => {
+			const { chatId, tempId, serverId, seenAt } = action.payload as {
+				chatId: string;
+				tempId: string;
+				serverId: string;
+				seenAt?: string | null;
+			};
+			const selectedChat = state.chats.find((chat) => chat.id === chatId);
+			if (!selectedChat) return;
+
+			const message = selectedChat.messages.find((item) => item.id === tempId);
+			if (!message) return;
+
+			message.id = serverId;
+			if (typeof seenAt !== 'undefined') {
+				message.seenAt = seenAt;
+			}
+		},
+		markMessagesSeen: (state, action) => {
+			const { chatId, seenMessageIds, seenAt } = action.payload as {
+				chatId: string;
+				seenMessageIds: string[];
+				seenAt: string;
+			};
+			const selectedChat = state.chats.find((chat) => chat.id === chatId);
+			if (!selectedChat) return;
+
+			const seenIds = new Set(seenMessageIds);
+			selectedChat.messages = selectedChat.messages.map((message) =>
+				seenIds.has(message.id) ? { ...message, seenAt } : message,
+			);
 		},
 	},
 	extraReducers: (builder) => {
@@ -56,6 +96,7 @@ const chatSlice = createSlice({
 	},
 });
 
-export const { createChat, addMessage } = chatSlice.actions;
+export const { createChat, addMessage, reconcileOutgoingMessage, markMessagesSeen } =
+	chatSlice.actions;
 
 export default chatSlice.reducer;

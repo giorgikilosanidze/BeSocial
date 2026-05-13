@@ -3,11 +3,19 @@ import SERVER_URL from './constants/serverUrl';
 
 export const socket: Socket = io(SERVER_URL, {
 	withCredentials: true,
+	autoConnect: false,
 });
 
 export const connectWithUser = (userId: string) => {
+	if (!userId) return;
+
 	socket.io.opts.query = { userId };
-	socket.disconnect().connect();
+
+	if (socket.connected) {
+		socket.disconnect();
+	}
+
+	socket.connect();
 };
 
 export const disconnectSocket = () => {

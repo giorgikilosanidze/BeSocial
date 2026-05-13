@@ -1,8 +1,8 @@
 import app from './app.js';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import { Server } from 'socket.io';
-import { init } from './socket.js';
+import User from './modules/user/user.model.js';
+import { init, markUserOffline, markUserOnline } from './socket.js';
 
 dotenv.config();
 
@@ -21,8 +21,31 @@ try {
 
 		if (userId) {
 			socket.join(userId);
+			const becameOnline = markUserOnline(userId);
+			if (becameOnline) {
+				io.emit('userPresenceChanged', {
+					userId,
+					isOnline: true,
+					lastSeenAt: null,
+				});
+			}
 			console.log(`User ${userId} joined room. Socket ID: ${socket.id}`);
 		}
+
+		socket.on('disconnect', async () => {
+			if (!userId) return;
+
+			const becameOffline = markUserOffline(userId);
+			if (!becameOffline) return;
+
+			const lastSeenAt = new Date();
+			await User.updateOne({ _id: userId }, { $set: { lastSeenAt } });
+			io.emit('userPresenceChanged', {
+				userId,
+				isOnline: false,
+				lastSeenAt: lastSeenAt.toISOString(),
+			});
+		});
 	});
 } catch (error) {
 	console.log(error);

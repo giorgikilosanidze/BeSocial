@@ -5,6 +5,8 @@ export interface Chat {
 	lastMessage: string;
 	lastMessageAt: string;
 	unreadCount: number;
+	isOnline: boolean;
+	lastSeenAt: string | null;
 }
 
 export interface ChatSlice {
@@ -21,7 +23,7 @@ export interface ChatProps {
 }
 
 export interface ChatComponentProps {
-	chat: Omit<ChatProps, 'messages'> | null;
+	chat: (Omit<ChatProps, 'messages'> & { isOnline?: boolean; lastSeenAt?: string | null }) | null;
 	onClose: () => void;
 }
 
@@ -30,6 +32,7 @@ export interface Message {
 	sender: 'me' | 'them';
 	text: string;
 	time: string;
+	seenAt?: string | null;
 }
 
 export interface ChatMessageDto {
@@ -63,6 +66,8 @@ export interface GetChatsResponse {
 			lastMessage: string;
 			lastMessageAt: string;
 			unreadCount: number;
+			isOnline: boolean;
+			lastSeenAt: string | null;
 		}>;
 	};
 }
@@ -82,6 +87,8 @@ export interface AllChatsModalProps {
 		lastMessage: string;
 		lastMessageAt: string;
 		unreadCount: number;
+		isOnline: boolean;
+		lastSeenAt: string | null;
 	}[];
 	onClose: () => void;
 	onOpenChat: (chatId: string) => void;

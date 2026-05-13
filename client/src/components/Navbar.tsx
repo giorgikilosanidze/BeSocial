@@ -38,6 +38,20 @@ interface IncomingSocketMessage {
 	createdAt?: string;
 }
 
+interface UserPresenceChangedPayload {
+	userId: string;
+	isOnline: boolean;
+	lastSeenAt: string | null;
+}
+
+interface ChatToast {
+	id: string;
+	chatId: string;
+	username: string;
+	avatarUrl?: string;
+	text: string;
+}
+
 const Navbar = () => {
 	const user = useAppSelector((state) => state.auth.user);
 	const hasUnreadNotifications = useAppSelector((state) => state.navbar.hasUnreadNotifications);
@@ -60,12 +74,20 @@ const Navbar = () => {
 	const [chatThreads, setChatThreads] = useState<GetChatsResponse['data']['chats']>([]);
 	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
 	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
+	const [hasUnseenChatPreview, setHasUnseenChatPreview] = useState(false);
+	const [chatToasts, setChatToasts] = useState<ChatToast[]>([]);
 	const selectedChat = chatThreads.find((chat) => chat.id === selectedChatId) || null;
-	const hasUnreadChats = chatThreads.some((chat) => chat.unreadCount > 0);
 
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
 		: dummyProfilePicture;
+
+	const resolveAvatarSrc = (avatarUrl?: string) => {
+		if (!avatarUrl) return dummyProfilePicture;
+		if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) return avatarUrl;
+		if (avatarUrl.startsWith('/src/') || avatarUrl.startsWith('data:')) return avatarUrl;
+		return `${SERVER_URL}/${avatarUrl}`;
+	};
 
 	useEffect(() => {
 		const loadChats = async () => {
@@ -97,6 +119,7 @@ const Navbar = () => {
 				}));
 
 				setChatThreads(chats);
+				setHasUnseenChatPreview(chats.some((chat) => chat.unreadCount > 0));
 			} catch (error) {
 				console.error(error);
 			}
@@ -113,6 +136,7 @@ const Navbar = () => {
 			if (!isRelatedToCurrentUser) return;
 
 			const partnerId = payload.senderId === user.id ? payload.receiverId : payload.senderId;
+			const isMessageFromPartner = payload.senderId === partnerId;
 			const formattedTime = payload.createdAt
 				? new Date(payload.createdAt).toLocaleTimeString([], {
 						hour: '2-digit',
@@ -127,8 +151,10 @@ const Navbar = () => {
 
 			setChatThreads((prev) => {
 				const existingIndex = prev.findIndex((chat) => chat.id === partnerId);
-				const isMessageFromPartner = payload.senderId === partnerId;
 				const shouldIncreaseUnread = isMessageFromPartner && selectedChatId !== partnerId;
+				if (shouldIncreaseUnread && !isChatsOpen) {
+					setHasUnseenChatPreview(true);
+				}
 
 				if (existingIndex === -1) {
 					return [
@@ -139,6 +165,8 @@ const Navbar = () => {
 							lastMessage: payload.text,
 							lastMessageAt: formattedTime,
 							unreadCount: shouldIncreaseUnread ? 1 : 0,
+							isOnline: false,
+							lastSeenAt: null,
 						},
 						...prev,
 					];
@@ -154,6 +182,24 @@ const Navbar = () => {
 
 				return [updated, ...prev.filter((chat) => chat.id !== partnerId)];
 			});
+
+			if (isMessageFromPartner && selectedChatId !== partnerId) {
+				const existingThread = chatThreads.find((chat) => chat.id === partnerId);
+				const toastId = `${partnerId}-${payload.id || Date.now()}`;
+				const nextToast: ChatToast = {
+					id: toastId,
+					chatId: partnerId,
+					username: existingThread?.username || 'New message',
+					avatarUrl: existingThread?.avatarUrl,
+					text: payload.text,
+				};
+
+				setChatToasts((prev) => [...prev.slice(-2), nextToast]);
+
+				window.setTimeout(() => {
+					setChatToasts((prev) => prev.filter((toast) => toast.id !== toastId));
+				}, 5000);
+			}
 		};
 
 		socket.on('newMessage', handleIncomingMessage);
@@ -161,7 +207,29 @@ const Navbar = () => {
 		return () => {
 			socket.off('newMessage', handleIncomingMessage);
 		};
-	}, [selectedChatId, user.id]);
+	}, [chatThreads, isChatsOpen, selectedChatId, user.id]);
+
+	useEffect(() => {
+		const handleUserPresenceChanged = (payload: UserPresenceChangedPayload) => {
+			setChatThreads((prev) =>
+				prev.map((thread) =>
+					thread.id === payload.userId
+						? {
+								...thread,
+								isOnline: payload.isOnline,
+								lastSeenAt: payload.lastSeenAt,
+							}
+						: thread,
+				),
+			);
+		};
+
+		socket.on('userPresenceChanged', handleUserPresenceChanged);
+
+		return () => {
+			socket.off('userPresenceChanged', handleUserPresenceChanged);
+		};
+	}, []);
 
 	useEffect(() => {
 		const loadSearchedUsers = async () => {
@@ -238,7 +306,13 @@ const Navbar = () => {
 	};
 
 	const toggleChats = () => {
-		setIsChatsOpen((prev) => !prev);
+		setIsChatsOpen((prev) => {
+			const next = !prev;
+			if (next) {
+				setHasUnseenChatPreview(false);
+			}
+			return next;
+		});
 		setIsNotificationsOpen(false);
 	};
 
@@ -247,7 +321,7 @@ const Navbar = () => {
 		setIsAllChatsModalOpen(true);
 	};
 
-	const handleOpenChat = (chatId: string) => {
+	const handleOpenChat = (chatId: string, options?: { fromToast?: boolean }) => {
 		const chat = chatThreads.find((item) => item.id === chatId);
 		if (chat) {
 			dispatch(
@@ -260,16 +334,25 @@ const Navbar = () => {
 			);
 			dispatch(getMessages(chatId));
 		}
-		setChatThreads((prev) =>
-			prev.map((thread) =>
+		setChatThreads((prev) => {
+			const updatedThreads = prev.map((thread) =>
 				thread.id === chatId ? { ...thread, unreadCount: 0 } : thread,
-			),
-		);
+			);
+
+			if (options?.fromToast) {
+				setHasUnseenChatPreview(
+					updatedThreads.some((thread) => thread.unreadCount > 0),
+				);
+			}
+
+			return updatedThreads;
+		});
 
 		setSelectedChatId(chatId);
 		setIsAllChatsModalOpen(false);
 		setIsChatsOpen(false);
 		setIsMobileMenuOpen(false);
+		setChatToasts((prev) => prev.filter((toast) => toast.chatId !== chatId));
 	};
 
 	const handleOpenChatsFromMobile = () => {
@@ -508,7 +591,7 @@ const Navbar = () => {
 											d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
 										/>
 									</svg>
-									{hasUnreadChats && (
+									{hasUnseenChatPreview && (
 										<span className="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full"></span>
 									)}
 								</button>
@@ -686,7 +769,7 @@ const Navbar = () => {
 											/>
 										</svg>
 										<span>Messages</span>
-										{hasUnreadChats && (
+										{hasUnseenChatPreview && (
 											<span className="w-2 h-2 bg-blue-500 rounded-full"></span>
 										)}
 									</button>
@@ -725,6 +808,30 @@ const Navbar = () => {
 				onClose={handleCloseAllChats}
 				onOpenChat={handleOpenChat}
 			/>
+			<div className="fixed right-4 bottom-24 z-[140] flex flex-col gap-2 pointer-events-none">
+				{chatToasts.map((toast) => (
+					<button
+						key={toast.id}
+						onClick={() => handleOpenChat(toast.chatId, { fromToast: true })}
+						className="pointer-events-auto w-80 bg-white rounded-xl shadow-[0_8px_30px_-4px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden animate-toast-slide-in cursor-pointer hover:bg-gray-50 transition-colors text-left"
+					>
+						<div className="p-3 flex items-start gap-3">
+							<img
+								src={resolveAvatarSrc(toast.avatarUrl)}
+								alt={toast.username}
+								className="w-10 h-10 rounded-full object-cover shrink-0"
+							/>
+							<div className="min-w-0">
+								<p className="text-sm text-gray-900">
+									<span className="font-semibold">{toast.username}</span> sent you a
+									message
+								</p>
+								<p className="mt-1 text-xs text-gray-500 truncate">{toast.text}</p>
+							</div>
+						</div>
+					</button>
+				))}
+			</div>
 			<ChatWidget chat={selectedChat} onClose={handleCloseChatWidget} />
 		</>
 	);

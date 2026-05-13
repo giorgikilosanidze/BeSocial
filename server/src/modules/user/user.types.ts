@@ -7,6 +7,7 @@ export interface UserSignUp extends Document {
 	refreshToken?: string;
 	profilePictureUrl?: string;
 	coverPhotoUrl?: string;
+	lastSeenAt?: Date | null;
 	following: string[];
 	followers: string[];
 }

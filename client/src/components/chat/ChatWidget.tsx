@@ -1,11 +1,15 @@
 import dummyProfilePicture from '@/assets/user.jpg';
 import SERVER_URL from '@/constants/serverUrl';
-import { addMessage } from '@/features/chat/chatSlice';
-import { sendMessage } from '@/features/chat/chatThunks';
+import {
+	addMessage,
+	markMessagesSeen,
+	reconcileOutgoingMessage,
+} from '@/features/chat/chatSlice';
+import { getMessages, sendMessage } from '@/features/chat/chatThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { socket } from '@/socket';
 import type { ChatComponentProps, Message } from '@/types/chat';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 interface NewMessageSocketPayload {
@@ -15,18 +19,120 @@ interface NewMessageSocketPayload {
 	messageId?: string;
 	clientMessageId?: string;
 	id?: string;
+	senderId?: string;
+	receiverId?: string;
 	text?: string;
+	createdAt?: string;
+	seenAt?: string | null;
 }
+
+interface MessageSeenSocketPayload {
+	chatId?: string;
+	seenMessageIds?: string[];
+	seenAt?: string;
+}
+
+interface PresenceResponse {
+	data: {
+		isOnline: boolean;
+		lastSeenAt: string | null;
+	};
+}
+
+const EMOTICON_TO_EMOJI: Record<string, string> = {
+	'<3': '❤️',
+	':)': '🙂',
+	':(': '🙁',
+	':D': '😄',
+	';)': '😉',
+};
+
+const convertEmoticonsToEmoji = (input: string) =>
+	input.replace(/(^|\s)(<3|:\)|:\(|:D|;\))(?=\s|$)/g, (fullMatch, prefix, token) => {
+		const emoji = EMOTICON_TO_EMOJI[token as keyof typeof EMOTICON_TO_EMOJI];
+		return emoji ? `${prefix}${emoji}` : fullMatch;
+	});
+
+const resolveChatAvatarSrc = (avatarUrl?: string) => {
+	if (!avatarUrl) return dummyProfilePicture;
+	if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) return avatarUrl;
+	if (avatarUrl.startsWith('/src/') || avatarUrl.startsWith('data:')) return avatarUrl;
+	return `${SERVER_URL}/${avatarUrl}`;
+};
 
 const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 	const [message, setMessage] = useState('');
 	const [failedMessages, setFailedMessages] = useState<Record<string, string>>({});
+	const [now, setNow] = useState(() => Date.now());
+	const [presence, setPresence] = useState<{ isOnline: boolean; lastSeenAt: string | null }>({
+		isOnline: false,
+		lastSeenAt: null,
+	});
 	const pendingMessagesRef = useRef<{ id: string; text: string }[]>([]);
+	const messagesContainerRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
+	const currentUserId = useAppSelector((state) => state.auth.user.id);
 	const chatMessages = useAppSelector((state) => {
 		if (!chat) return [];
 		return state.chat.chats.find((currentChat) => currentChat.id === chat.id)?.messages || [];
 	});
+	const lastMessage = chatMessages[chatMessages.length - 1];
+	const lastMessageSeenAt = lastMessage?.seenAt || null;
+	const effectiveIsOnline = chat?.isOnline ?? presence.isOnline;
+	const effectiveLastSeenAt = chat?.lastSeenAt ?? presence.lastSeenAt;
+
+	const formatTimeAgo = (dateString: string) => {
+		const timestamp = new Date(dateString).getTime();
+		const diffMs = Math.max(0, now - timestamp);
+		const minuteMs = 60 * 1000;
+		const hourMs = 60 * minuteMs;
+		const dayMs = 24 * hourMs;
+
+		if (diffMs < hourMs) {
+			const minutes = Math.max(1, Math.floor(diffMs / minuteMs));
+			return `${minutes}m ago`;
+		}
+
+		if (diffMs < dayMs) {
+			const hours = Math.floor(diffMs / hourMs);
+			return `${hours}h ago`;
+		}
+
+		const days = Math.floor(diffMs / dayMs);
+		return `${days} day${days === 1 ? '' : 's'} ago`;
+	};
+
+	let activityLabel = 'Offline';
+	if (effectiveIsOnline) {
+		activityLabel = 'Active now';
+	} else if (effectiveLastSeenAt) {
+		activityLabel = `Last seen ${formatTimeAgo(effectiveLastSeenAt)}`;
+	}
+
+	useEffect(() => {
+		const loadPresence = async () => {
+			if (!chat?.id) return;
+
+			try {
+				const response = await fetch(`${SERVER_URL}/api/chat/presence/${chat.id}`, {
+					credentials: 'include',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				});
+				if (!response.ok) return;
+				const data = (await response.json()) as PresenceResponse;
+				setPresence({
+					isOnline: data.data.isOnline,
+					lastSeenAt: data.data.lastSeenAt,
+				});
+			} catch (error) {
+				console.error(error);
+			}
+		};
+
+		loadPresence();
+	}, [chat?.id]);
 
 	useEffect(() => {
 		const resolvePendingMessageId = (payload: NewMessageSocketPayload) => {
@@ -44,14 +150,64 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 				if (matchedByText) return matchedByText.id;
 			}
 
-			return pendingMessagesRef.current[pendingMessagesRef.current.length - 1]?.id;
+			return undefined;
 		};
 
 		const handleNewMessage = (payload: NewMessageSocketPayload) => {
+			if (!chat || !currentUserId) return;
+			const pendingMessageId = resolvePendingMessageId(payload);
+			const isPendingMessageForThisWidget = Boolean(
+				pendingMessageId &&
+				pendingMessagesRef.current.some((item) => item.id === pendingMessageId),
+			);
+
+			const isRelatedToCurrentChat =
+				(payload.senderId === chat.id && payload.receiverId === currentUserId) ||
+				(payload.senderId === currentUserId && payload.receiverId === chat.id);
+
+			if (!isRelatedToCurrentChat && !isPendingMessageForThisWidget) return;
+
 			const errorMessage =
 				payload.error ||
 				(payload.status === 'error' ? payload.message || 'Failed to send message.' : '');
-			const messageId = resolvePendingMessageId(payload);
+			const isMessageFromCurrentUser = payload.senderId === currentUserId;
+			const messageId = pendingMessageId;
+
+			if (
+				isMessageFromCurrentUser &&
+				payload.id &&
+				messageId &&
+				chat
+			) {
+				dispatch(
+					reconcileOutgoingMessage({
+						chatId: chat.id,
+						tempId: messageId,
+						serverId: payload.id,
+						seenAt: payload.seenAt || null,
+					}),
+				);
+			}
+
+			if (!isMessageFromCurrentUser && payload.id && payload.text) {
+				dispatch(
+					addMessage({
+						id: chat.id,
+						message: {
+							id: payload.id,
+							sender: isMessageFromCurrentUser ? 'me' : 'them',
+							text: payload.text,
+							time: new Date(payload.createdAt || Date.now()).toLocaleTimeString([], {
+								hour: '2-digit',
+								minute: '2-digit',
+								hour12: false,
+							}),
+							seenAt: payload.seenAt || null,
+						},
+					}),
+				);
+				dispatch(getMessages(chat.id));
+			}
 
 			if (!messageId) return;
 
@@ -69,34 +225,91 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 
 		socket.on('newMessage', handleNewMessage);
 
+		const handleMessageSeen = (payload: MessageSeenSocketPayload) => {
+			if (!chat || !payload.chatId || payload.chatId !== chat.id) return;
+			if (!payload.seenAt || !payload.seenMessageIds?.length) return;
+
+			dispatch(
+				markMessagesSeen({
+					chatId: payload.chatId,
+					seenMessageIds: payload.seenMessageIds,
+					seenAt: payload.seenAt,
+				}),
+			);
+		};
+
+		socket.on('messageSeen', handleMessageSeen);
+
+		const handleUserPresenceChanged = (payload: {
+			userId?: string;
+			isOnline?: boolean;
+			lastSeenAt?: string | null;
+		}) => {
+			if (!chat || payload.userId !== chat.id || typeof payload.isOnline !== 'boolean') return;
+			setPresence({
+				isOnline: payload.isOnline,
+				lastSeenAt: payload.lastSeenAt ?? null,
+			});
+		};
+
+		socket.on('userPresenceChanged', handleUserPresenceChanged);
+
 		return () => {
 			socket.off('newMessage', handleNewMessage);
+			socket.off('messageSeen', handleMessageSeen);
+			socket.off('userPresenceChanged', handleUserPresenceChanged);
+		};
+	}, [chat, currentUserId, dispatch]);
+
+	useLayoutEffect(() => {
+		const container = messagesContainerRef.current;
+		if (!container) return;
+
+		container.scrollTop = container.scrollHeight;
+	}, [chat?.id, chatMessages.length, lastMessageSeenAt]);
+
+	useEffect(() => {
+		const intervalId = window.setInterval(() => {
+			setNow(Date.now());
+		}, 60 * 1000);
+
+		return () => {
+			window.clearInterval(intervalId);
 		};
 	}, []);
 
 	const handleSend = () => {
 		if (!chat || !message.trim()) return;
 
+		const normalizedMessage = convertEmoticonsToEmoji(message.trim());
+
 		const messageId = uuidv4();
 		const nextMessage: Message = {
 			sender: 'me',
-			text: message.trim(),
+			text: normalizedMessage,
 			id: messageId,
 			time: new Date().toLocaleTimeString([], {
 				hour: '2-digit',
 				minute: '2-digit',
 				hour12: false,
 			}),
+			seenAt: null,
 		};
 
 		dispatch(addMessage({ id: chat.id, message: nextMessage }));
 
 		pendingMessagesRef.current = [
 			...pendingMessagesRef.current,
-			{ id: messageId, text: message },
+			{ id: messageId, text: normalizedMessage },
 		];
 
-		dispatch(sendMessage({ receiverId: chat.id, text: message.trim() }))
+		dispatch(
+			sendMessage({
+				receiverId: chat.id,
+				text: normalizedMessage,
+				clientMessageId: messageId,
+			}),
+		)
 			.unwrap()
 			.catch((error) => {
 				const errorMessage =
@@ -121,9 +334,7 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
 				<div className="flex items-center gap-3 min-w-0">
 					<img
-						src={
-							chat.avatarUrl ? `${SERVER_URL}/${chat.avatarUrl}` : dummyProfilePicture
-						}
+						src={resolveChatAvatarSrc(chat.avatarUrl)}
 						alt={chat.username}
 						className="w-9 h-9 rounded-full object-cover"
 					/>
@@ -131,7 +342,11 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 						<p className="text-sm font-semibold text-gray-900 truncate">
 							{chat.username}
 						</p>
-						<p className="text-[11px] text-green-600">Active now</p>
+						<p
+							className={`text-[11px] ${effectiveIsOnline ? 'text-green-600' : 'text-gray-500'}`}
+						>
+							{activityLabel}
+						</p>
 					</div>
 				</div>
 				<button
@@ -149,7 +364,10 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 				</button>
 			</div>
 
-			<div className="h-[300px] overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white">
+			<div
+				ref={messagesContainerRef}
+				className="h-[300px] overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white"
+			>
 				<div className="space-y-2">
 					{chatMessages.map((message) => {
 						const failedMessageError = failedMessages[message.id];
@@ -186,6 +404,11 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 						);
 					})}
 				</div>
+				{lastMessage?.sender === 'me' && lastMessage.seenAt && (
+					<p className="mt-2 px-1 text-[11px] text-gray-500 text-right">
+						Seen: {formatTimeAgo(lastMessage.seenAt)}
+					</p>
+				)}
 			</div>
 
 			<div className="p-3 border-t border-gray-100 bg-white">

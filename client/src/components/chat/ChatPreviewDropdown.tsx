@@ -5,14 +5,17 @@ import type { ChatPreviewDropdownProps } from '@/types/chat';
 const ChatPreviewDropdown = ({ chats, onOpenChat, onSeeAll }: ChatPreviewDropdownProps) => {
 	const previewChats = chats.slice(0, 5);
 	const hasMoreChats = chats.length > 5;
+	const unreadTotal = chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
 
 	return (
 		<div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 z-50 overflow-hidden">
 			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
 				<h3 className="text-base font-bold text-gray-900">Chats</h3>
-				<span className="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
-					{chats.length}
-				</span>
+				{unreadTotal > 0 && (
+					<span className="bg-blue-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+						{unreadTotal}
+					</span>
+				)}
 			</div>
 
 			<div className="max-h-[360px] overflow-y-auto">

@@ -66,7 +66,7 @@ const ProfileHeader = ({
 	const coverPhotoSrc = coverPhotoUrl ? `${SERVER_URL}/${coverPhotoUrl}` : '';
 
 	const handleMessage = () => {
-		const chatData = createChatData(userId!, username, profilePictureSrc);
+		const chatData = createChatData(userId!, username, profilePictureUrl);
 		setChat(chatData);
 		dispatch(createChat(chatData));
 		dispatch(getMessages(chatData.id));

@@ -29,6 +29,10 @@ const userSchema = new Schema({
 	refreshToken: {
 		type: String,
 	},
+	lastSeenAt: {
+		type: Date,
+		default: null,
+	},
 });
 
 const User = mongoose.model<UserSignUp & Document>('User', userSchema);

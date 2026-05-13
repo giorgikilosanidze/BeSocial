@@ -24,6 +24,7 @@ const mapDtoToMessage = (dto: ChatMessageDto, currentUserId: string): Message =>
 	sender: dto.senderId === currentUserId ? 'me' : 'them',
 	text: dto.text,
 	time: formatTime(dto.createdAt),
+	seenAt: dto.seenAt,
 });
 
 export const getMessages = createAsyncThunk<
@@ -98,7 +99,7 @@ export const getMessages = createAsyncThunk<
 
 export const sendMessage = createAsyncThunk<
 	SendMessageResponse,
-	{ receiverId: string | undefined; text: string },
+	{ receiverId: string | undefined; text: string; clientMessageId?: string },
 	{ rejectValue: string }
 >('chat/sendMessage', async (message, { rejectWithValue }) => {
 	try {

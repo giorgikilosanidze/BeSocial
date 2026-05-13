@@ -10,6 +10,7 @@ export interface PostChatRequest {
 	body: {
 		receiverId: string;
 		text: string;
+		clientMessageId?: string;
 	};
 }
 
@@ -27,4 +28,6 @@ export interface ChatThread {
 	lastMessage: string;
 	lastMessageAt: string;
 	unreadCount: number;
+	isOnline: boolean;
+	lastSeenAt: string | null;
 }

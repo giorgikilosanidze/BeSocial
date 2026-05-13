@@ -1,6 +1,7 @@
 import Chat from './chat.model.js';
 import User from '../user/user.model.js';
 import { ChatModel, ChatThread } from './chat.types.js';
+import { isUserOnline } from '../../socket.js';
 
 export async function storeMessage(
 	userId: string,
@@ -29,6 +30,35 @@ export async function getChatMessages(userId: string, receiverId: string) {
 	return messages;
 }
 
+export async function markMessagesAsSeen(userId: string, receiverId: string) {
+	const unseenMessages = await Chat.find(
+		{
+			senderId: receiverId,
+			receiverId: userId,
+			seenAt: null,
+		},
+		{ _id: 1 },
+	);
+
+	if (unseenMessages.length === 0) {
+		return { seenMessageIds: [] as string[], seenAt: null as string | null };
+	}
+
+	const seenAt = new Date();
+	const seenMessageIds = unseenMessages.map((message) => message._id.toString());
+
+	await Chat.updateMany(
+		{
+			_id: { $in: seenMessageIds },
+		},
+		{
+			$set: { seenAt },
+		},
+	);
+
+	return { seenMessageIds, seenAt: seenAt.toISOString() };
+}
+
 export async function getChatThreads(userId: string): Promise<ChatThread[]> {
 	const chats = await Chat.find({
 		$or: [{ senderId: userId }, { receiverId: userId }],
@@ -45,7 +75,7 @@ export async function getChatThreads(userId: string): Promise<ChatThread[]> {
 
 	const partnerIds = Array.from(latestByPartner.keys());
 	const partnerUsers = await User.find({ _id: { $in: partnerIds } })
-		.select('_id username profilePictureUrl')
+		.select('_id username profilePictureUrl lastSeenAt')
 		.lean();
 
 	const usersById = new Map(
@@ -54,6 +84,7 @@ export async function getChatThreads(userId: string): Promise<ChatThread[]> {
 			{
 				username: user.username,
 				avatarUrl: user.profilePictureUrl || '',
+				lastSeenAt: user.lastSeenAt ? new Date(user.lastSeenAt).toISOString() : null,
 			},
 		]),
 	);
@@ -88,6 +119,8 @@ export async function getChatThreads(userId: string): Promise<ChatThread[]> {
 			lastMessage: chat.text,
 			lastMessageAt: createdAt?.toISOString() || '',
 			unreadCount: unreadBySender.get(partnerId) || 0,
+			isOnline: isUserOnline(partnerId),
+			lastSeenAt: partner?.lastSeenAt || null,
 		};
 	});
 }
