@@ -1,5 +1,8 @@
 import dummyProfilePicture from '@/assets/user.jpg';
 import SERVER_URL from '@/constants/serverUrl';
+import EmojiPicker from 'emoji-picker-react';
+import type { EmojiClickData } from 'emoji-picker-react';
+import { FiSmile } from 'react-icons/fi';
 import {
 	addMessage,
 	markMessagesSeen,
@@ -40,11 +43,11 @@ interface PresenceResponse {
 }
 
 const EMOTICON_TO_EMOJI: Record<string, string> = {
-	'<3': '❤️',
-	':)': '🙂',
-	':(': '🙁',
-	':D': '😄',
-	';)': '😉',
+	'<3': '\u2764\uFE0F',
+	':)': '\u{1F642}',
+	':(': '\u{1F641}',
+	':D': '\u{1F604}',
+	';)': '\u{1F609}',
 };
 
 const convertEmoticonsToEmoji = (input: string) =>
@@ -62,6 +65,7 @@ const resolveChatAvatarSrc = (avatarUrl?: string) => {
 
 const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 	const [message, setMessage] = useState('');
+	const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 	const [failedMessages, setFailedMessages] = useState<Record<string, string>>({});
 	const [now, setNow] = useState(() => Date.now());
 	const [presence, setPresence] = useState<{ isOnline: boolean; lastSeenAt: string | null }>({
@@ -70,6 +74,9 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 	});
 	const pendingMessagesRef = useRef<{ id: string; text: string }[]>([]);
 	const messagesContainerRef = useRef<HTMLDivElement>(null);
+	const messageInputRef = useRef<HTMLInputElement>(null);
+	const emojiPickerRef = useRef<HTMLDivElement>(null);
+	const emojiToggleButtonRef = useRef<HTMLButtonElement>(null);
 	const dispatch = useAppDispatch();
 	const currentUserId = useAppSelector((state) => state.auth.user.id);
 	const chatMessages = useAppSelector((state) => {
@@ -158,7 +165,7 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 			const pendingMessageId = resolvePendingMessageId(payload);
 			const isPendingMessageForThisWidget = Boolean(
 				pendingMessageId &&
-				pendingMessagesRef.current.some((item) => item.id === pendingMessageId),
+					pendingMessagesRef.current.some((item) => item.id === pendingMessageId),
 			);
 
 			const isRelatedToCurrentChat =
@@ -173,12 +180,7 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 			const isMessageFromCurrentUser = payload.senderId === currentUserId;
 			const messageId = pendingMessageId;
 
-			if (
-				isMessageFromCurrentUser &&
-				payload.id &&
-				messageId &&
-				chat
-			) {
+			if (isMessageFromCurrentUser && payload.id && messageId && chat) {
 				dispatch(
 					reconcileOutgoingMessage({
 						chatId: chat.id,
@@ -278,6 +280,28 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 		};
 	}, []);
 
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (!isEmojiPickerOpen) return;
+			const target = event.target as Node;
+			if (
+				emojiPickerRef.current &&
+				!emojiPickerRef.current.contains(target) &&
+				emojiToggleButtonRef.current &&
+				!emojiToggleButtonRef.current.contains(target) &&
+				messageInputRef.current &&
+				!messageInputRef.current.contains(target)
+			) {
+				setIsEmojiPickerOpen(false);
+			}
+		};
+
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [isEmojiPickerOpen]);
+
 	const handleSend = () => {
 		if (!chat || !message.trim()) return;
 
@@ -298,10 +322,7 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 
 		dispatch(addMessage({ id: chat.id, message: nextMessage }));
 
-		pendingMessagesRef.current = [
-			...pendingMessagesRef.current,
-			{ id: messageId, text: normalizedMessage },
-		];
+		pendingMessagesRef.current = [...pendingMessagesRef.current, { id: messageId, text: normalizedMessage }];
 
 		dispatch(
 			sendMessage({
@@ -321,16 +342,38 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 			});
 
 		setMessage('');
+		setIsEmojiPickerOpen(false);
 	};
 
 	const handleMessageTyping = (value: string) => {
 		setMessage(value);
 	};
 
+	const handleEmojiPick = (emojiData: EmojiClickData) => {
+		const input = messageInputRef.current;
+		if (!input) {
+			setMessage((prev) => prev + emojiData.emoji);
+			return;
+		}
+
+		const selectionStart = input.selectionStart ?? message.length;
+		const selectionEnd = input.selectionEnd ?? message.length;
+		const nextMessage =
+			message.slice(0, selectionStart) + emojiData.emoji + message.slice(selectionEnd);
+
+		setMessage(nextMessage);
+
+		window.requestAnimationFrame(() => {
+			const nextCursorPosition = selectionStart + emojiData.emoji.length;
+			input.focus();
+			input.setSelectionRange(nextCursorPosition, nextCursorPosition);
+		});
+	};
+
 	if (!chat) return null;
 
 	return (
-		<div className="fixed z-[120] right-4 bottom-4 md:right-6 lg:right-8 w-[calc(100vw-2rem)] sm:w-[360px] bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden">
+		<div className="fixed z-[120] right-4 bottom-4 md:right-6 lg:right-8 w-[calc(100vw-2rem)] sm:w-[360px] bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-visible">
 			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
 				<div className="flex items-center gap-3 min-w-0">
 					<img
@@ -339,9 +382,7 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 						className="w-9 h-9 rounded-full object-cover"
 					/>
 					<div className="min-w-0">
-						<p className="text-sm font-semibold text-gray-900 truncate">
-							{chat.username}
-						</p>
+						<p className="text-sm font-semibold text-gray-900 truncate">{chat.username}</p>
 						<p
 							className={`text-[11px] ${effectiveIsOnline ? 'text-green-600' : 'text-gray-500'}`}
 						>
@@ -369,35 +410,31 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 				className="h-[300px] overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white"
 			>
 				<div className="space-y-2">
-					{chatMessages.map((message) => {
-						const failedMessageError = failedMessages[message.id];
+					{chatMessages.map((chatMessage) => {
+						const failedMessageError = failedMessages[chatMessage.id];
 
 						return (
 							<div
-								key={message.id}
-								className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+								key={chatMessage.id}
+								className={`flex ${chatMessage.sender === 'me' ? 'justify-end' : 'justify-start'}`}
 							>
 								<div
 									className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-										message.sender === 'me'
+										chatMessage.sender === 'me'
 											? 'bg-blue-600 text-white rounded-br-md'
 											: 'bg-gray-100 text-gray-800 rounded-bl-md'
 									} ${failedMessageError ? 'opacity-60' : ''}`}
 								>
-									<p>{message.text}</p>
+									<p>{chatMessage.text}</p>
 									<p
 										className={`text-[10px] mt-1 ${
-											message.sender === 'me'
-												? 'text-blue-100'
-												: 'text-gray-400'
+											chatMessage.sender === 'me' ? 'text-blue-100' : 'text-gray-400'
 										}`}
 									>
-										{message.time}
+										{chatMessage.time}
 									</p>
 									{failedMessageError && (
-										<p className="text-[11px] mt-1 text-red-400">
-											{failedMessageError}
-										</p>
+										<p className="text-[11px] mt-1 text-red-400">{failedMessageError}</p>
 									)}
 								</div>
 							</div>
@@ -412,8 +449,37 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 			</div>
 
 			<div className="p-3 border-t border-gray-100 bg-white">
+				<div className="relative">
+					{isEmojiPickerOpen && (
+						<div
+							ref={emojiPickerRef}
+							className="absolute bottom-12 left-0 z-[130] rounded-xl overflow-hidden shadow-xl bg-white"
+						>
+							<EmojiPicker
+								onEmojiClick={handleEmojiPick}
+								autoFocusSearch={false}
+								searchDisabled={false}
+								searchPlaceholder="Search emoji..."
+								previewConfig={{ showPreview: false }}
+								height={320}
+								width={320}
+								style={{ borderRadius: 12 }}
+							/>
+						</div>
+					)}
+				</div>
 				<div className="flex items-center gap-2">
+					<button
+						ref={emojiToggleButtonRef}
+						onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
+						className="h-9 w-9 shrink-0 rounded-full bg-gray-100 hover:bg-gray-200 text-lg leading-none flex items-center justify-center transition-colors"
+						type="button"
+						aria-label="Open emoji picker"
+					>
+						<FiSmile className="w-5 h-5 text-gray-600" />
+					</button>
 					<input
+						ref={messageInputRef}
 						value={message}
 						onKeyDown={(e) => {
 							if (e.key === 'Enter' && message) {
