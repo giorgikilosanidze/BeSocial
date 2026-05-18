@@ -373,8 +373,8 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 	if (!chat) return null;
 
 	return (
-		<div className="fixed z-[120] right-4 bottom-4 md:right-6 lg:right-8 w-[calc(100vw-2rem)] sm:w-[360px] bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-visible">
-			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+		<div className="fixed z-[120] inset-0 w-screen h-[100dvh] bg-white overflow-visible flex flex-col md:inset-auto md:right-6 md:bottom-4 lg:right-8 md:w-[360px] md:h-auto md:rounded-2xl md:border md:border-gray-200 md:shadow-2xl">
+			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
 				<div className="flex items-center gap-3 min-w-0">
 					<img
 						src={resolveChatAvatarSrc(chat.avatarUrl)}
@@ -407,7 +407,7 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 
 			<div
 				ref={messagesContainerRef}
-				className="h-[300px] overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white"
+				className="flex-1 overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white md:h-[300px] md:flex-none"
 			>
 				<div className="space-y-2">
 					{chatMessages.map((chatMessage) => {
@@ -448,7 +448,10 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 				)}
 			</div>
 
-			<div className="p-3 border-t border-gray-100 bg-white">
+			<div
+				className="p-3 border-t border-gray-100 bg-white sticky bottom-0"
+				style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+			>
 				<div className="relative">
 					{isEmojiPickerOpen && (
 						<div

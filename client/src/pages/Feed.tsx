@@ -86,7 +86,7 @@ const Feed = () => {
 					<ProfileSidebar />
 
 					{/* Main Feed */}
-					<main className="md:col-span-9 lg:col-span-6">
+					<main className="md:col-span-8 lg:col-span-6">
 						<CreatePost />
 
 						<div className="space-y-6">

@@ -144,7 +144,7 @@ const ProfileHeader = ({
 		<>
 			<div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mt-6">
 				{/* Cover Photo Section */}
-				<div className="relative h-80 bg-gray-700">
+				<div className="relative bg-gray-700" style={{ aspectRatio: '3 / 1' }}>
 					{hasCoverPhoto && (
 						<img
 							src={coverPhotoSrc}
@@ -195,9 +195,9 @@ const ProfileHeader = ({
 				{/* Profile Info Section */}
 				<div className="px-6 pb-6">
 					{/* Profile Photo */}
-					<div className="relative -mt-20 pointer-events-none">
+					<div className="relative -mt-12 min-[400px]:-mt-14 sm:-mt-16 md:-mt-20 pointer-events-none">
 						<div className="relative group w-fit pointer-events-auto">
-							<div className="w-40 h-40 rounded-full border-4 border-white overflow-hidden shadow-lg bg-white">
+							<div className="w-24 h-24 min-[400px]:w-28 min-[400px]:h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full border-4 border-white overflow-hidden shadow-lg bg-white">
 								<img
 									src={profilePictureSrc}
 									alt="Profile"
@@ -243,15 +243,15 @@ const ProfileHeader = ({
 							)}
 						</div>
 
-						<div className="mt-5 flex items-center justify-between gap-4 pointer-events-auto">
-							<div className="min-w-0">
+						<div className="mt-5 flex flex-wrap items-start justify-between gap-4 pointer-events-auto">
+							<div className="min-w-0 flex-1">
 								<h1 className="text-3xl font-bold text-gray-900 leading-tight break-words">
 									{username}
 								</h1>
 							</div>
 
 							{/* Action Buttons */}
-							<div className="flex items-center justify-end gap-3 shrink-0">
+							<div className="flex w-full sm:w-auto items-center justify-start sm:justify-end gap-3 shrink-0">
 								{!hasPermission && (
 									<button
 										onClick={handleFollow}
@@ -293,7 +293,7 @@ const ProfileHeader = ({
 								{!hasPermission && (
 									<button
 										onClick={handleMessage}
-										className="flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors max-[520px]:w-10 max-[520px]:h-10 max-[520px]:px-0 max-[520px]:justify-center"
+										className="flex items-center gap-2 bg-gray-100 text-gray-700 px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-gray-200 transition-colors max-[340px]:w-10 max-[340px]:h-10 max-[340px]:px-0 max-[340px]:justify-center"
 									>
 										<svg
 											className="w-4 h-4"
@@ -308,7 +308,7 @@ const ProfileHeader = ({
 												d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
 											/>
 										</svg>
-										<span className="max-[520px]:hidden">Message</span>
+										<span className="max-[340px]:hidden">Message</span>
 									</button>
 								)}
 							</div>

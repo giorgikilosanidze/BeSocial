@@ -1,8 +1,16 @@
 import { useEffect } from 'react';
 import dummyProfilePicture from '@/assets/user.jpg';
+import SERVER_URL from '@/constants/serverUrl';
 import type { AllChatsModalProps } from '@/types/chat';
 
 const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProps) => {
+	const resolveChatAvatarSrc = (avatarUrl?: string) => {
+		if (!avatarUrl) return dummyProfilePicture;
+		if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) return avatarUrl;
+		if (avatarUrl.startsWith('/src/') || avatarUrl.startsWith('data:')) return avatarUrl;
+		return `${SERVER_URL}/${avatarUrl}`;
+	};
+
 	useEffect(() => {
 		if (!isOpen) return;
 
@@ -92,7 +100,7 @@ const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProp
 						>
 							<div className="flex items-center gap-3">
 								<img
-									src={chat.avatarUrl || dummyProfilePicture}
+									src={resolveChatAvatarSrc(chat.avatarUrl)}
 									alt={chat.username}
 									className="w-11 h-11 rounded-full object-cover"
 								/>
