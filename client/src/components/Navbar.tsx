@@ -52,6 +52,11 @@ interface ChatToast {
 	text: string;
 }
 
+interface OpenChatState {
+	id: string;
+	isMinimized: boolean;
+}
+
 const Navbar = () => {
 	const user = useAppSelector((state) => state.auth.user);
 	const hasUnreadNotifications = useAppSelector((state) => state.navbar.hasUnreadNotifications);
@@ -71,12 +76,14 @@ const Navbar = () => {
 	const chatParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
+	const knownChats = useAppSelector((state) => state.chat.chats);
 	const [chatThreads, setChatThreads] = useState<GetChatsResponse['data']['chats']>([]);
-	const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+	const [openChats, setOpenChats] = useState<OpenChatState[]>([]);
 	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
 	const [hasUnseenChatPreview, setHasUnseenChatPreview] = useState(false);
 	const [chatToasts, setChatToasts] = useState<ChatToast[]>([]);
-	const selectedChat = chatThreads.find((chat) => chat.id === selectedChatId) || null;
+	const minimizedOpenChats = openChats.filter((chat) => chat.isMinimized);
+	const expandedOpenChats = openChats.filter((chat) => !chat.isMinimized);
 
 	const profilePictureSrc = user.profilePictureUrl
 		? `${SERVER_URL}/${user.profilePictureUrl}`
@@ -109,13 +116,7 @@ const Navbar = () => {
 
 				const chats = (data as GetChatsResponse).data.chats.map((chat) => ({
 					...chat,
-					lastMessageAt: chat.lastMessageAt
-						? new Date(chat.lastMessageAt).toLocaleTimeString([], {
-								hour: '2-digit',
-								minute: '2-digit',
-								hour12: false,
-							})
-						: '',
+					lastMessageAt: chat.lastMessageAt || '',
 				}));
 
 				setChatThreads(chats);
@@ -136,22 +137,18 @@ const Navbar = () => {
 			if (!isRelatedToCurrentUser) return;
 
 			const partnerId = payload.senderId === user.id ? payload.receiverId : payload.senderId;
+			const knownChat = knownChats.find((chat) => chat.id === partnerId);
+			const knownUsername = knownChat?.username?.trim();
+			const knownAvatarUrl = knownChat?.avatarUrl;
 			const isMessageFromPartner = payload.senderId === partnerId;
-			const formattedTime = payload.createdAt
-				? new Date(payload.createdAt).toLocaleTimeString([], {
-						hour: '2-digit',
-						minute: '2-digit',
-						hour12: false,
-					})
-				: new Date().toLocaleTimeString([], {
-						hour: '2-digit',
-						minute: '2-digit',
-						hour12: false,
-					});
+			const isPartnerChatExpanded = openChats.some(
+				(chat) => chat.id === partnerId && !chat.isMinimized,
+			);
+			const messageCreatedAt = payload.createdAt || new Date().toISOString();
 
 			setChatThreads((prev) => {
 				const existingIndex = prev.findIndex((chat) => chat.id === partnerId);
-				const shouldIncreaseUnread = isMessageFromPartner && selectedChatId !== partnerId;
+				const shouldIncreaseUnread = isMessageFromPartner && !isPartnerChatExpanded;
 				if (shouldIncreaseUnread && !isChatsOpen) {
 					setHasUnseenChatPreview(true);
 				}
@@ -160,10 +157,10 @@ const Navbar = () => {
 					return [
 						{
 							id: partnerId,
-							username: 'Unknown user',
-							avatarUrl: '',
+							username: knownUsername || 'Unknown user',
+							avatarUrl: knownAvatarUrl || '',
 							lastMessage: payload.text,
-							lastMessageAt: formattedTime,
+							lastMessageAt: messageCreatedAt,
 							unreadCount: shouldIncreaseUnread ? 1 : 0,
 							isOnline: false,
 							lastSeenAt: null,
@@ -173,17 +170,21 @@ const Navbar = () => {
 				}
 
 				const existing = prev[existingIndex];
+				const shouldHydrateIdentity =
+					existing.username === 'Unknown user' && Boolean(knownUsername);
 				const updated = {
 					...existing,
+					username: shouldHydrateIdentity ? knownUsername! : existing.username,
+					avatarUrl: shouldHydrateIdentity ? knownAvatarUrl || existing.avatarUrl : existing.avatarUrl,
 					lastMessage: payload.text,
-					lastMessageAt: formattedTime,
+					lastMessageAt: messageCreatedAt,
 					unreadCount: shouldIncreaseUnread ? existing.unreadCount + 1 : existing.unreadCount,
 				};
 
 				return [updated, ...prev.filter((chat) => chat.id !== partnerId)];
 			});
 
-			if (isMessageFromPartner && selectedChatId !== partnerId) {
+			if (isMessageFromPartner && !isPartnerChatExpanded) {
 				const existingThread = chatThreads.find((chat) => chat.id === partnerId);
 				const toastId = `${partnerId}-${payload.id || Date.now()}`;
 				const nextToast: ChatToast = {
@@ -207,7 +208,7 @@ const Navbar = () => {
 		return () => {
 			socket.off('newMessage', handleIncomingMessage);
 		};
-	}, [chatThreads, isChatsOpen, selectedChatId, user.id]);
+	}, [chatThreads, isChatsOpen, knownChats, openChats, user.id]);
 
 	useEffect(() => {
 		const handleUserPresenceChanged = (payload: UserPresenceChangedPayload) => {
@@ -347,8 +348,16 @@ const Navbar = () => {
 
 			return updatedThreads;
 		});
+		setOpenChats((prev) => {
+			const existingOpenChat = prev.find((chat) => chat.id === chatId);
+			if (existingOpenChat) {
+				return prev.map((chat) =>
+					chat.id === chatId ? { ...chat, isMinimized: false } : chat,
+				);
+			}
 
-		setSelectedChatId(chatId);
+			return [...prev, { id: chatId, isMinimized: false }];
+		});
 		setIsAllChatsModalOpen(false);
 		setIsChatsOpen(false);
 		setIsMobileMenuOpen(false);
@@ -364,8 +373,36 @@ const Navbar = () => {
 		setIsAllChatsModalOpen(false);
 	};
 
-	const handleCloseChatWidget = () => {
-		setSelectedChatId(null);
+	const handleMinimizeChatWidget = (chatId: string) => {
+		setOpenChats((prev) =>
+			prev.map((chat) => (chat.id === chatId ? { ...chat, isMinimized: true } : chat)),
+		);
+	};
+
+	const handleRestoreChatWidget = (chatId: string) => {
+		const chat = chatThreads.find((item) => item.id === chatId);
+		if (chat) {
+			dispatch(
+				createChat({
+					id: chat.id,
+					username: chat.username,
+					avatarUrl: chat.avatarUrl,
+					messages: [],
+				}),
+			);
+			dispatch(getMessages(chatId));
+		}
+
+		setChatThreads((prev) =>
+			prev.map((thread) => (thread.id === chatId ? { ...thread, unreadCount: 0 } : thread)),
+		);
+		setOpenChats((prev) =>
+			prev.map((chat) => (chat.id === chatId ? { ...chat, isMinimized: false } : chat)),
+		);
+	};
+
+	const handleDismissChatWidget = (chatId: string) => {
+		setOpenChats((prev) => prev.filter((chat) => chat.id !== chatId));
 	};
 
 	const handleSearchValue = (value: string) => {
@@ -834,7 +871,71 @@ const Navbar = () => {
 					</button>
 				))}
 			</div>
-			<ChatWidget chat={selectedChat} onClose={handleCloseChatWidget} />
+			{minimizedOpenChats.map((openChat, index) => {
+				const chat = chatThreads.find((thread) => thread.id === openChat.id);
+				if (!chat) return null;
+
+				return (
+					<div
+						key={openChat.id}
+						className="hidden md:flex fixed z-[150] bg-white border border-gray-200 shadow-lg rounded-full pl-2 pr-1 py-1 items-center gap-2 max-w-[220px]"
+						style={{ right: '16px', bottom: `${16 + index * 48}px` }}
+					>
+						<button
+							onClick={() => handleRestoreChatWidget(openChat.id)}
+							className="flex items-center gap-2 min-w-0 hover:opacity-80 transition-opacity"
+						>
+							<div className="relative shrink-0">
+								<img
+									src={resolveAvatarSrc(chat.avatarUrl)}
+									alt={chat.username}
+									className="w-7 h-7 rounded-full object-cover"
+								/>
+								{chat.unreadCount > 0 && (
+									<span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-blue-600 text-white text-[10px] font-semibold flex items-center justify-center leading-none">
+										{chat.unreadCount > 99 ? '99+' : chat.unreadCount}
+									</span>
+								)}
+							</div>
+							<span className="text-xs font-medium text-gray-800 truncate">
+								{chat.username}
+							</span>
+						</button>
+						<button
+							onClick={() => handleDismissChatWidget(openChat.id)}
+							className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+							aria-label={`Close ${chat.username} chat`}
+						>
+							<svg
+								className="w-3.5 h-3.5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M6 18L18 6M6 6l12 12"
+								/>
+							</svg>
+						</button>
+					</div>
+				);
+			})}
+			{expandedOpenChats.map((openChat, index) => {
+				const chat = chatThreads.find((thread) => thread.id === openChat.id) || null;
+				const minimizedLaneOffset = minimizedOpenChats.length > 0 ? 200 : 0;
+				return (
+					<ChatWidget
+						key={openChat.id}
+						chat={chat}
+						onMinimize={() => handleMinimizeChatWidget(openChat.id)}
+						onClose={() => handleDismissChatWidget(openChat.id)}
+						rightOffsetPx={24 + minimizedLaneOffset + index * 376}
+					/>
+				);
+			})}
 		</>
 	);
 };

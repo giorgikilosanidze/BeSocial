@@ -12,6 +12,7 @@ export interface Chat {
 export interface ChatSlice {
 	chats: ChatProps[];
 	isLoading: boolean;
+	loadingChatId: string | null;
 	error: string;
 }
 
@@ -24,7 +25,10 @@ export interface ChatProps {
 
 export interface ChatComponentProps {
 	chat: (Omit<ChatProps, 'messages'> & { isOnline?: boolean; lastSeenAt?: string | null }) | null;
-	onClose: () => void;
+	onMinimize?: () => void;
+	onClose?: () => void;
+	widgetIndex?: number;
+	rightOffsetPx?: number;
 }
 
 export interface Message {

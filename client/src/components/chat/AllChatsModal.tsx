@@ -10,6 +10,31 @@ const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProp
 		if (avatarUrl.startsWith('/src/') || avatarUrl.startsWith('data:')) return avatarUrl;
 		return `${SERVER_URL}/${avatarUrl}`;
 	};
+	const formatPreviewTimestamp = (value: string) => {
+		if (!value) return '';
+
+		const date = new Date(value);
+		if (Number.isNaN(date.getTime())) return value;
+
+		const now = new Date();
+		const isToday =
+			date.getFullYear() === now.getFullYear() &&
+			date.getMonth() === now.getMonth() &&
+			date.getDate() === now.getDate();
+
+		if (isToday) {
+			return date.toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false,
+			});
+		}
+
+		return date.toLocaleDateString([], {
+			month: 'short',
+			day: 'numeric',
+		});
+	};
 
 	useEffect(() => {
 		if (!isOpen) return;
@@ -110,7 +135,7 @@ const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProp
 											{chat.username}
 										</p>
 										<span className="text-[11px] text-gray-500 shrink-0">
-											{chat.lastMessageAt}
+											{formatPreviewTimestamp(chat.lastMessageAt)}
 										</span>
 									</div>
 									<p className="text-xs text-gray-500 truncate">

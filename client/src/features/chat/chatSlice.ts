@@ -5,6 +5,7 @@ import { getMessages } from './chatThunks';
 const initialState: ChatSlice = {
 	chats: [],
 	isLoading: false,
+	loadingChatId: null,
 	error: '',
 };
 
@@ -69,11 +70,13 @@ const chatSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
-			.addCase(getMessages.pending, (state) => {
+			.addCase(getMessages.pending, (state, action) => {
 				state.isLoading = true;
+				state.loadingChatId = action.meta.arg;
 			})
 			.addCase(getMessages.fulfilled, (state, action) => {
 				state.isLoading = false;
+				state.loadingChatId = null;
 
 				const selectedChat = state.chats.find((chat) => chat.id === action.payload.receiverId);
 
@@ -91,6 +94,7 @@ const chatSlice = createSlice({
 			})
 			.addCase(getMessages.rejected, (state, action) => {
 				state.isLoading = false;
+				state.loadingChatId = null;
 				state.error = action.payload || action.error.message || 'Something went wrong!';
 			});
 	},

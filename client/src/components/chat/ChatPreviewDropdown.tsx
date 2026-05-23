@@ -6,6 +6,31 @@ const ChatPreviewDropdown = ({ chats, onOpenChat, onSeeAll }: ChatPreviewDropdow
 	const previewChats = chats.slice(0, 5);
 	const hasMoreChats = chats.length > 5;
 	const unreadTotal = chats.reduce((sum, chat) => sum + chat.unreadCount, 0);
+	const formatPreviewTimestamp = (value: string) => {
+		if (!value) return '';
+
+		const date = new Date(value);
+		if (Number.isNaN(date.getTime())) return value;
+
+		const now = new Date();
+		const isToday =
+			date.getFullYear() === now.getFullYear() &&
+			date.getMonth() === now.getMonth() &&
+			date.getDate() === now.getDate();
+
+		if (isToday) {
+			return date.toLocaleTimeString([], {
+				hour: '2-digit',
+				minute: '2-digit',
+				hour12: false,
+			});
+		}
+
+		return date.toLocaleDateString([], {
+			month: 'short',
+			day: 'numeric',
+		});
+	};
 
 	return (
 		<div className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 z-50 overflow-hidden">
@@ -41,7 +66,7 @@ const ChatPreviewDropdown = ({ chats, onOpenChat, onSeeAll }: ChatPreviewDropdow
 										{chat.username}
 									</p>
 									<span className="text-[11px] text-gray-500 shrink-0">
-										{chat.lastMessageAt}
+										{formatPreviewTimestamp(chat.lastMessageAt)}
 									</span>
 								</div>
 								<p className="text-xs text-gray-500 truncate">{chat.lastMessage}</p>

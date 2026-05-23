@@ -3,16 +3,12 @@ import SERVER_URL from '@/constants/serverUrl';
 import EmojiPicker from 'emoji-picker-react';
 import type { EmojiClickData } from 'emoji-picker-react';
 import { FiSmile } from 'react-icons/fi';
-import {
-	addMessage,
-	markMessagesSeen,
-	reconcileOutgoingMessage,
-} from '@/features/chat/chatSlice';
+import { addMessage, markMessagesSeen, reconcileOutgoingMessage } from '@/features/chat/chatSlice';
 import { getMessages, sendMessage } from '@/features/chat/chatThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { socket } from '@/socket';
 import type { ChatComponentProps, Message } from '@/types/chat';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 interface NewMessageSocketPayload {
@@ -63,7 +59,13 @@ const resolveChatAvatarSrc = (avatarUrl?: string) => {
 	return `${SERVER_URL}/${avatarUrl}`;
 };
 
-const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
+const ChatWidget = ({
+	chat,
+	onMinimize,
+	onClose,
+	widgetIndex = 0,
+	rightOffsetPx,
+}: ChatComponentProps) => {
 	const [message, setMessage] = useState('');
 	const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 	const [failedMessages, setFailedMessages] = useState<Record<string, string>>({});
@@ -83,6 +85,10 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 		if (!chat) return [];
 		return state.chat.chats.find((currentChat) => currentChat.id === chat.id)?.messages || [];
 	});
+	const isCurrentChatLoading = useAppSelector(
+		(state) => state.chat.isLoading && state.chat.loadingChatId === chat?.id,
+	);
+	const showHistorySkeleton = Boolean(chat?.id && isCurrentChatLoading && chatMessages.length === 0);
 	const lastMessage = chatMessages[chatMessages.length - 1];
 	const lastMessageSeenAt = lastMessage?.seenAt || null;
 	const effectiveIsOnline = chat?.isOnline ?? presence.isOnline;
@@ -165,7 +171,7 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 			const pendingMessageId = resolvePendingMessageId(payload);
 			const isPendingMessageForThisWidget = Boolean(
 				pendingMessageId &&
-					pendingMessagesRef.current.some((item) => item.id === pendingMessageId),
+				pendingMessagesRef.current.some((item) => item.id === pendingMessageId),
 			);
 
 			const isRelatedToCurrentChat =
@@ -247,7 +253,8 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 			isOnline?: boolean;
 			lastSeenAt?: string | null;
 		}) => {
-			if (!chat || payload.userId !== chat.id || typeof payload.isOnline !== 'boolean') return;
+			if (!chat || payload.userId !== chat.id || typeof payload.isOnline !== 'boolean')
+				return;
 			setPresence({
 				isOnline: payload.isOnline,
 				lastSeenAt: payload.lastSeenAt ?? null,
@@ -322,7 +329,10 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 
 		dispatch(addMessage({ id: chat.id, message: nextMessage }));
 
-		pendingMessagesRef.current = [...pendingMessagesRef.current, { id: messageId, text: normalizedMessage }];
+		pendingMessagesRef.current = [
+			...pendingMessagesRef.current,
+			{ id: messageId, text: normalizedMessage },
+		];
 
 		dispatch(
 			sendMessage({
@@ -372,9 +382,19 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 
 	if (!chat) return null;
 
+	const desktopRightOffset = `${rightOffsetPx ?? 24 + widgetIndex * 376}px`;
+
 	return (
-		<div className="fixed z-[120] inset-0 w-screen h-[100dvh] bg-white overflow-visible flex flex-col md:inset-auto md:right-6 md:bottom-4 lg:right-8 md:w-[360px] md:h-auto md:rounded-2xl md:border md:border-gray-200 md:shadow-2xl">
-			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+		<div
+			className="fixed z-[120] inset-0 w-screen h-[100dvh] bg-white overflow-visible flex flex-col md:inset-auto md:[right:var(--chat-right)] md:[bottom:var(--chat-bottom)] md:w-[360px] md:h-auto md:rounded-2xl md:border md:border-gray-200 md:shadow-2xl"
+			style={
+				{
+					'--chat-right': desktopRightOffset,
+					'--chat-bottom': '16px',
+				} as CSSProperties
+			}
+		>
+			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10 rounded-2xl">
 				<div className="flex items-center gap-3 min-w-0">
 					<img
 						src={resolveChatAvatarSrc(chat.avatarUrl)}
@@ -382,7 +402,9 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 						className="w-9 h-9 rounded-full object-cover"
 					/>
 					<div className="min-w-0">
-						<p className="text-sm font-semibold text-gray-900 truncate">{chat.username}</p>
+						<p className="text-sm font-semibold text-gray-900 truncate">
+							{chat.username}
+						</p>
 						<p
 							className={`text-[11px] ${effectiveIsOnline ? 'text-green-600' : 'text-gray-500'}`}
 						>
@@ -390,57 +412,89 @@ const ChatWidget = ({ chat, onClose }: ChatComponentProps) => {
 						</p>
 					</div>
 				</div>
-				<button
-					onClick={onClose}
-					className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
-				>
-					<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							strokeLinecap="round"
-							strokeLinejoin="round"
-							strokeWidth={2}
-							d="M6 18L18 6M6 6l12 12"
-						/>
-					</svg>
-				</button>
+				<div className="flex items-center gap-1 shrink-0">
+					<button
+						onClick={onMinimize}
+						className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+						aria-label="Minimize chat"
+					>
+						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M5 12h14"
+							/>
+						</svg>
+					</button>
+					<button
+						onClick={onClose}
+						className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+						aria-label="Close chat"
+					>
+						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth={2}
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						</svg>
+					</button>
+				</div>
 			</div>
 
 			<div
 				ref={messagesContainerRef}
 				className="flex-1 overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white md:h-[300px] md:flex-none"
 			>
-				<div className="space-y-2">
-					{chatMessages.map((chatMessage) => {
-						const failedMessageError = failedMessages[chatMessage.id];
+				{showHistorySkeleton ? (
+					<div className="space-y-2 animate-pulse">
+						<div className="flex justify-start">
+							<div className="w-[68%] h-12 bg-gray-200 rounded-2xl rounded-bl-md" />
+						</div>
+						<div className="flex justify-end">
+							<div className="w-[56%] h-12 bg-gray-200 rounded-2xl rounded-br-md" />
+						</div>
+						<div className="flex justify-start">
+							<div className="w-[74%] h-12 bg-gray-200 rounded-2xl rounded-bl-md" />
+						</div>
+						<div className="flex justify-end">
+							<div className="w-[48%] h-12 bg-gray-200 rounded-2xl rounded-br-md" />
+						</div>
+					</div>
+				) : (
+					<div className="space-y-2">
+						{chatMessages.map((chatMessage) => {
+							const failedMessageError = failedMessages[chatMessage.id];
 
-						return (
-							<div
-								key={chatMessage.id}
-								className={`flex ${chatMessage.sender === 'me' ? 'justify-end' : 'justify-start'}`}
-							>
+							return (
 								<div
-									className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm ${
-										chatMessage.sender === 'me'
-											? 'bg-blue-600 text-white rounded-br-md'
-											: 'bg-gray-100 text-gray-800 rounded-bl-md'
-									} ${failedMessageError ? 'opacity-60' : ''}`}
+									key={chatMessage.id}
+									className={`flex ${chatMessage.sender === 'me' ? 'justify-end' : 'justify-start'}`}
 								>
-									<p>{chatMessage.text}</p>
-									<p
-										className={`text-[10px] mt-1 ${
-											chatMessage.sender === 'me' ? 'text-blue-100' : 'text-gray-400'
-										}`}
+									<div
+										className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm bg-gray-100 text-gray-800 transition-colors duration-300 hover:bg-gray-200 ${
+											chatMessage.sender === 'me'
+												? 'rounded-br-md'
+												: 'rounded-bl-md'
+										} ${failedMessageError ? 'opacity-60' : ''}`}
 									>
-										{chatMessage.time}
-									</p>
-									{failedMessageError && (
-										<p className="text-[11px] mt-1 text-red-400">{failedMessageError}</p>
-									)}
+										<p>{chatMessage.text}</p>
+										<p className="text-[10px] mt-1 text-gray-400">
+											{chatMessage.time}
+										</p>
+										{failedMessageError && (
+											<p className="text-[11px] mt-1 text-red-400">
+												{failedMessageError}
+											</p>
+										)}
+									</div>
 								</div>
-							</div>
-						);
-					})}
-				</div>
+							);
+						})}
+					</div>
+				)}
 				{lastMessage?.sender === 'me' && lastMessage.seenAt && (
 					<p className="mt-2 px-1 text-[11px] text-gray-500 text-right">
 						Seen: {formatTimeAgo(lastMessage.seenAt)}
