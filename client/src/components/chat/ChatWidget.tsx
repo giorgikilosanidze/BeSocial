@@ -474,14 +474,16 @@ const ChatWidget = ({
 									className={`flex ${chatMessage.sender === 'me' ? 'justify-end' : 'justify-start'}`}
 								>
 									<div
-										className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm bg-gray-100 text-gray-800 transition-colors duration-300 hover:bg-gray-200 ${
+										className={`max-w-[80%] px-3 py-2 rounded-2xl text-sm transition-colors duration-300 ${
 											chatMessage.sender === 'me'
-												? 'rounded-br-md'
-												: 'rounded-bl-md'
+												? 'bg-blue-600 text-white hover:bg-blue-700 rounded-br-md'
+												: 'bg-gray-100 text-gray-800 hover:bg-gray-200 rounded-bl-md'
 										} ${failedMessageError ? 'opacity-60' : ''}`}
 									>
 										<p>{chatMessage.text}</p>
-										<p className="text-[10px] mt-1 text-gray-400">
+										<p
+											className={`text-[10px] mt-1 ${chatMessage.sender === 'me' ? 'text-blue-100' : 'text-gray-400'}`}
+										>
 											{chatMessage.time}
 										</p>
 										{failedMessageError && (
