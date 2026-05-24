@@ -1,6 +1,6 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { getPostReactionsList } from '@/features/feed/feedThunks';
 import type { GetPostReactionsResponse } from '@/types/feed';
@@ -125,9 +125,10 @@ const ReactionsModal = ({ setIsModalOpen, postId }: ReactionsModalProps) => {
 					{!isLoading && reactions && reactions.length > 0 && (
 						<div className="space-y-1">
 							{reactions.map((reaction) => {
-								const profilePictureSrc = reaction.user.profilePictureUrl
-									? `${SERVER_URL}/${reaction.user.profilePictureUrl}`
-									: dummyProfilePicture;
+								const profilePictureSrc = resolveImageSrc(
+									reaction.user.profilePictureUrl,
+									dummyProfilePicture,
+								);
 
 								return (
 									<div

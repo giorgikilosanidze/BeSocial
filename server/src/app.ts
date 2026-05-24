@@ -9,24 +9,21 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import multer, { FileFilterCallback } from 'multer';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import cloudinary from './config/cloudinary.js';
 import { searchUsers } from './modules/user/user.repository.js';
 
 dotenv.config();
 
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const fileStorage = multer.diskStorage({
-	destination(req, file, callback) {
-		callback(null, 'images');
-	},
-	filename(req, file, callback) {
-		callback(null, Date.now() + '-' + file.originalname);
-	},
+const fileStorage = new CloudinaryStorage({
+	cloudinary,
+	params: async (req, file) => ({
+		folder: 'besocial',
+		resource_type: 'image',
+		public_id: `${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, '')}`,
+	}),
 });
 
 const fileFilter = (req: Request, file: Express.Multer.File, callback: FileFilterCallback) => {
@@ -39,6 +36,13 @@ const fileFilter = (req: Request, file: Express.Multer.File, callback: FileFilte
 	}
 };
 
+app.use(
+	cors({
+		origin: process.env.CLIENT_URL,
+		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS handled automatically
+		credentials: true,
+	}),
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use(
@@ -47,14 +51,6 @@ app.use(
 		limits: { fileSize: 5 * 1024 * 1024 },
 		fileFilter,
 	}).array('image', 5),
-);
-app.use('/images', express.static(path.join(__dirname, '../images')));
-app.use(
-	cors({
-		origin: process.env.CLIENT_URL,
-		methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS handled automatically
-		credentials: true,
-	}),
 );
 app.use(helmet());
 

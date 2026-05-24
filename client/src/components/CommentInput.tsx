@@ -1,7 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
 import dummyProfilePicture from '../assets/user.jpg';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 
 interface CommentInputProps {
 	profilePictureUrl?: string;
@@ -12,9 +11,7 @@ const CommentInput = ({ profilePictureUrl, onSubmitComment }: CommentInputProps)
 	const [text, setText] = useState('');
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
-	const avatarSrc = profilePictureUrl
-		? `${SERVER_URL}/${profilePictureUrl}`
-		: dummyProfilePicture;
+	const avatarSrc = resolveImageSrc(profilePictureUrl, dummyProfilePicture);
 
 	const handleAddComment = async () => {
 		if (isSubmitting) return;

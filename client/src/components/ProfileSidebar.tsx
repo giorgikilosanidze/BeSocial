@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import UsersListModal from '@/components/UsersListModal';
 import dummyProfilePicture from '../assets/user.jpg';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 
 const ProfileSidebar = () => {
 	const user = useAppSelector((state) => state.auth.user);
@@ -16,11 +15,9 @@ const ProfileSidebar = () => {
 		navigate(routes.profile.replace(':userId', user.id));
 	};
 
-	const profilePictureSrc = user.profilePictureUrl
-		? `${SERVER_URL}/${user.profilePictureUrl}`
-		: dummyProfilePicture;
+	const profilePictureSrc = resolveImageSrc(user.profilePictureUrl, dummyProfilePicture);
 	const hasCoverPhoto = Boolean(user.coverPhotoUrl);
-	const coverPhotoSrc = user.coverPhotoUrl ? `${SERVER_URL}/${user.coverPhotoUrl}` : '';
+	const coverPhotoSrc = resolveImageSrc(user.coverPhotoUrl);
 
 	return (
 		<aside className="hidden md:block md:col-span-4 lg:col-span-3">

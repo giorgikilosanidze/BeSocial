@@ -5,6 +5,8 @@ import {
 	followOrUnfollow,
 	uploadCoverPhoto,
 	uploadProfilePicture,
+	deleteProfilePicture,
+	deleteCoverPhoto,
 } from './profileThunks';
 import type { UserSliceState } from '@/types/profile';
 import { addComment, createPost, deletePost, editPost } from '../feed/feedThunks';
@@ -128,31 +130,38 @@ const profileSlice = createSlice({
 				}
 			})
 
-			.addCase(uploadProfilePicture.pending, (state) => {
-				state.isLoading = true;
-			})
 			.addCase(uploadProfilePicture.fulfilled, (state, action) => {
-				state.isLoading = false;
 				state.user.profilePictureUrl = action.payload.profilePictureUrl;
 				state.user.posts.forEach((post) => {
 					post.author.profilePictureUrl = action.payload.profilePictureUrl;
 				});
 			})
 			.addCase(uploadProfilePicture.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.error.message || 'Failed to -upload profile picture!';
+				state.error = action.error.message || 'Failed to upload profile picture!';
 			})
 
-			.addCase(uploadCoverPhoto.pending, (state) => {
-				state.isLoading = true;
-			})
 			.addCase(uploadCoverPhoto.fulfilled, (state, action) => {
-				state.isLoading = false;
 				state.user.coverPhotoUrl = action.payload.coverPhotoUrl;
 			})
 			.addCase(uploadCoverPhoto.rejected, (state, action) => {
-				state.isLoading = false;
-				state.error = action.error.message || 'Failed to -upload profile picture!';
+				state.error = action.error.message || 'Failed to upload cover photo!';
+			})
+
+			.addCase(deleteProfilePicture.fulfilled, (state) => {
+				state.user.profilePictureUrl = '';
+				state.user.posts.forEach((post) => {
+					post.author.profilePictureUrl = '';
+				});
+			})
+			.addCase(deleteProfilePicture.rejected, (state, action) => {
+				state.error = action.error.message || 'Failed to delete profile picture!';
+			})
+
+			.addCase(deleteCoverPhoto.fulfilled, (state) => {
+				state.user.coverPhotoUrl = '';
+			})
+			.addCase(deleteCoverPhoto.rejected, (state, action) => {
+				state.error = action.error.message || 'Failed to delete cover photo!';
 			})
 
 			.addCase(followOrUnfollow.rejected, (state, action) => {

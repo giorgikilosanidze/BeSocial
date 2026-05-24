@@ -1,5 +1,5 @@
 import routes from '@/constants/routes';
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import type { FollowedByUser } from '@/types/profile';
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
@@ -69,9 +69,10 @@ const FollowedByModal = ({ users, onClose }: FollowedByModalProps) => {
 					) : (
 						<div className="space-y-1">
 							{users.map((user) => {
-								const profilePictureSrc = user.profilePictureUrl
-									? `${SERVER_URL}/${user.profilePictureUrl}`
-									: dummyProfilePicture;
+								const profilePictureSrc = resolveImageSrc(
+									user.profilePictureUrl,
+									dummyProfilePicture,
+								);
 
 								return (
 									<div

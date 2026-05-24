@@ -1,15 +1,19 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import cloudinary from '../config/cloudinary.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const CLOUDINARY_URL_PATTERN = /\/upload\/(?:v\d+\/)?(.+?)\.[a-zA-Z0-9]+$/;
 
-export function removeImage(imagePath: string) {
-	const fullPath = path.join(__dirname, '../..', imagePath);
-	fs.unlink(fullPath, (err) => {
-		if (err) {
-			throw new Error('Could not remove image!');
-		}
+function extractPublicId(url: string): string | null {
+	const match = url.match(CLOUDINARY_URL_PATTERN);
+	return match ? match[1] : null;
+}
+
+export function removeImage(imageUrl: string) {
+	if (!imageUrl) return;
+
+	const publicId = extractPublicId(imageUrl);
+	if (!publicId) return;
+
+	cloudinary.uploader.destroy(publicId).catch((error) => {
+		console.error('Failed to remove image from Cloudinary:', error);
 	});
 }

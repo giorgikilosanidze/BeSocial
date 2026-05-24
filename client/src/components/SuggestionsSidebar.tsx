@@ -1,5 +1,5 @@
 import routes from '@/constants/routes';
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import { getSuggestions } from '@/features/feed/feedThunks';
 import { followOrUnfollow } from '@/features/profile/profileThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
@@ -84,9 +84,10 @@ const SuggestionsSidebar = () => {
 					) : (
 						<div className="space-y-3">
 							{previewSuggestions.map((suggestion) => {
-								const profilePictureSrc = suggestion.profilePictureUrl
-									? `${SERVER_URL}/${suggestion.profilePictureUrl}`
-									: dummyProfilePicture;
+								const profilePictureSrc = resolveImageSrc(
+									suggestion.profilePictureUrl,
+									dummyProfilePicture,
+								);
 
 								const action = followActions[suggestion._id] || 1;
 

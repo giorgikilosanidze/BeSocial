@@ -4,8 +4,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 
 const CreatePost = () => {
 	const userId = useAppSelector((state) => state.auth.user.id);
@@ -17,9 +16,7 @@ const CreatePost = () => {
 	const [isPosting, setIsPosting] = useState(false);
 	const navigate = useNavigate();
 
-	const profilePictureSrc = profilePictureUrl
-		? `${SERVER_URL}/${profilePictureUrl}`
-		: dummyProfilePicture;
+	const profilePictureSrc = resolveImageSrc(profilePictureUrl, dummyProfilePicture);
 
 	const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 

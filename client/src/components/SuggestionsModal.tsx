@@ -1,5 +1,5 @@
 import routes from '@/constants/routes';
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import type { Suggestions } from '@/types/feed';
 import { useEffect, type Dispatch, type SetStateAction } from 'react';
 import { Link } from 'react-router-dom';
@@ -106,9 +106,10 @@ const Modal = ({
 					{!isSuggestionsLoading && suggestions.length > 0 && (
 						<div className="p-2">
 							{suggestions.map((suggestion) => {
-								const profilePictureSrc = suggestion.profilePictureUrl
-									? `${SERVER_URL}/${suggestion.profilePictureUrl}`
-									: dummyProfilePicture;
+								const profilePictureSrc = resolveImageSrc(
+									suggestion.profilePictureUrl,
+									dummyProfilePicture,
+								);
 								const action = followActions[suggestion._id] || 1;
 
 								return (

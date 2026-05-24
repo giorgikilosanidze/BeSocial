@@ -1,4 +1,4 @@
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import type { NotificationType } from '@/types/notification';
 import { timeAgo } from '@/utils/formatTime';
 import { Link } from 'react-router-dom';
@@ -29,9 +29,10 @@ const FollowingNotification = ({
 		markAsReadIfNeeded();
 		if (onNotificationClick) onNotificationClick();
 	};
-	const profilePictureUrl = notification.sender.profilePictureUrl
-		? `${SERVER_URL}/${notification.sender.profilePictureUrl}`
-		: dummyProfilePicture;
+	const profilePictureUrl = resolveImageSrc(
+		notification.sender.profilePictureUrl,
+		dummyProfilePicture,
+	);
 
 	const followTimeAgo = timeAgo(notification.createdAt);
 

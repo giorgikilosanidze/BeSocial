@@ -1,15 +1,11 @@
 import { useEffect } from 'react';
 import dummyProfilePicture from '@/assets/user.jpg';
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import type { AllChatsModalProps } from '@/types/chat';
 
 const AllChatsModal = ({ isOpen, chats, onClose, onOpenChat }: AllChatsModalProps) => {
-	const resolveChatAvatarSrc = (avatarUrl?: string) => {
-		if (!avatarUrl) return dummyProfilePicture;
-		if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) return avatarUrl;
-		if (avatarUrl.startsWith('/src/') || avatarUrl.startsWith('data:')) return avatarUrl;
-		return `${SERVER_URL}/${avatarUrl}`;
-	};
+	const resolveChatAvatarSrc = (avatarUrl?: string) =>
+		resolveImageSrc(avatarUrl, dummyProfilePicture);
 	const formatPreviewTimestamp = (value: string) => {
 		if (!value) return '';
 

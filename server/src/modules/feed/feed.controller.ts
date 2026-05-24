@@ -17,7 +17,6 @@ import {
 	GetSuggestionssRequest,
 	PostIdParams,
 } from './feed.types.js';
-import path from 'path';
 import { getIO } from '../../socket.js';
 import { ReactionData } from '../reactions/reaction.types.js';
 import {
@@ -73,8 +72,7 @@ export async function postCreation(req: CreatePostRequest, res: Response, next: 
 
 	if (Array.isArray(imageFiles) && imageFiles?.length) {
 		imageFiles.forEach((image) => {
-			const normalizedPath = image.path.split(path.sep).join('/');
-			imageUrls.push(normalizedPath);
+			imageUrls.push(image.path);
 		});
 	}
 

@@ -1,11 +1,13 @@
 import { updateCoverPhoto, updateProfilePicture } from '@/features/auth/authSlice';
 import {
+	deleteCoverPhoto,
+	deleteProfilePicture,
 	followOrUnfollow,
 	uploadCoverPhoto,
 	uploadProfilePicture,
 } from '@/features/profile/profileThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { useParams } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
 import ImageCropModal from './ImageCropModal';
@@ -30,7 +32,7 @@ interface ProfileHeaderProps {
 type CropTarget = 'profile' | 'cover';
 type PreviewTarget = 'profile' | 'cover';
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 
 const ProfileHeader = ({
 	username,
@@ -53,17 +55,53 @@ const ProfileHeader = ({
 	const [isImageSaving, setIsImageSaving] = useState(false);
 	const [previewTarget, setPreviewTarget] = useState<PreviewTarget | null>(null);
 	const [chat, setChat] = useState<ChatProps | null>(null);
+	const [openMenu, setOpenMenu] = useState<'profile' | 'cover' | null>(null);
+	const [confirmDelete, setConfirmDelete] = useState<'profile' | 'cover' | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
+	const profileInputRef = useRef<HTMLInputElement>(null);
+	const coverInputRef = useRef<HTMLInputElement>(null);
+	const profileMenuRef = useRef<HTMLDivElement>(null);
+	const coverMenuRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		setoptimisticFollowers(followersCount);
 	}, [followersCount]);
 
-	const profilePictureSrc = profilePictureUrl
-		? `${SERVER_URL}/${profilePictureUrl}`
-		: dummyProfilePicture;
+	useEffect(() => {
+		if (!openMenu) return;
+		const handleClickOutside = (event: MouseEvent) => {
+			const activeRef = openMenu === 'profile' ? profileMenuRef : coverMenuRef;
+			if (activeRef.current && !activeRef.current.contains(event.target as Node)) {
+				setOpenMenu(null);
+			}
+		};
+		document.addEventListener('mousedown', handleClickOutside);
+		return () => document.removeEventListener('mousedown', handleClickOutside);
+	}, [openMenu]);
+
+	const handleConfirmDelete = async () => {
+		if (!userId || !confirmDelete) return;
+		setIsDeleting(true);
+		try {
+			if (confirmDelete === 'profile') {
+				await dispatch(deleteProfilePicture(userId)).unwrap();
+				dispatch(updateProfilePicture({ profilePictureUrl: '' }));
+			} else {
+				await dispatch(deleteCoverPhoto(userId)).unwrap();
+				dispatch(updateCoverPhoto({ coverPhotoUrl: '' }));
+			}
+			setConfirmDelete(null);
+		} catch (error) {
+			console.error(error);
+		} finally {
+			setIsDeleting(false);
+		}
+	};
+
+	const profilePictureSrc = resolveImageSrc(profilePictureUrl, dummyProfilePicture);
 	const hasCoverPhoto = Boolean(coverPhotoUrl);
 
-	const coverPhotoSrc = coverPhotoUrl ? `${SERVER_URL}/${coverPhotoUrl}` : '';
+	const coverPhotoSrc = resolveImageSrc(coverPhotoUrl);
 
 	const handleMessage = () => {
 		const chatData = createChatData(userId!, username, profilePictureUrl);
@@ -158,28 +196,63 @@ const ProfileHeader = ({
 					)}
 					{/* Edit Cover Photo Button */}
 					{hasPermission && (
-						<label className="absolute bottom-4 right-4 bg-white text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors shadow-md flex items-center space-x-2 cursor-pointer max-[520px]:w-10 max-[520px]:h-10 max-[520px]:p-0 max-[520px]:justify-center">
-							<svg
-								className="w-4 h-4"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24"
+						<div ref={coverMenuRef} className="absolute bottom-4 right-4">
+							<button
+								type="button"
+								onClick={() =>
+									setOpenMenu(openMenu === 'cover' ? null : 'cover')
+								}
+								className="bg-white text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-100 transition-colors shadow-md flex items-center space-x-2 cursor-pointer max-[520px]:w-10 max-[520px]:h-10 max-[520px]:p-0 max-[520px]:justify-center"
 							>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-								/>
-								<path
-									strokeLinecap="round"
-									strokeLinejoin="round"
-									strokeWidth={2}
-									d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-								/>
-							</svg>
-							<span className="max-[520px]:hidden">Edit Cover</span>
+								<svg
+									className="w-4 h-4"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+									/>
+									<path
+										strokeLinecap="round"
+										strokeLinejoin="round"
+										strokeWidth={2}
+										d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+									/>
+								</svg>
+								<span className="max-[520px]:hidden">Edit Cover</span>
+							</button>
+							{openMenu === 'cover' && (
+								<div className="absolute top-full mt-2 right-0 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-20">
+									<button
+										type="button"
+										onClick={() => {
+											coverInputRef.current?.click();
+											setOpenMenu(null);
+										}}
+										className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+									>
+										Upload new photo
+									</button>
+									{hasCoverPhoto && (
+										<button
+											type="button"
+											onClick={() => {
+												setConfirmDelete('cover');
+												setOpenMenu(null);
+											}}
+											className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+										>
+											Remove photo
+										</button>
+									)}
+								</div>
+							)}
 							<input
+								ref={coverInputRef}
 								onChange={(e: ChangeEvent<HTMLInputElement>) => {
 									startCrop('cover', e.target.files);
 									e.target.value = '';
@@ -188,7 +261,7 @@ const ProfileHeader = ({
 								accept="image/png,image/jpeg"
 								className="hidden"
 							/>
-						</label>
+						</div>
 					)}
 				</div>
 
@@ -210,27 +283,62 @@ const ProfileHeader = ({
 							</div>
 							{/* Edit Profile Photo Button */}
 							{hasPermission && (
-								<label className="absolute bottom-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors border-2 border-gray-200 cursor-pointer">
-									<svg
-										className="w-5 h-5 text-gray-700"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
+								<div ref={profileMenuRef} className="absolute bottom-2 right-2">
+									<button
+										type="button"
+										onClick={() =>
+											setOpenMenu(openMenu === 'profile' ? null : 'profile')
+										}
+										className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-100 transition-colors border-2 border-gray-200 cursor-pointer"
 									>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
-										/>
-										<path
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth={2}
-											d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
-										/>
-									</svg>
+										<svg
+											className="w-5 h-5 text-gray-700"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+											/>
+											<path
+												strokeLinecap="round"
+												strokeLinejoin="round"
+												strokeWidth={2}
+												d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+											/>
+										</svg>
+									</button>
+									{openMenu === 'profile' && (
+										<div className="absolute top-full mt-2 left-0 w-48 bg-white rounded-lg shadow-xl border border-gray-100 py-1 z-20">
+											<button
+												type="button"
+												onClick={() => {
+													profileInputRef.current?.click();
+													setOpenMenu(null);
+												}}
+												className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+											>
+												Upload new photo
+											</button>
+											{Boolean(profilePictureUrl) && (
+												<button
+													type="button"
+													onClick={() => {
+														setConfirmDelete('profile');
+														setOpenMenu(null);
+													}}
+													className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+												>
+													Remove photo
+												</button>
+											)}
+										</div>
+									)}
 									<input
+										ref={profileInputRef}
 										onChange={(e: ChangeEvent<HTMLInputElement>) => {
 											startCrop('profile', e.target.files);
 											e.target.value = '';
@@ -239,7 +347,7 @@ const ProfileHeader = ({
 										accept="image/png,image/jpeg"
 										className="hidden"
 									/>
-								</label>
+								</div>
 							)}
 						</div>
 
@@ -367,6 +475,39 @@ const ProfileHeader = ({
 						variant={previewTarget}
 						onClose={() => setPreviewTarget(null)}
 					/>
+				)}
+
+				{confirmDelete && (
+					<div className="fixed inset-0 z-[150] bg-black/50 flex items-center justify-center p-4">
+						<div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+							<h3 className="text-lg font-semibold text-gray-900">
+								Remove{' '}
+								{confirmDelete === 'profile' ? 'profile picture' : 'cover photo'}
+								?
+							</h3>
+							<p className="mt-2 text-sm text-gray-600">
+								This action cannot be undone.
+							</p>
+							<div className="mt-5 flex justify-end gap-3">
+								<button
+									type="button"
+									onClick={() => setConfirmDelete(null)}
+									disabled={isDeleting}
+									className="px-4 py-2 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-60"
+								>
+									Cancel
+								</button>
+								<button
+									type="button"
+									onClick={handleConfirmDelete}
+									disabled={isDeleting}
+									className="px-4 py-2 rounded-lg text-sm font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-60"
+								>
+									{isDeleting ? 'Removing...' : 'Remove'}
+								</button>
+							</div>
+						</div>
+					</div>
 				)}
 			</div>
 			<ChatWidget chat={chat} onClose={handleCloseChat} />

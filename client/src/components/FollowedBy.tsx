@@ -4,8 +4,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
 import FollowedByModal from './FollowedByModal';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 
 const deterministicScore = (value: string, seed: string) => {
 	const combined = `${seed}:${value}`;
@@ -74,9 +73,10 @@ const FollowedBy = () => {
 			) : (
 				<div className="grid grid-cols-3 gap-3">
 					{previewUsers.map((user) => {
-						const profilePictureSrc = user.profilePictureUrl
-							? `${SERVER_URL}/${user.profilePictureUrl}`
-							: dummyProfilePicture;
+						const profilePictureSrc = resolveImageSrc(
+							user.profilePictureUrl,
+							dummyProfilePicture,
+						);
 
 						return (
 							<div key={user._id} className="flex flex-col items-center">

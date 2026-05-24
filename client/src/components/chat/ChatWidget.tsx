@@ -1,5 +1,6 @@
 import dummyProfilePicture from '@/assets/user.jpg';
 import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import EmojiPicker from 'emoji-picker-react';
 import type { EmojiClickData } from 'emoji-picker-react';
 import { FiSmile } from 'react-icons/fi';
@@ -52,12 +53,10 @@ const convertEmoticonsToEmoji = (input: string) =>
 		return emoji ? `${prefix}${emoji}` : fullMatch;
 	});
 
-const resolveChatAvatarSrc = (avatarUrl?: string) => {
-	if (!avatarUrl) return dummyProfilePicture;
-	if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) return avatarUrl;
-	if (avatarUrl.startsWith('/src/') || avatarUrl.startsWith('data:')) return avatarUrl;
-	return `${SERVER_URL}/${avatarUrl}`;
-};
+const resolveChatAvatarSrc = (avatarUrl?: string) =>
+	resolveImageSrc(avatarUrl, dummyProfilePicture);
+
+const EMPTY_MESSAGES: Message[] = [];
 
 const ChatWidget = ({
 	chat,
@@ -82,8 +81,11 @@ const ChatWidget = ({
 	const dispatch = useAppDispatch();
 	const currentUserId = useAppSelector((state) => state.auth.user.id);
 	const chatMessages = useAppSelector((state) => {
-		if (!chat) return [];
-		return state.chat.chats.find((currentChat) => currentChat.id === chat.id)?.messages || [];
+		if (!chat) return EMPTY_MESSAGES;
+		return (
+			state.chat.chats.find((currentChat) => currentChat.id === chat.id)?.messages ||
+			EMPTY_MESSAGES
+		);
 	});
 	const isCurrentChatLoading = useAppSelector(
 		(state) => state.chat.isLoading && state.chat.loadingChatId === chat?.id,

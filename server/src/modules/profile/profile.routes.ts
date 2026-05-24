@@ -7,6 +7,8 @@ import {
 	uploadProfilePicture,
 	getFollowers,
 	getFollowing,
+	deleteProfilePicture,
+	deleteCoverPhoto,
 } from './profile.controller.js';
 
 const router = Router();
@@ -14,8 +16,10 @@ const router = Router();
 router.get('/user/:userId', authGuard, getUserProfile);
 
 router.post('/profilePicture/:userId', authGuard, uploadProfilePicture);
+router.delete('/profilePicture/:userId', authGuard, deleteProfilePicture);
 
 router.post('/coverPhoto/:userId', authGuard, uploadCoverPhoto);
+router.delete('/coverPhoto/:userId', authGuard, deleteCoverPhoto);
 
 router.post('/follow', authGuard, followOrUnfollow);
 

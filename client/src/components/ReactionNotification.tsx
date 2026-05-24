@@ -1,4 +1,4 @@
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import type { NotificationType } from '@/types/notification';
 import { useNavigate } from 'react-router-dom';
 import routes from '@/constants/routes';
@@ -83,9 +83,10 @@ const ReactionNotification = ({ toast, onRemove }: ReactionNotificationProps) =>
 		onRemove();
 	};
 
-	const profilePictureUrl = toast.sender.profilePictureUrl
-		? `${SERVER_URL}/${toast.sender.profilePictureUrl}`
-		: dummyProfilePicture;
+	const profilePictureUrl = resolveImageSrc(
+		toast.sender.profilePictureUrl,
+		dummyProfilePicture,
+	);
 
 	return (
 		<div

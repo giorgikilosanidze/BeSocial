@@ -15,8 +15,7 @@ import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 
 interface PendingComment {
 	id: string;
@@ -59,9 +58,7 @@ const PostCard = ({ post }: PostCardProps) => {
 	const isLove = activeReaction === 'love';
 	const isAngry = activeReaction === 'angry';
 
-	const profilePictureSrc = profilePictureUrl
-		? `${SERVER_URL}/${profilePictureUrl}`
-		: dummyProfilePicture;
+	const profilePictureSrc = resolveImageSrc(profilePictureUrl, dummyProfilePicture);
 
 	const postCreatedAgo = timeAgo(post.createdAt);
 	const commentsCount = (post.comments?.length || 0) + pendingComments.length;
@@ -373,7 +370,7 @@ const PostCard = ({ post }: PostCardProps) => {
 				post.imageUrls.map((url) => (
 					<div key={url} className="w-full">
 						<img
-							src={`${SERVER_URL}${url}`}
+							src={resolveImageSrc(url)}
 							alt="Post"
 							className="w-full object-cover max-h-96"
 						/>
@@ -522,7 +519,7 @@ const PostCard = ({ post }: PostCardProps) => {
 									className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 block"
 								>
 									<img
-										src={currentUser.profilePictureUrl ? `${SERVER_URL}/${currentUser.profilePictureUrl}` : dummyProfilePicture}
+										src={resolveImageSrc(currentUser.profilePictureUrl, dummyProfilePicture)}
 										alt={currentUser.username}
 										className="w-full h-full object-cover opacity-80"
 									/>

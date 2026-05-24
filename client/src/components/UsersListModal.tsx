@@ -1,7 +1,7 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
 import { Link } from 'react-router-dom';
 import routes from '@/constants/routes';
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import {
 	followOrUnfollow,
@@ -141,9 +141,10 @@ const UsersListModal = ({ setIsOpen, userId, type }: UsersListModalProps) => {
 					{!isLoading && users.length > 0 && (
 						<div className="space-y-1">
 							{users.map((u) => {
-								const profilePictureSrc = u.profilePictureUrl
-									? `${SERVER_URL}/${u.profilePictureUrl}`
-									: dummyProfilePicture;
+								const profilePictureSrc = resolveImageSrc(
+									u.profilePictureUrl,
+									dummyProfilePicture,
+								);
 
 								return (
 									<div

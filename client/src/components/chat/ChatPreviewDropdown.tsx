@@ -1,5 +1,5 @@
 import dummyProfilePicture from '@/assets/user.jpg';
-import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import type { ChatPreviewDropdownProps } from '@/types/chat';
 
 const ChatPreviewDropdown = ({ chats, onOpenChat, onSeeAll }: ChatPreviewDropdownProps) => {
@@ -52,11 +52,7 @@ const ChatPreviewDropdown = ({ chats, onOpenChat, onSeeAll }: ChatPreviewDropdow
 					>
 						<div className="flex items-center gap-3">
 							<img
-								src={
-									chat.avatarUrl
-										? `${SERVER_URL}/${chat.avatarUrl}`
-										: dummyProfilePicture
-								}
+								src={resolveImageSrc(chat.avatarUrl, dummyProfilePicture)}
 								alt={chat.username}
 								className="w-10 h-10 rounded-full object-cover"
 							/>

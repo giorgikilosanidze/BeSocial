@@ -149,7 +149,7 @@ export async function postLogIn(
 	} else {
 		return res.status(400).json({
 			message: 'Log in failed!',
-			otherErrors: { password: 'User with this password does not exist!' },
+			otherErrors: { password: 'Incorrect password!' },
 		});
 	}
 }

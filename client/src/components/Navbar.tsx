@@ -18,6 +18,7 @@ import { toggleUnreadNotifications } from '@/features/navbar/navbarSlice';
 import { markNotificationDotSeen } from '@/utils/notificationDot';
 import dummyProfilePicture from '../assets/user.jpg';
 import SERVER_URL from '@/constants/serverUrl';
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import type { GetChatsResponse } from '@/types/chat';
 import { socket } from '@/socket';
 
@@ -85,16 +86,9 @@ const Navbar = () => {
 	const minimizedOpenChats = openChats.filter((chat) => chat.isMinimized);
 	const expandedOpenChats = openChats.filter((chat) => !chat.isMinimized);
 
-	const profilePictureSrc = user.profilePictureUrl
-		? `${SERVER_URL}/${user.profilePictureUrl}`
-		: dummyProfilePicture;
+	const profilePictureSrc = resolveImageSrc(user.profilePictureUrl, dummyProfilePicture);
 
-	const resolveAvatarSrc = (avatarUrl?: string) => {
-		if (!avatarUrl) return dummyProfilePicture;
-		if (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) return avatarUrl;
-		if (avatarUrl.startsWith('/src/') || avatarUrl.startsWith('data:')) return avatarUrl;
-		return `${SERVER_URL}/${avatarUrl}`;
-	};
+	const resolveAvatarSrc = (avatarUrl?: string) => resolveImageSrc(avatarUrl, dummyProfilePicture);
 
 	useEffect(() => {
 		const loadChats = async () => {
@@ -511,9 +505,10 @@ const Navbar = () => {
 									<div className="absolute top-full mt-2 w-full bg-white rounded-xl shadow-[0_4px_20px_-2px_rgba(0,0,0,0.1)] border border-gray-100 py-2 z-50 max-h-96 overflow-y-auto">
 										<div className="py-1">
 											{searchedUsers.map((user) => {
-												const profilePictureSrc = user.profilePictureUrl
-													? `${SERVER_URL}/${user.profilePictureUrl}`
-													: dummyProfilePicture;
+												const profilePictureSrc = resolveImageSrc(
+													user.profilePictureUrl,
+													dummyProfilePicture,
+												);
 
 												return (
 													<div

@@ -4,8 +4,7 @@ import { useAppDispatch } from '@/hooks/reduxHooks';
 import { timeAgo } from '@/utils/formatTime';
 import { Link } from 'react-router-dom';
 import dummyProfilePicture from '../assets/user.jpg';
-
-const SERVER_URL = import.meta.env.VITE_SERVER_URL;
+import { resolveImageSrc } from '@/utils/resolveImageSrc';
 
 interface CommentProps {
 	id: string;
@@ -30,9 +29,7 @@ const Comment = ({
 }: CommentProps) => {
 	const dispatch = useAppDispatch();
 
-	const avatarSrc = profilePictureUrl
-		? `${SERVER_URL}/${profilePictureUrl}`
-		: dummyProfilePicture;
+	const avatarSrc = resolveImageSrc(profilePictureUrl, dummyProfilePicture);
 
 	const commentTimeAgo = timeAgo(createdAt);
 

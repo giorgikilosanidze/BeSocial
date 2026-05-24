@@ -8,9 +8,10 @@ import {
 	getFollowersList,
 	getFollowingList,
 	handleFollowedBy,
+	removeUserProfilePicture,
+	removeUserCoverPhoto,
 } from '../user/user.repository.js';
 import { getPostsByUserId, getPostsCountForUsers } from '../post/post.repository.js';
-import path from 'path';
 import { FollowRequest } from './profile.types.js';
 import { getIO } from '../../socket.js';
 import { createNotification } from '../notification/notification.repository.js';
@@ -68,11 +69,11 @@ export async function uploadProfilePicture(
 		return res.status(400).json({ message: 'Not enough data to upload profile picture!' });
 	}
 
-	const normalizedPath = image[0].path.split(path.sep).join('/');
+	const profilePictureUrl = image[0].path;
 
-	await saveProfilePicture(userId, normalizedPath);
+	await saveProfilePicture(userId, profilePictureUrl);
 
-	return res.status(200).json({ profilePictureUrl: normalizedPath });
+	return res.status(200).json({ profilePictureUrl });
 }
 
 export async function uploadCoverPhoto(
@@ -87,11 +88,49 @@ export async function uploadCoverPhoto(
 		return res.status(400).json({ message: 'Not enough data to upload cover photo!' });
 	}
 
-	const normalizedPath = image[0].path.split(path.sep).join('/');
+	const coverPhotoUrl = image[0].path;
 
-	await saveCoverPhoto(userId, normalizedPath);
+	await saveCoverPhoto(userId, coverPhotoUrl);
 
-	return res.status(200).json({ coverPhotoUrl: normalizedPath });
+	return res.status(200).json({ coverPhotoUrl });
+}
+
+export async function deleteProfilePicture(
+	req: Request<{ userId?: string }>,
+	res: Response,
+	next: NextFunction,
+) {
+	const userId = req.params.userId;
+
+	if (!userId) {
+		return res.status(400).json({ message: 'Missing userId param' });
+	}
+
+	try {
+		await removeUserProfilePicture(userId);
+		return res.status(200).json({ profilePictureUrl: '' });
+	} catch (error) {
+		return next(error);
+	}
+}
+
+export async function deleteCoverPhoto(
+	req: Request<{ userId?: string }>,
+	res: Response,
+	next: NextFunction,
+) {
+	const userId = req.params.userId;
+
+	if (!userId) {
+		return res.status(400).json({ message: 'Missing userId param' });
+	}
+
+	try {
+		await removeUserCoverPhoto(userId);
+		return res.status(200).json({ coverPhotoUrl: '' });
+	} catch (error) {
+		return next(error);
+	}
 }
 
 export async function followOrUnfollow(req: FollowRequest, res: Response, next: NextFunction) {

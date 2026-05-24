@@ -123,6 +123,82 @@ export const uploadCoverPhoto = createAsyncThunk<CoverPhotoReturnData, UploadPic
 	},
 );
 
+export const deleteProfilePicture = createAsyncThunk<ProfilePictureReturnData, string>(
+	'profile/deleteProfilePicture',
+	async (userId, { rejectWithValue }) => {
+		const response = await fetch(`${SERVER_URL}/api/profile/profilePicture/${userId}`, {
+			method: 'DELETE',
+			credentials: 'include',
+		});
+
+		const res = await response.json();
+
+		if (res.message === 'ACCESS_TOKEN_EXPIRED' || res.message === 'NO_ACCESS_TOKEN') {
+			try {
+				await refreshTokenRequest();
+
+				const retry = await fetch(`${SERVER_URL}/api/profile/profilePicture/${userId}`, {
+					method: 'DELETE',
+					credentials: 'include',
+				});
+
+				if (!retry.ok) {
+					const retryError = await retry.json();
+					return rejectWithValue(retryError.message || 'Not authenticated');
+				}
+
+				return await retry.json();
+			} catch (refreshError: unknown) {
+				return rejectWithValue((refreshError as Error).message);
+			}
+		}
+
+		if (!response.ok) {
+			return rejectWithValue(res.message || 'Failed to delete profile picture');
+		}
+
+		return res;
+	},
+);
+
+export const deleteCoverPhoto = createAsyncThunk<CoverPhotoReturnData, string>(
+	'profile/deleteCoverPhoto',
+	async (userId, { rejectWithValue }) => {
+		const response = await fetch(`${SERVER_URL}/api/profile/coverPhoto/${userId}`, {
+			method: 'DELETE',
+			credentials: 'include',
+		});
+
+		const res = await response.json();
+
+		if (res.message === 'ACCESS_TOKEN_EXPIRED' || res.message === 'NO_ACCESS_TOKEN') {
+			try {
+				await refreshTokenRequest();
+
+				const retry = await fetch(`${SERVER_URL}/api/profile/coverPhoto/${userId}`, {
+					method: 'DELETE',
+					credentials: 'include',
+				});
+
+				if (!retry.ok) {
+					const retryError = await retry.json();
+					return rejectWithValue(retryError.message || 'Not authenticated');
+				}
+
+				return await retry.json();
+			} catch (refreshError: unknown) {
+				return rejectWithValue((refreshError as Error).message);
+			}
+		}
+
+		if (!response.ok) {
+			return rejectWithValue(res.message || 'Failed to delete cover photo');
+		}
+
+		return res;
+	},
+);
+
 export const followOrUnfollow = createAsyncThunk<
 	{ isFollowing: boolean },
 	{ targetUser: string; action: 1 | 2 }

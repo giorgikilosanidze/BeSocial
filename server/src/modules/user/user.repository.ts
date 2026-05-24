@@ -63,6 +63,36 @@ export async function saveProfilePicture(userId: string, profilePictureUrl: stri
 	await user.save();
 }
 
+export async function removeUserProfilePicture(userId: string) {
+	const user = await getUserById(userId);
+
+	if (!user) {
+		throw new Error('This user does not exist!');
+	}
+
+	if (user.profilePictureUrl) {
+		removeImage(user.profilePictureUrl);
+	}
+
+	user.profilePictureUrl = '';
+	await user.save();
+}
+
+export async function removeUserCoverPhoto(userId: string) {
+	const user = await getUserById(userId);
+
+	if (!user) {
+		throw new Error('This user does not exist!');
+	}
+
+	if (user.coverPhotoUrl) {
+		removeImage(user.coverPhotoUrl);
+	}
+
+	user.coverPhotoUrl = '';
+	await user.save();
+}
+
 export async function saveCoverPhoto(userId: string, coverPhotoUrl: string) {
 	const user = await getUserById(userId);
 
