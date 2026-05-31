@@ -6,7 +6,14 @@ import {
 	RefreshTokenRequest,
 	UserIdRequest,
 } from './auth.types.js';
-import { comparePasswords, createJWT, createRefreshJWT, signUpUser } from './auth.service.js';
+import {
+	comparePasswords,
+	createJWT,
+	createRefreshJWT,
+	createSocketToken,
+	signUpUser,
+} from './auth.service.js';
+import { AuthGuardRequest } from '../../middlewares/authGuard/authGuard.types.js';
 import {
 	checkUserExistence,
 	deleteRefreshToken,
@@ -200,6 +207,15 @@ export async function sendLoggedInUser(req: UserIdRequest, res: Response, next: 
 	} catch (error: any) {
 		next(error);
 	}
+}
+
+export function getSocketToken(req: AuthGuardRequest, res: Response) {
+	if (!req.userId) {
+		return res.status(401).json({ message: 'Unauthorized' });
+	}
+
+	const token = createSocketToken(req.userId);
+	return res.status(200).json({ token });
 }
 
 export async function resendAccessToken(

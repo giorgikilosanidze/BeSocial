@@ -33,6 +33,13 @@ export function createRefreshJWT(id: string): string {
 	return token;
 }
 
+// Short-lived token presented in the socket handshake. The client obtains it
+// from an authenticated HTTP endpoint (cookie-backed), then the socket server
+// verifies it to derive the real userId instead of trusting client input.
+export function createSocketToken(id: string): string {
+	return jwt.sign({ id }, process.env.JWT_SECRET_KEY as string, { expiresIn: '2m' });
+}
+
 export async function comparePasswords(password: string, dbPassword: string): Promise<boolean> {
 	const isEqual = await compare(password, dbPassword);
 	return isEqual;

@@ -16,9 +16,9 @@ import {
 	GetPostsRequest,
 	GetSuggestionssRequest,
 	PostIdParams,
+	ReactionRequest,
 } from './feed.types.js';
 import { getIO } from '../../socket.js';
-import { ReactionData } from '../reactions/reaction.types.js';
 import {
 	addReaction,
 	collectReactions,
@@ -132,35 +132,24 @@ export async function deletePost(req: Request<PostIdParams>, res: Response, next
 	}
 }
 
-export async function handleReaction(
-	req: Request<{}, {}, ReactionData>,
-	res: Response,
-	next: NextFunction,
-) {
-	const { postId, userId, reactionType } = req.body;
+export async function handleReaction(req: ReactionRequest, res: Response, next: NextFunction) {
+	const { postId, reactionType } = req.body;
+	// Trust the authenticated user from the token, never a userId from the body —
+	// otherwise anyone could react (and send notifications) as another user.
+	const userId = req.userId;
 
-	if (!postId || !userId || !reactionType) {
+	if (!userId) {
+		return res.status(401).json({ message: 'Unauthorized' });
+	}
+
+	if (!postId || !reactionType) {
 		return res.status(400).json({ message: 'Not enough information to handle reaction!' });
 	}
 
 	try {
 		const isAdded = await addReaction({ postId, userId, reactionType });
 		const reactions = await collectReactions(postId);
-
 		const postAuthorId = await getUserIdByPost(postId);
-
-		if (postAuthorId.toString() === userId.toString()) {
-			return;
-		}
-
-		const notification = await createNotification({
-			recipient: postAuthorId,
-			sender: userId,
-			type: 'reaction',
-			isRead: false,
-			post: postId,
-			reactionType: reactionType,
-		});
 
 		const returnObject = {
 			postId,
@@ -171,13 +160,24 @@ export async function handleReaction(
 
 		getIO().emit('reactionAdded', returnObject);
 
-		if (isAdded) {
+		// Only notify the author when someone else adds a reaction. Reacting to
+		// your own post still returns a normal response (it must not hang).
+		if (isAdded && postAuthorId.toString() !== userId.toString()) {
+			const notification = await createNotification({
+				recipient: postAuthorId,
+				sender: userId,
+				type: 'reaction',
+				isRead: false,
+				post: postId,
+				reactionType: reactionType,
+			});
+
 			getIO().to(postAuthorId.toString()).emit('reactionNotification', notification);
 		}
 
-		res.status(200).json(returnObject);
+		return res.status(200).json(returnObject);
 	} catch (error) {
-		res.status(500).json({ message: 'Could not react to post!' });
+		return res.status(500).json({ message: 'Could not react to post!' });
 	}
 }
 

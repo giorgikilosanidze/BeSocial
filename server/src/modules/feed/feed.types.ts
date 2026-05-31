@@ -1,8 +1,17 @@
 import { Request } from 'express';
+import { ReactionTypes } from '../reactions/reaction.types.js';
 
 export interface CreatePostRequest extends Request {
 	userId?: string;
 	body: { text: string; imageUrls?: string[] };
+}
+
+export interface ReactionRequest extends Request {
+	userId?: string;
+	body: {
+		postId: string;
+		reactionType: ReactionTypes;
+	};
 }
 
 export interface PostIdParams {

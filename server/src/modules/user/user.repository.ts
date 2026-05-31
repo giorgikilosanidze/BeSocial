@@ -109,8 +109,24 @@ export async function saveCoverPhoto(userId: string, coverPhotoUrl: string) {
 	await user.save();
 }
 
+// Escape regex metacharacters so user input is matched literally. Without this,
+// a crafted pattern could cause catastrophic backtracking (ReDoS) or alter the
+// query's meaning.
+function escapeRegex(input: string): string {
+	return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export async function searchUsers(query: string) {
-	const users = await User.find({ username: { $regex: query, $options: 'i' } })
+	// Trim and cap length to bound the cost of the regex scan.
+	const sanitized = query.trim().slice(0, 50);
+
+	if (!sanitized) {
+		return [];
+	}
+
+	const users = await User.find({
+		username: { $regex: escapeRegex(sanitized), $options: 'i' },
+	})
 		.select('username _id profilePictureUrl followers')
 		.limit(5);
 

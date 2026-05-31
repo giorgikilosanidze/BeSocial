@@ -12,6 +12,7 @@ import dotenv from 'dotenv';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import cloudinary from './config/cloudinary.js';
 import { searchUsers } from './modules/user/user.repository.js';
+import authGuard from './middlewares/authGuard/authGuard.js';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/api', notificationRoutes);
 
 app.get(
 	'/api/search',
+	authGuard,
 	async (req: Request<{}, {}, {}, { search?: string }>, res: Response, next: NextFunction) => {
 		const searchQuery = req.query.search;
 
