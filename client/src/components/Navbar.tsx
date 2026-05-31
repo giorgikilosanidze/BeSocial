@@ -37,6 +37,8 @@ interface IncomingSocketMessage {
 	receiverId: string;
 	text: string;
 	createdAt?: string;
+	senderUsername?: string;
+	senderProfilePictureUrl?: string;
 }
 
 interface UserPresenceChangedPayload {

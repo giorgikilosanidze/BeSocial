@@ -3,7 +3,9 @@ export function timeAgo(dateString: string): string {
 
 	const now = new Date();
 	const past = new Date(dateString);
-	const diff = now.getTime() - past.getTime();
+	// Clamp to zero so minor server/client clock skew can't make a past event
+	// render as a future countdown ("in 53 seconds"); it shows "now" instead.
+	const diff = Math.max(0, now.getTime() - past.getTime());
 
 	const seconds = Math.floor(diff / 1000);
 	const minutes = Math.floor(seconds / 60);

@@ -85,8 +85,18 @@ export async function postChat(req: PostChatRequest, res: Response, next: NextFu
 	try {
 		const message = await storeMessage(userId, receiverId, text.trim());
 
+		// Attach the sender's identity so the recipient can label a brand-new
+		// chat thread / toast without a separate lookup (the stored message only
+		// holds ids).
+		const sender = await User.findById(userId).select('username profilePictureUrl').lean();
+		const payload = {
+			...(message as any).toJSON(),
+			senderUsername: sender?.username || '',
+			senderProfilePictureUrl: sender?.profilePictureUrl || '',
+		};
+
 		// Send only to the two participants (both can have multiple connected sockets).
-		getIO().to(userId).to(receiverId).emit('newMessage', message);
+		getIO().to(userId).to(receiverId).emit('newMessage', payload);
 
 		return res.status(201).json({ data: { message } });
 	} catch (error: any) {
