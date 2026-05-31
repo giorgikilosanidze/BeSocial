@@ -26,7 +26,7 @@ export async function postSignUp(
 	res: Response,
 	next: NextFunction,
 ) {
-	const { username, email, password, confirmPassword } = req.body;
+	const { username, email, password } = req.body;
 
 	let existedUser: UserSignUp | null;
 
@@ -40,13 +40,6 @@ export async function postSignUp(
 		return res.status(409).json({
 			message: 'Registration failed!',
 			otherErrors: { email: 'User with this email already exists!' },
-		});
-	}
-
-	if (password !== confirmPassword) {
-		return res.status(400).json({
-			message: 'Registration failed!',
-			otherErrors: { confirmPassword: "Passwords don't match" },
 		});
 	}
 
