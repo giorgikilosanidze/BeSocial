@@ -101,7 +101,7 @@ const ProfileHeader = ({
 	const profilePictureSrc = resolveImageSrc(profilePictureUrl, dummyProfilePicture);
 	const hasCoverPhoto = Boolean(coverPhotoUrl);
 
-	const coverPhotoSrc = resolveImageSrc(coverPhotoUrl);
+	const coverPhotoSrc = resolveImageSrc(coverPhotoUrl, undefined, 1200);
 
 	const handleMessage = () => {
 		const chatData = createChatData(userId!, username, profilePictureUrl);

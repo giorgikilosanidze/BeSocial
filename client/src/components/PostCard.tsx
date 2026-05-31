@@ -370,8 +370,9 @@ const PostCard = ({ post }: PostCardProps) => {
 				post.imageUrls.map((url) => (
 					<div key={url} className="w-full">
 						<img
-							src={resolveImageSrc(url)}
+							src={resolveImageSrc(url, undefined, 1000)}
 							alt="Post"
+							loading="lazy"
 							className="w-full object-cover max-h-96"
 						/>
 					</div>
