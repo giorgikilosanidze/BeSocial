@@ -80,6 +80,7 @@ const Navbar = () => {
 	const dispatch = useAppDispatch();
 	const navigate = useNavigate();
 	const knownChats = useAppSelector((state) => state.chat.chats);
+	const openChatIds = useAppSelector((state) => state.chat.openChatIds);
 	const [chatThreads, setChatThreads] = useState<GetChatsResponse['data']['chats']>([]);
 	const [openChats, setOpenChats] = useState<OpenChatState[]>([]);
 	const [isAllChatsModalOpen, setIsAllChatsModalOpen] = useState(false);
@@ -137,14 +138,25 @@ const Navbar = () => {
 			const knownUsername = knownChat?.username?.trim();
 			const knownAvatarUrl = knownChat?.avatarUrl;
 			const isMessageFromPartner = payload.senderId === partnerId;
-			const isPartnerChatExpanded = openChats.some(
-				(chat) => chat.id === partnerId && !chat.isMinimized,
-			);
+
+			// The identity on the payload describes the message sender, so it's the
+			// partner's identity only when the message came FROM the partner. This
+			// lets a brand-new thread/toast show the real name instead of "Unknown".
+			const senderUsername = isMessageFromPartner ? payload.senderUsername?.trim() : undefined;
+			const senderAvatarUrl = isMessageFromPartner
+				? payload.senderProfilePictureUrl
+				: undefined;
+			const resolvedUsername = knownUsername || senderUsername;
+			const resolvedAvatarUrl = knownAvatarUrl || senderAvatarUrl;
+
+			// A chat counts as open if its widget is on screen anywhere (navbar or a
+			// profile page). Both render ChatWidget, which registers in openChatIds.
+			const isPartnerChatOpen = openChatIds.includes(partnerId);
 			const messageCreatedAt = payload.createdAt || new Date().toISOString();
 
 			setChatThreads((prev) => {
 				const existingIndex = prev.findIndex((chat) => chat.id === partnerId);
-				const shouldIncreaseUnread = isMessageFromPartner && !isPartnerChatExpanded;
+				const shouldIncreaseUnread = isMessageFromPartner && !isPartnerChatOpen;
 				if (shouldIncreaseUnread && !isChatsOpen) {
 					setHasUnseenChatPreview(true);
 				}
@@ -153,8 +165,8 @@ const Navbar = () => {
 					return [
 						{
 							id: partnerId,
-							username: knownUsername || 'Unknown user',
-							avatarUrl: knownAvatarUrl || '',
+							username: resolvedUsername || 'Unknown user',
+							avatarUrl: resolvedAvatarUrl || '',
 							lastMessage: payload.text,
 							lastMessageAt: messageCreatedAt,
 							unreadCount: shouldIncreaseUnread ? 1 : 0,
@@ -167,11 +179,14 @@ const Navbar = () => {
 
 				const existing = prev[existingIndex];
 				const shouldHydrateIdentity =
-					existing.username === 'Unknown user' && Boolean(knownUsername);
+					(existing.username === 'Unknown user' || existing.username === '') &&
+					Boolean(resolvedUsername);
 				const updated = {
 					...existing,
-					username: shouldHydrateIdentity ? knownUsername! : existing.username,
-					avatarUrl: shouldHydrateIdentity ? knownAvatarUrl || existing.avatarUrl : existing.avatarUrl,
+					username: shouldHydrateIdentity ? resolvedUsername! : existing.username,
+					avatarUrl: shouldHydrateIdentity
+						? resolvedAvatarUrl || existing.avatarUrl
+						: existing.avatarUrl,
 					lastMessage: payload.text,
 					lastMessageAt: messageCreatedAt,
 					unreadCount: shouldIncreaseUnread ? existing.unreadCount + 1 : existing.unreadCount,
@@ -180,14 +195,13 @@ const Navbar = () => {
 				return [updated, ...prev.filter((chat) => chat.id !== partnerId)];
 			});
 
-			if (isMessageFromPartner && !isPartnerChatExpanded) {
-				const existingThread = chatThreads.find((chat) => chat.id === partnerId);
+			if (isMessageFromPartner && !isPartnerChatOpen) {
 				const toastId = `${partnerId}-${payload.id || Date.now()}`;
 				const nextToast: ChatToast = {
 					id: toastId,
 					chatId: partnerId,
-					username: existingThread?.username || 'New message',
-					avatarUrl: existingThread?.avatarUrl,
+					username: resolvedUsername || 'New message',
+					avatarUrl: resolvedAvatarUrl,
 					text: payload.text,
 				};
 
@@ -204,7 +218,7 @@ const Navbar = () => {
 		return () => {
 			socket.off('newMessage', handleIncomingMessage);
 		};
-	}, [chatThreads, isChatsOpen, knownChats, openChats, user.id]);
+	}, [isChatsOpen, knownChats, openChatIds, user.id]);
 
 	useEffect(() => {
 		const handleUserPresenceChanged = (payload: UserPresenceChangedPayload) => {

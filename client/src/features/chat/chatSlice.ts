@@ -4,6 +4,7 @@ import { getMessages } from './chatThunks';
 
 const initialState: ChatSlice = {
 	chats: [],
+	openChatIds: [],
 	isLoading: false,
 	loadingChatId: null,
 	error: '',
@@ -67,6 +68,16 @@ const chatSlice = createSlice({
 				seenIds.has(message.id) ? { ...message, seenAt } : message,
 			);
 		},
+		// Each visible ChatWidget registers/unregisters itself here. Duplicates are
+		// kept (ref-count) so closing one widget doesn't clear an id while another
+		// widget for the same partner is still open.
+		registerOpenChat: (state, action) => {
+			state.openChatIds.push(action.payload);
+		},
+		unregisterOpenChat: (state, action) => {
+			const index = state.openChatIds.indexOf(action.payload);
+			if (index !== -1) state.openChatIds.splice(index, 1);
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -100,7 +111,13 @@ const chatSlice = createSlice({
 	},
 });
 
-export const { createChat, addMessage, reconcileOutgoingMessage, markMessagesSeen } =
-	chatSlice.actions;
+export const {
+	createChat,
+	addMessage,
+	reconcileOutgoingMessage,
+	markMessagesSeen,
+	registerOpenChat,
+	unregisterOpenChat,
+} = chatSlice.actions;
 
 export default chatSlice.reducer;

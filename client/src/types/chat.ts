@@ -11,6 +11,10 @@ export interface Chat {
 
 export interface ChatSlice {
 	chats: ChatProps[];
+	// Partner ids whose ChatWidget is currently on screen (from the navbar OR a
+	// profile page). Single source of truth so notifications aren't shown for a
+	// chat the user already has open.
+	openChatIds: string[];
 	isLoading: boolean;
 	loadingChatId: string | null;
 	error: string;

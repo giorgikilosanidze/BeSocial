@@ -4,7 +4,13 @@ import { resolveImageSrc } from '@/utils/resolveImageSrc';
 import EmojiPicker from 'emoji-picker-react';
 import type { EmojiClickData } from 'emoji-picker-react';
 import { FiSmile } from 'react-icons/fi';
-import { addMessage, markMessagesSeen, reconcileOutgoingMessage } from '@/features/chat/chatSlice';
+import {
+	addMessage,
+	markMessagesSeen,
+	reconcileOutgoingMessage,
+	registerOpenChat,
+	unregisterOpenChat,
+} from '@/features/chat/chatSlice';
 import { getMessages, sendMessage } from '@/features/chat/chatThunks';
 import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { socket } from '@/socket';
@@ -123,6 +129,17 @@ const ChatWidget = ({
 	} else if (effectiveLastSeenAt) {
 		activityLabel = `Last seen ${formatTimeAgo(effectiveLastSeenAt)}`;
 	}
+
+	useEffect(() => {
+		// Mark this chat as open while the widget is on screen so message toasts
+		// are suppressed for it, regardless of how it was opened (navbar/profile).
+		if (!chat?.id) return;
+		const openChatId = chat.id;
+		dispatch(registerOpenChat(openChatId));
+		return () => {
+			dispatch(unregisterOpenChat(openChatId));
+		};
+	}, [chat?.id, dispatch]);
 
 	useEffect(() => {
 		const loadPresence = async () => {
