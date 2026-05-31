@@ -46,6 +46,9 @@ export type FetchPostsResponse = CreatePostResponse[];
 
 export interface PostCardProps {
 	post: CreatePostResponse;
+	// When true, this post is at the top of the feed (likely the LCP element),
+	// so its image loads eagerly with high priority instead of lazily.
+	priority?: boolean;
 }
 
 export interface EditPostData {

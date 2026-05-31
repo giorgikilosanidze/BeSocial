@@ -4,6 +4,10 @@
 		<meta charset="UTF-8" />
 		<link rel="icon" type="image/svg+xml" href="/vite.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<!-- Warm the TLS connection to the image CDN so the LCP image loads sooner. -->
+		<link rel="preconnect" href="https://res.cloudinary.com" />
+		<link rel="dns-prefetch" href="https://res.cloudinary.com" />
 		<title>BeSocial</title>
 		<meta
 			name="description"

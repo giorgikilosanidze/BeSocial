@@ -97,7 +97,9 @@ const Feed = () => {
 									<PostSkeleton />
 								</>
 							) : (
-								posts.map((post) => <PostCard key={post.id} post={post} />)
+								posts.map((post, index) => (
+									<PostCard key={post.id} post={post} priority={index === 0} />
+								))
 							)}
 						</div>
 					</main>
