@@ -22,7 +22,7 @@ interface PendingComment {
 	text: string;
 }
 
-const PostCard = ({ post, priority = false }: PostCardProps) => {
+const PostCard = ({ post }: PostCardProps) => {
 	const userId = useAppSelector((state) => state.auth.user.id);
 	const currentUser = useAppSelector((state) => state.auth.user);
 	const profilePictureUrl = post.author.profilePictureUrl;
@@ -367,24 +367,16 @@ const PostCard = ({ post, priority = false }: PostCardProps) => {
 
 			{/* Post Image */}
 			{post.imageUrls &&
-				post.imageUrls.map((url, index) => {
-					// The first image of the top post is the likely LCP element:
-					// load it eagerly with high priority so the browser fetches it
-					// immediately. All other images stay lazy.
-					const isLcpCandidate = priority && index === 0;
-
-					return (
-						<div key={url} className="w-full">
-							<img
-								src={resolveImageSrc(url, undefined, 1000)}
-								alt="Post"
-								loading={isLcpCandidate ? 'eager' : 'lazy'}
-								fetchPriority={isLcpCandidate ? 'high' : 'auto'}
-								className="w-full object-cover max-h-96"
-							/>
-						</div>
-					);
-				})}
+				post.imageUrls.map((url) => (
+					<div key={url} className="w-full">
+						<img
+							src={resolveImageSrc(url, undefined, 1000)}
+							alt="Post"
+							loading="lazy"
+							className="w-full object-cover max-h-96"
+						/>
+					</div>
+				))}
 
 			{/* Reactions Summary */}
 			<div className="px-4 py-3 flex items-center justify-between text-sm text-gray-500 border-b border-gray-100">

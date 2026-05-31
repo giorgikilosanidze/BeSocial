@@ -32,27 +32,11 @@ function App() {
 	}, [isLoading, isServerAwake]);
 
 	useEffect(() => {
-		if (!isLoggedIn || !user.id) {
+		if (isLoggedIn && user.id) {
+			connectWithUser(user.id);
+		} else {
 			disconnectSocket();
-			return;
 		}
-
-		// Defer the socket connection until the browser is idle so its handshake
-		// and polling don't compete with the critical feed + LCP-image requests
-		// during initial load. Real-time notifications a second later is fine.
-		const connect = () => connectWithUser(user.id);
-		const supportsIdle = typeof window.requestIdleCallback === 'function';
-		const idleId = supportsIdle
-			? window.requestIdleCallback(connect, { timeout: 2000 })
-			: window.setTimeout(connect, 1200);
-
-		return () => {
-			if (supportsIdle) {
-				window.cancelIdleCallback(idleId as number);
-			} else {
-				window.clearTimeout(idleId as number);
-			}
-		};
 	}, [isLoggedIn, user.id]);
 
 	useEffect(() => {
