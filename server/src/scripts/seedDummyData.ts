@@ -3,8 +3,23 @@ import dotenv from 'dotenv';
 import { hash } from 'bcrypt';
 import User from '../modules/user/user.model.js';
 import Post from '../modules/post/post.model.js';
+import cloudinary from '../config/cloudinary.js';
 
 dotenv.config();
+
+// Pull a remote placeholder image into Cloudinary so it is served from the CDN
+// and benefits from the f_auto/q_auto/w_* transforms applied on the client
+// (see client resolveImageSrc). Deterministic public_id + overwrite means
+// re-running the seed replaces the same asset instead of creating orphans.
+async function uploadRemoteImage(sourceUrl: string, publicId: string): Promise<string> {
+	const result = await cloudinary.uploader.upload(sourceUrl, {
+		folder: 'besocial',
+		public_id: publicId,
+		resource_type: 'image',
+		overwrite: true,
+	});
+	return result.secure_url;
+}
 
 const usernames = [
 	'emma.chen',
@@ -51,21 +66,36 @@ async function run() {
 
 	const hashedPassword = await hash(seedPassword, 10);
 
+	// Remove any previously seeded dummy users (and their posts) so re-running
+	// re-creates them with fresh Cloudinary-hosted images. Scoped strictly to
+	// the known seed emails so real accounts are never touched.
+	const seedEmails = usernames.map((username) => `${username}@example.com`);
+	const existingUsers = await User.find({ email: { $in: seedEmails } });
+	if (existingUsers.length) {
+		const existingIds = existingUsers.map((user) => String(user._id));
+		await Post.deleteMany({ author: { $in: existingIds } });
+		await User.deleteMany({ email: { $in: seedEmails } });
+		console.log(`Removed ${existingUsers.length} previously seeded user(s) and their posts`);
+	}
+
 	for (const username of usernames) {
 		const email = `${username}@example.com`;
 
-		const existing = await User.findOne({ email });
-		if (existing) {
-			console.log(`Skipping ${username} (already exists)`);
-			continue;
-		}
+		const profilePictureUrl = await uploadRemoteImage(
+			`https://i.pravatar.cc/300?u=${username}`,
+			`seed-${username}-avatar`,
+		);
+		const coverPhotoUrl = await uploadRemoteImage(
+			`https://picsum.photos/seed/${username}-cover/1200/400`,
+			`seed-${username}-cover`,
+		);
 
 		const newUser = await User.create({
 			username,
 			email,
 			password: hashedPassword,
-			profilePictureUrl: `https://i.pravatar.cc/300?u=${username}`,
-			coverPhotoUrl: `https://picsum.photos/seed/${username}-cover/1200/400`,
+			profilePictureUrl,
+			coverPhotoUrl,
 			followers: [],
 			following: [],
 		});
@@ -75,7 +105,12 @@ async function run() {
 			const text = pickRandom(postSnippets);
 			const hasImage = Math.random() < 0.55;
 			const imageUrls = hasImage
-				? [`https://picsum.photos/seed/${username}-${i}/900/600`]
+				? [
+						await uploadRemoteImage(
+							`https://picsum.photos/seed/${username}-${i}/900/600`,
+							`seed-${username}-post-${i}`,
+						),
+					]
 				: [];
 
 			await Post.create({
