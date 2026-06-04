@@ -3,6 +3,9 @@ import dotenv from 'dotenv';
 import { hash } from 'bcrypt';
 import User from '../modules/user/user.model.js';
 import Post from '../modules/post/post.model.js';
+import Reaction from '../modules/reactions/reaction.model.js';
+import Notification from '../modules/notification/notification.model.js';
+import Chat from '../modules/chat/chat.model.js';
 import cloudinary from '../config/cloudinary.js';
 
 dotenv.config();
@@ -66,15 +69,68 @@ async function run() {
 
 	const hashedPassword = await hash(seedPassword, 10);
 
-	// Remove any previously seeded dummy users (and their posts) so re-running
-	// re-creates them with fresh Cloudinary-hosted images. Scoped strictly to
-	// the known seed emails so real accounts are never touched.
+	// Remove any previously seeded dummy users (and everything that referenced
+	// them) so re-running re-creates them with fresh Cloudinary-hosted images.
+	// Scoped strictly to the known seed emails so real accounts are never touched.
+	//
+	// Re-creating seed users gives them brand-new _ids, so every document that
+	// pointed at the OLD ids (or at the old seed posts) must be cleaned up here.
+	// Otherwise real accounts that interacted with a seed user/post are left with
+	// dangling references — e.g. follow arrays whose length no longer matches the
+	// actual followers/following list.
 	const seedEmails = usernames.map((username) => `${username}@example.com`);
 	const existingUsers = await User.find({ email: { $in: seedEmails } });
 	if (existingUsers.length) {
 		const existingIds = existingUsers.map((user) => String(user._id));
+
+		// Capture the seed users' post ids before deleting the posts, so other
+		// collections that reference those posts can be cleaned up too.
+		const seedPosts = await Post.find({ author: { $in: existingIds } })
+			.select('_id')
+			.lean();
+		const seedPostIds = seedPosts.map((post) => String(post._id));
+
+		// Delete the seed users and the posts they authored.
 		await Post.deleteMany({ author: { $in: existingIds } });
 		await User.deleteMany({ email: { $in: seedEmails } });
+
+		// Follow arrays on the surviving (real) users.
+		await User.updateMany(
+			{},
+			{
+				$pull: {
+					followers: { $in: existingIds },
+					following: { $in: existingIds },
+				},
+			},
+		);
+
+		// Comments a seed user left on other (real) users' posts. (Comments on
+		// the seed users' own posts are gone already — they were embedded.)
+		await Post.updateMany(
+			{},
+			{ $pull: { comments: { userId: { $in: existingIds } } } },
+		);
+
+		// Reactions made by a seed user, or made on a now-deleted seed post.
+		await Reaction.deleteMany({
+			$or: [{ userId: { $in: existingIds } }, { postId: { $in: seedPostIds } }],
+		});
+
+		// Notifications involving a seed user, or about a now-deleted seed post.
+		await Notification.deleteMany({
+			$or: [
+				{ sender: { $in: existingIds } },
+				{ recipient: { $in: existingIds } },
+				{ post: { $in: seedPostIds } },
+			],
+		});
+
+		// Chat messages to or from a seed user.
+		await Chat.deleteMany({
+			$or: [{ senderId: { $in: existingIds } }, { receiverId: { $in: existingIds } }],
+		});
+
 		console.log(`Removed ${existingUsers.length} previously seeded user(s) and their posts`);
 	}
 

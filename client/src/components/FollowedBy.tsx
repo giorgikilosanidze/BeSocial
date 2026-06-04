@@ -71,7 +71,7 @@ const FollowedBy = () => {
 			) : followedBy.length === 0 ? (
 				<p className="text-sm text-gray-500">No mutual connections.</p>
 			) : (
-				<div className="grid grid-cols-3 gap-3">
+				<div className="grid gap-3 grid-cols-3 min-[566px]:[grid-template-columns:repeat(auto-fit,minmax(72px,1fr))]">
 					{previewUsers.map((user) => {
 						const profilePictureSrc = resolveImageSrc(
 							user.profilePictureUrl,
@@ -79,10 +79,10 @@ const FollowedBy = () => {
 						);
 
 						return (
-							<div key={user._id} className="flex flex-col items-center">
+							<div key={user._id} className="flex flex-col items-center min-w-0">
 								<Link
 									to={routes.profile.replace(':userId', user._id)}
-									className="w-full"
+									className="w-full max-w-[96px] mx-auto"
 								>
 									<div className="w-full aspect-square rounded-full overflow-hidden bg-gray-100 mb-2">
 										<img

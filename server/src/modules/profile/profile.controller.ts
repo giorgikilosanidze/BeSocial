@@ -159,7 +159,11 @@ export async function followOrUnfollow(req: FollowRequest, res: Response, next: 
 		});
 	}
 
-	getIO().emit('followedOrUnfollowed', { isFollowing });
+	getIO().emit('followedOrUnfollowed', {
+		isFollowing,
+		targetUserId,
+		actorId: userId,
+	});
 
 	if (notification) {
 		getIO().to(targetUserId).emit('followNotification', notification);

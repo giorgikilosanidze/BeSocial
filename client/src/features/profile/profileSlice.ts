@@ -36,11 +36,31 @@ const profileSlice = createSlice({
 	name: 'profile',
 	initialState,
 	reducers: {
-		updateFollowsInRealTime: (state, action: PayloadAction<{ isFollowing: boolean }>) => {
-			if (action.payload.isFollowing) {
-				state.user.followersCount++;
-			} else {
-				state.user.followersCount--;
+		updateFollowsInRealTime: (
+			state,
+			action: PayloadAction<{
+				isFollowing: boolean;
+				targetUserId: string;
+				actorId: string;
+			}>,
+		) => {
+			const { isFollowing, targetUserId, actorId } = action.payload;
+			const viewedUserId = state.user.id;
+			const delta = isFollowing ? 1 : -1;
+
+			// Someone followed/unfollowed the profile being viewed -> its followers
+			// count changes. Only react when this profile is the target, otherwise an
+			// unrelated follow (e.g. following one of its followers) would wrongly
+			// bump the count.
+			if (targetUserId === viewedUserId) {
+				state.user.followersCount += delta;
+			}
+
+			// The profile being viewed followed/unfollowed someone else -> its
+			// following count changes. Guarded the same way so it can never be
+			// incremented by an unrelated action.
+			if (actorId === viewedUserId) {
+				state.user.followingCount += delta;
 			}
 		},
 		addCommentInRealTime: (state, action: PayloadAction<Comments>) => {
