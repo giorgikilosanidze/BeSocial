@@ -7,10 +7,7 @@ import chatRoutes from './modules/chat/chat.routes.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import multer, { FileFilterCallback } from 'multer';
 import dotenv from 'dotenv';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import cloudinary from './config/cloudinary.js';
 import { searchUsers } from './modules/user/user.repository.js';
 import authGuard from './middlewares/authGuard/authGuard.js';
 
@@ -18,24 +15,10 @@ dotenv.config();
 
 const app = express();
 
-const fileStorage = new CloudinaryStorage({
-	cloudinary,
-	params: async (req, file) => ({
-		folder: 'besocial',
-		resource_type: 'image',
-		public_id: `${Date.now()}-${file.originalname.replace(/\.[^/.]+$/, '')}`,
-	}),
-});
-
-const fileFilter = (req: Request, file: Express.Multer.File, callback: FileFilterCallback) => {
-	const allowedTypes = ['image/png', 'image/jpeg'];
-
-	if (allowedTypes.includes(file.mimetype)) {
-		callback(null, true); // accept file
-	} else {
-		callback(new Error('Only PNG and JPEG images are allowed!') as any, false);
-	}
-};
+// Behind Render's proxy (and the Vercel rewrite), the real client IP arrives in
+// X-Forwarded-For. Trust the first proxy hop so rate limiting keys on the actual
+// client and secure-cookie detection works correctly.
+app.set('trust proxy', 1);
 
 app.use(
 	cors({
@@ -46,13 +29,6 @@ app.use(
 );
 app.use(cookieParser());
 app.use(express.json());
-app.use(
-	multer({
-		storage: fileStorage,
-		limits: { fileSize: 5 * 1024 * 1024 },
-		fileFilter,
-	}).array('image', 5),
-);
 app.use(helmet());
 
 app.use('/api/auth', authRoutes);

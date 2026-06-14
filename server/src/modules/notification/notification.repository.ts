@@ -26,9 +26,11 @@ export async function getAllUserNotifications(userId: string) {
 
 	return notifications;
 }
-export async function markNotificationAsRead(notificationId: string) {
-	const notification = await Notification.findByIdAndUpdate(
-		notificationId,
+export async function markNotificationAsRead(notificationId: string, recipientId: string) {
+	// Scope the update to the owner so a user can't mark someone else's
+	// notification as read by guessing its id.
+	const notification = await Notification.findOneAndUpdate(
+		{ _id: notificationId, recipient: recipientId },
 		{ isRead: true },
 		{ new: true },
 	);

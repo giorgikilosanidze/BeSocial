@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import { removeImage } from '../../utils/removeImage.js';
 import User from '../user/user.model.js';
 import { UserSignUp } from './user.types.js';
@@ -179,11 +180,18 @@ export async function getProfilePictureUrlById(id: string): Promise<string> {
 export async function getRandomSuggestions(userId: string) {
 	const user = await User.findById(userId).select('following');
 
-	const excludedIds = Array.from(new Set([userId, ...(user?.following || [])]));
+	// Exclude self + everyone already followed. Stored as strings, so normalize
+	// to ObjectId for the aggregation match (aggregation doesn't auto-cast).
+	const excludedIds = Array.from(
+		new Set([userId, ...(user?.following || []).map((id) => id.toString())]),
+	).map((id) => new mongoose.Types.ObjectId(id));
 
-	const suggestions = await User.find({
-		_id: { $nin: excludedIds },
-	}).select('_id username profilePictureUrl');
+	// $sample randomizes and a fixed size bounds the payload as the userbase grows.
+	const suggestions = await User.aggregate([
+		{ $match: { _id: { $nin: excludedIds } } },
+		{ $sample: { size: 20 } },
+		{ $project: { _id: 1, username: 1, profilePictureUrl: 1 } },
+	]);
 
 	return suggestions;
 }

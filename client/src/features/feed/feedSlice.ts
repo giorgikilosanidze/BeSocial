@@ -29,9 +29,6 @@ const feedSlice = createSlice({
 	name: 'feed',
 	initialState,
 	reducers: {
-		addPostInRealTime: (state, action) => {
-			state.posts.unshift(action.payload);
-		},
 		editPostInRealTime: (state, action) => {
 			state.posts = state.posts.map((post) =>
 				post.id === action.payload.id ? action.payload : post,
@@ -79,8 +76,9 @@ const feedSlice = createSlice({
 			.addCase(createPost.pending, (state) => {
 				state.error = '';
 			})
-			.addCase(createPost.fulfilled, () => {
-				// state.posts.unshift(action.payload);
+			.addCase(createPost.fulfilled, (state, action) => {
+				// Author sees their own new post immediately; others get it on reload.
+				state.posts.unshift(action.payload);
 			})
 			.addCase(createPost.rejected, (state, action) => {
 				state.error = action.error.message || 'Failed to create post!';
@@ -176,7 +174,6 @@ const feedSlice = createSlice({
 });
 
 export const {
-	addPostInRealTime,
 	editPostInRealTime,
 	deletePostInRealTime,
 	addReactionInRealTime,

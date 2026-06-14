@@ -9,6 +9,7 @@ import {
 } from './auth.controller.js';
 import { logInValidation, signUpValidation } from './auth.validators.js';
 import authGuard from '../../middlewares/authGuard/authGuard.js';
+import { authLimiter } from '../../middlewares/rateLimiters.js';
 
 const router = Router();
 
@@ -18,9 +19,9 @@ router.get('/socket-token', authGuard, getSocketToken);
 
 router.post('/refreshToken', resendAccessToken);
 
-router.post('/signup', signUpValidation, postSignUp);
+router.post('/signup', authLimiter, signUpValidation, postSignUp);
 
-router.post('/login', logInValidation, postLogIn);
+router.post('/login', authLimiter, logInValidation, postLogIn);
 
 router.post('/logout', logOut);
 

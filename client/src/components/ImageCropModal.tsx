@@ -95,7 +95,7 @@ const ImageCropModal = ({ mode, imageFile, isSaving, onCancel, onConfirm }: Imag
 			<div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={isSaving ? undefined : onCancel} />
 			<div
 				onClick={(event) => event.stopPropagation()}
-				className="relative bg-white rounded-2xl w-full max-w-3xl mx-4 shadow-2xl overflow-hidden"
+				className="relative bg-white rounded-2xl w-full max-w-3xl mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
 			>
 				<div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
 					<div>
@@ -116,7 +116,7 @@ const ImageCropModal = ({ mode, imageFile, isSaving, onCancel, onConfirm }: Imag
 				<div className="p-6">
 					<div
 						className={`relative bg-gray-900 rounded-xl overflow-hidden ${
-							mode === 'profile' ? 'h-[420px]' : 'h-[360px]'
+							mode === 'profile' ? 'h-[300px] sm:h-[420px]' : 'h-[260px] sm:h-[360px]'
 						}`}
 					>
 						<Cropper

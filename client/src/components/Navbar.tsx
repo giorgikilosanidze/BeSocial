@@ -889,7 +889,9 @@ const Navbar = () => {
 				return (
 					<div
 						key={openChat.id}
-						className="hidden md:flex fixed z-[150] bg-white border border-gray-200 shadow-lg rounded-full pl-2 pr-1 py-1 items-center gap-2 max-w-[220px]"
+						className={`${
+							expandedOpenChats.length > 0 ? 'hidden md:flex' : 'flex'
+						} fixed z-[150] bg-white border border-gray-200 shadow-lg rounded-full pl-2 pr-1 py-1 items-center gap-2 max-w-[220px]`}
 						style={{ right: '16px', bottom: `${16 + index * 48}px` }}
 					>
 						<button
@@ -937,14 +939,18 @@ const Navbar = () => {
 			{expandedOpenChats.map((openChat, index) => {
 				const chat = chatThreads.find((thread) => thread.id === openChat.id) || null;
 				const minimizedLaneOffset = minimizedOpenChats.length > 0 ? 200 : 0;
+				// On mobile each widget is fullscreen, so only render the most recent
+				// one; the rest stay desktop-only to avoid unusable stacked overlays.
+				const isLastExpanded = index === expandedOpenChats.length - 1;
 				return (
-					<ChatWidget
-						key={openChat.id}
-						chat={chat}
-						onMinimize={() => handleMinimizeChatWidget(openChat.id)}
-						onClose={() => handleDismissChatWidget(openChat.id)}
-						rightOffsetPx={24 + minimizedLaneOffset + index * 376}
-					/>
+					<div key={openChat.id} className={isLastExpanded ? '' : 'hidden md:block'}>
+						<ChatWidget
+							chat={chat}
+							onMinimize={() => handleMinimizeChatWidget(openChat.id)}
+							onClose={() => handleDismissChatWidget(openChat.id)}
+							rightOffsetPx={24 + minimizedLaneOffset + index * 376}
+						/>
+					</div>
 				);
 			})}
 		</>

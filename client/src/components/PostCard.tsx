@@ -35,8 +35,16 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
 	const [isSavingPost, setIsSavingPost] = useState(false);
 	const [isDeletingPost, setIsDeletingPost] = useState(false);
+	const [isReactionPickerOpen, setIsReactionPickerOpen] = useState(false);
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
+	const reactionPickerParentRef = useRef<HTMLDivElement>(null);
 	const dispatch = useAppDispatch();
+
+	// On touch devices there's no hover, so the reaction picker must be opened by
+	// tapping the button instead of relying on hover.
+	const [isTouchDevice] = useState(
+		() => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches,
+	);
 
 	const [reactionsAmount, setReactionsAmount] = useState(
 		(post.likes || 0) + (post.loves || 0) + (post.angry || 0),
@@ -69,6 +77,13 @@ const PostCard = ({ post }: PostCardProps) => {
 
 			if (threeDotsParentRef.current && !path.includes(threeDotsParentRef.current)) {
 				setOptionsVisibility(false);
+			}
+
+			if (
+				reactionPickerParentRef.current &&
+				!path.includes(reactionPickerParentRef.current)
+			) {
+				setIsReactionPickerOpen(false);
 			}
 		};
 
@@ -331,7 +346,9 @@ const PostCard = ({ post }: PostCardProps) => {
 			{/* Post Content */}
 			<div className="px-4 pb-3">
 				{!isEditMode && (
-					<p className="text-gray-800 text-sm leading-relaxed">{post.text}</p>
+					<p className="text-gray-800 text-sm leading-relaxed break-words whitespace-pre-wrap">
+						{post.text}
+					</p>
 				)}
 
 				{isEditMode && (
@@ -408,13 +425,20 @@ const PostCard = ({ post }: PostCardProps) => {
 			{/* Action Buttons */}
 			<div className="px-4 py-2 flex items-center justify-around border-b border-gray-100">
 				{/* Like button with reaction picker */}
-				<div className="relative group">
-					{/* Reaction Picker - Shows on hover */}
-					<div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 ease-in-out">
+				<div className="relative group" ref={reactionPickerParentRef}>
+					{/* Reaction Picker - opens on hover (desktop) or tap (touch) */}
+					<div
+						className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200 ease-in-out group-hover:opacity-100 group-hover:visible ${
+							isReactionPickerOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+						}`}
+					>
 						<div className="bg-white rounded-full shadow-lg border border-gray-200 px-5 py-3 flex items-center gap-4">
 							{/* Like Reaction */}
 							<button
-								onClick={() => handleReaction('like')}
+								onClick={() => {
+									handleReaction('like');
+									setIsReactionPickerOpen(false);
+								}}
 								className="transform hover:scale-125 transition-transform duration-150 cursor-pointer"
 								aria-label="Like"
 							>
@@ -428,7 +452,10 @@ const PostCard = ({ post }: PostCardProps) => {
 
 							{/* Love Reaction */}
 							<button
-								onClick={() => handleReaction('love')}
+								onClick={() => {
+									handleReaction('love');
+									setIsReactionPickerOpen(false);
+								}}
 								className="transform hover:scale-125 transition-transform duration-150 cursor-pointer"
 								aria-label="Love"
 							>
@@ -442,7 +469,10 @@ const PostCard = ({ post }: PostCardProps) => {
 
 							{/* Angry Reaction */}
 							<button
-								onClick={() => handleReaction('angry')}
+								onClick={() => {
+									handleReaction('angry');
+									setIsReactionPickerOpen(false);
+								}}
 								className="transform hover:scale-125 transition-transform duration-150 cursor-pointer"
 								aria-label="Angry"
 							>
@@ -456,9 +486,17 @@ const PostCard = ({ post }: PostCardProps) => {
 						</div>
 					</div>
 
-					{/* Reaction Button — changes based on userReaction */}
+					{/* Reaction Button — changes based on userReaction.
+					    Desktop: click reacts instantly (picker shows on hover).
+					    Touch: click opens the picker so Love/Angry are reachable. */}
 					<button
-						onClick={() => handleReaction(activeReaction ?? 'like')}
+						onClick={() => {
+							if (isTouchDevice) {
+								setIsReactionPickerOpen((prev) => !prev);
+							} else {
+								handleReaction(activeReaction ?? 'like');
+							}
+						}}
 						className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
 							isLike
 								? 'text-blue-600'

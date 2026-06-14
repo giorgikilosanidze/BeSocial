@@ -311,11 +311,14 @@ const Signup = () => {
 						<button
 							type="submit"
 							disabled={isSubmitting}
-							className={`w-full bg-blue-600 text-white font-semibold py-3 text-sm rounded-lg hover:bg-blue-700 mt-2 ${
-								isSubmitting ? 'opacity-50 pointer-events-none' : ''
+							className={`w-full bg-blue-600 text-white font-semibold py-3 text-sm rounded-lg hover:bg-blue-700 mt-2 flex items-center justify-center gap-2 ${
+								isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
 							}`}
 						>
-							Create Account
+							{isSubmitting && (
+								<span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+							)}
+							{isSubmitting ? 'Creating account...' : 'Create Account'}
 						</button>
 					</form>
 

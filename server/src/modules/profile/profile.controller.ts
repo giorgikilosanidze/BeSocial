@@ -62,7 +62,9 @@ export async function uploadProfilePicture(
 	res: Response,
 	next: NextFunction,
 ) {
-	const userId = req.params.userId;
+	// Always act on the authenticated user — never the URL param — so nobody can
+	// overwrite another account's photo by changing :userId.
+	const userId = (req as any).userId as string | undefined;
 	const image = req.files as Express.Multer.File[];
 
 	if (!userId || !image || image.length === 0) {
@@ -81,7 +83,8 @@ export async function uploadCoverPhoto(
 	res: Response,
 	next: NextFunction,
 ) {
-	const userId = req.params.userId;
+	// Always act on the authenticated user — never the URL param.
+	const userId = (req as any).userId as string | undefined;
 	const image = req.files as Express.Multer.File[];
 
 	if (!userId || !image || image.length === 0) {
@@ -100,10 +103,11 @@ export async function deleteProfilePicture(
 	res: Response,
 	next: NextFunction,
 ) {
-	const userId = req.params.userId;
+	// Always act on the authenticated user — never the URL param.
+	const userId = (req as any).userId as string | undefined;
 
 	if (!userId) {
-		return res.status(400).json({ message: 'Missing userId param' });
+		return res.status(401).json({ message: 'Unauthorized' });
 	}
 
 	try {
@@ -119,10 +123,11 @@ export async function deleteCoverPhoto(
 	res: Response,
 	next: NextFunction,
 ) {
-	const userId = req.params.userId;
+	// Always act on the authenticated user — never the URL param.
+	const userId = (req as any).userId as string | undefined;
 
 	if (!userId) {
-		return res.status(400).json({ message: 'Missing userId param' });
+		return res.status(401).json({ message: 'Unauthorized' });
 	}
 
 	try {
@@ -146,30 +151,48 @@ export async function followOrUnfollow(req: FollowRequest, res: Response, next: 
 		return res.status(400).json({ message: 'Not enough data provided!' });
 	}
 
-	const isFollowing = await handleFollowOrUnfollow(userId, targetUserId, action);
+	if (action !== 1 && action !== 2) {
+		return res.status(400).json({ message: 'Invalid action!' });
+	}
 
-	let notification;
+	if (targetUserId === userId) {
+		return res.status(400).json({ message: 'You cannot follow yourself!' });
+	}
 
-	if (action === 1) {
-		notification = await createNotification({
-			recipient: targetUserId,
-			sender: userId,
-			type: 'follow',
-			isRead: false,
+	try {
+		const targetUser = await getUserById(targetUserId);
+
+		if (!targetUser) {
+			return res.status(404).json({ message: 'User not found!' });
+		}
+
+		const isFollowing = await handleFollowOrUnfollow(userId, targetUserId, action);
+
+		let notification;
+
+		if (action === 1) {
+			notification = await createNotification({
+				recipient: targetUserId,
+				sender: userId,
+				type: 'follow',
+				isRead: false,
+			});
+		}
+
+		getIO().emit('followedOrUnfollowed', {
+			isFollowing,
+			targetUserId,
+			actorId: userId,
 		});
+
+		if (notification) {
+			getIO().to(targetUserId).emit('followNotification', notification);
+		}
+
+		return res.status(200).json({ isFollowing });
+	} catch (error) {
+		return next(error);
 	}
-
-	getIO().emit('followedOrUnfollowed', {
-		isFollowing,
-		targetUserId,
-		actorId: userId,
-	});
-
-	if (notification) {
-		getIO().to(targetUserId).emit('followNotification', notification);
-	}
-
-	res.status(200).json({ isFollowing });
 }
 
 export async function getFollowers(

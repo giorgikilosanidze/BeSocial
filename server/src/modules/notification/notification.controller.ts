@@ -8,13 +8,18 @@ import {
 
 export async function markAsRead(req: UserIdRequest, res: Response, next: NextFunction) {
 	const notificationId = req.params.notificationId;
+	const userId = req.userId;
+
+	if (!userId) {
+		return res.status(401).json({ message: 'Unauthorized' });
+	}
 
 	if (!notificationId) {
 		return res.status(400).json({ message: 'notificationId is required!' });
 	}
 
 	try {
-		const notification = await markNotificationAsRead(notificationId);
+		const notification = await markNotificationAsRead(notificationId, userId);
 		return res.status(200).json(notification);
 	} catch (error: unknown) {
 		if (error instanceof Error) {

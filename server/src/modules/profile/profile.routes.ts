@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import authGuard from '../../middlewares/authGuard/authGuard.js';
+import upload from '../../middlewares/upload.js';
 import {
 	followOrUnfollow,
 	getUserProfile,
@@ -15,10 +16,10 @@ const router = Router();
 
 router.get('/user/:userId', authGuard, getUserProfile);
 
-router.post('/profilePicture/:userId', authGuard, uploadProfilePicture);
+router.post('/profilePicture/:userId', authGuard, upload.array('image', 1), uploadProfilePicture);
 router.delete('/profilePicture/:userId', authGuard, deleteProfilePicture);
 
-router.post('/coverPhoto/:userId', authGuard, uploadCoverPhoto);
+router.post('/coverPhoto/:userId', authGuard, upload.array('image', 1), uploadCoverPhoto);
 router.delete('/coverPhoto/:userId', authGuard, deleteCoverPhoto);
 
 router.post('/follow', authGuard, followOrUnfollow);

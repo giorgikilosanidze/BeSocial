@@ -14,6 +14,7 @@ import {
 import authGuard from '../../middlewares/authGuard/authGuard.js';
 import { permissionGuard } from '../../middlewares/permissionGuard/permissionGuard.js';
 import { checkCommentAuthorId, getAuthorIdByParams } from '../post/post.repository.js';
+import upload from '../../middlewares/upload.js';
 
 const router = Router();
 
@@ -21,7 +22,7 @@ router.get('/posts', authGuard, getPosts);
 router.get('/posts/:postId', authGuard, getSinglePost);
 router.get('/posts/:postId/reactions', authGuard, getPostReactionsList);
 
-router.post('/posts', authGuard, postCreation);
+router.post('/posts', authGuard, upload.array('image', 5), postCreation);
 
 router.patch('/posts/:postId', authGuard, permissionGuard(getAuthorIdByParams), editPost);
 

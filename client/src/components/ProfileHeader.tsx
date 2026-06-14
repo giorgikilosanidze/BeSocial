@@ -391,7 +391,7 @@ const ProfileHeader = ({
 													strokeLinecap="round"
 													strokeLinejoin="round"
 													strokeWidth={2}
-													d="M25 4v16m8-8H4"
+													d="M20 12H4"
 												/>
 											</svg>
 										)}

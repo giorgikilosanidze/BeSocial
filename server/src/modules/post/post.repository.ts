@@ -1,5 +1,7 @@
 import mongoose, { Error } from 'mongoose';
 import Post from './post.model.js';
+import Reaction from '../reactions/reaction.model.js';
+import Notification from '../notification/notification.model.js';
 import { AddCommentType, EditPostDB, PostType } from './post.types.js';
 import { Request } from 'express';
 import { CommentChecker, PostIdParams } from '../feed/feed.types.js';
@@ -213,6 +215,14 @@ export async function getPostById(postId: string, viewerId?: string) {
 }
 
 export async function editPostDB(editedPostData: EditPostDB, viewerId?: string) {
+	const existingPost = await Post.findById(editedPostData.postId);
+
+	if (!existingPost) {
+		throw new Error('Post was not found!');
+	}
+
+	const oldImageUrls = ((existingPost.imageUrls as string[]) || []).map((url) => url);
+
 	const post = await Post.findByIdAndUpdate(
 		editedPostData.postId,
 		{
@@ -230,6 +240,15 @@ export async function editPostDB(editedPostData: EditPostDB, viewerId?: string) 
 		throw new Error('Post was not found!');
 	}
 
+	// If the image set was replaced, delete any images that were dropped so they
+	// don't linger in Cloudinary.
+	if (editedPostData.editedImageUrls) {
+		const newImageUrls = editedPostData.editedImageUrls;
+		oldImageUrls
+			.filter((url) => !newImageUrls.includes(url))
+			.forEach((url) => removeImage(url));
+	}
+
 	const fullPost = await getPostById(editedPostData.postId, viewerId);
 
 	return fullPost;
@@ -244,9 +263,16 @@ export async function deletePostDB(postId: string) {
 
 	if (postToDelete.imageUrls) {
 		postToDelete.imageUrls.forEach((url) => {
-			removeImage(url);
+			removeImage(url as string);
 		});
 	}
+
+	// Remove dependent data so deleting a post doesn't leave orphaned reactions
+	// or notifications pointing at a post that no longer exists.
+	await Promise.all([
+		Reaction.deleteMany({ postId }),
+		Notification.deleteMany({ post: postId }),
+	]);
 
 	await postToDelete.deleteOne();
 }

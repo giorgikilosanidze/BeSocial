@@ -158,12 +158,18 @@ export async function logOut(req: LogOutRequest, res: Response, next: NextFuncti
 	const refreshToken = req.cookies.refresh_token;
 
 	if (refreshToken) {
-		const decodedToken = jwt.verify(
-			refreshToken,
-			process.env.JWT_REFRESH_SECRET_KEY!,
-		) as DecodedRefreshToken;
+		// A stale/invalid token must not block logout — verify defensively and
+		// always fall through to clearing the cookies below.
+		try {
+			const decodedToken = jwt.verify(
+				refreshToken,
+				process.env.JWT_REFRESH_SECRET_KEY!,
+			) as DecodedRefreshToken;
 
-		await deleteRefreshToken(decodedToken.id);
+			await deleteRefreshToken(decodedToken.id);
+		} catch {
+			await deleteRefreshTokenByToken(refreshToken);
+		}
 	}
 
 	res.clearCookie('access_token', {

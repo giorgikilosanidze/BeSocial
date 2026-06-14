@@ -82,7 +82,9 @@ export async function postCreation(req: CreatePostRequest, res: Response, next: 
 
 	try {
 		const post = await createPost({ text, userId, imageUrls });
-		getIO().emit('newPost', post);
+		// Intentionally NOT broadcast over sockets: like Instagram/Facebook, other
+		// users only see a new post on their next feed load, not live. The author
+		// gets it immediately from this response (handled in the feed/profile slice).
 		return res.status(201).json(post);
 	} catch (error: any) {
 		return next(error);
@@ -184,10 +186,22 @@ export async function handleReaction(req: ReactionRequest, res: Response, next: 
 export async function addCommentToPost(req: CommentRequest, res: Response, next: NextFunction) {
 	const userId = req.userId;
 	const postId = req.body.postId;
-	const text = req.body.text.trim();
+	const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
 
 	if (!userId) {
 		return res.status(400).json({ message: 'Failed to identify user!' });
+	}
+
+	if (!postId) {
+		return res.status(400).json({ message: 'postId is required!' });
+	}
+
+	if (!text) {
+		return res.status(400).json({ message: 'Comment text is required!' });
+	}
+
+	if (text.length > 1000) {
+		return res.status(400).json({ message: 'Comment is too long!' });
 	}
 
 	const username = await getUsernameById(userId);

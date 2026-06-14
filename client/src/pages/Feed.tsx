@@ -9,13 +9,12 @@ import { useEffect } from 'react';
 import { fetchPosts } from '@/features/feed/feedThunks';
 import { socket } from '@/socket';
 import {
-	addPostInRealTime,
 	addReactionInRealTime,
 	deletePostInRealTime,
 	editPostInRealTime,
 	addCommentInRealTime,
 } from '@/features/feed/feedSlice';
-import type { CreatePostResponse, EditPostData } from '@/types/feed';
+import type { EditPostData } from '@/types/feed';
 
 const Feed = () => {
 	const { posts, isLoading } = useAppSelector((state) => state.feed);
@@ -32,16 +31,6 @@ const Feed = () => {
 
 		return () => {
 			socket.off('reactionAdded');
-		};
-	}, [dispatch]);
-
-	useEffect(() => {
-		socket.on('newPost', (post: CreatePostResponse) => {
-			dispatch(addPostInRealTime(post));
-		});
-
-		return () => {
-			socket.off('newPost');
 		};
 	}, [dispatch]);
 

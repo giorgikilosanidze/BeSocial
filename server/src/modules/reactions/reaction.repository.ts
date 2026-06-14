@@ -89,13 +89,17 @@ export async function getPostReactionsDetailed(postId: string) {
 		.lean()
 		.exec();
 
-	return reactions.map((r: any) => ({
-		_id: r._id.toString(),
-		user: {
-			_id: r.userId._id.toString(),
-			username: r.userId.username,
-			profilePictureUrl: r.userId.profilePictureUrl,
-		},
-		type: r.type,
-	}));
+	return reactions
+		// Skip reactions whose author no longer exists (populate yields null),
+		// otherwise dereferencing r.userId._id throws.
+		.filter((r: any) => r.userId)
+		.map((r: any) => ({
+			_id: r._id.toString(),
+			user: {
+				_id: r.userId._id.toString(),
+				username: r.userId.username,
+				profilePictureUrl: r.userId.profilePictureUrl,
+			},
+			type: r.type,
+		}));
 }
