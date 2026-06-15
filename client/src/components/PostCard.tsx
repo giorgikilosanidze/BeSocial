@@ -46,17 +46,22 @@ const PostCard = ({ post }: PostCardProps) => {
 		() => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches,
 	);
 
-	const [reactionsAmount, setReactionsAmount] = useState(
-		(post.likes || 0) + (post.loves || 0) + (post.angry || 0),
-	);
+	// Per-type counts are the single source of truth; the total and which icons
+	// to show are derived from them. This keeps the reactions summary consistent
+	// when the user switches between reactions (e.g. Like -> Love must drop the
+	// stale Like icon, not leave both showing).
+	const [likeCount, setLikeCount] = useState(post.likes || 0);
+	const [loveCount, setLoveCount] = useState(post.loves || 0);
+	const [angryCount, setAngryCount] = useState(post.angry || 0);
 
 	const [instantReact, setInstantReact] = useState<ReactionTypes | null>(
 		post.userReaction || null,
 	);
 
-	const [isLikeShown, setIsLikeShown] = useState(post.likes ? true : false);
-	const [isLoveShown, setIsLoveShown] = useState(post.loves ? true : false);
-	const [isAngryShown, setIsAngryShown] = useState(post.angry ? true : false);
+	const reactionsAmount = likeCount + loveCount + angryCount;
+	const isLikeShown = likeCount > 0;
+	const isLoveShown = loveCount > 0;
+	const isAngryShown = angryCount > 0;
 
 	const hasPermission = post.author._id === userId;
 
@@ -95,79 +100,24 @@ const PostCard = ({ post }: PostCardProps) => {
 	}, [optionsVisibility]);
 
 	const handleReaction = (reactionType: ReactionTypes) => {
+		const adjustCount = (type: ReactionTypes, delta: number) => {
+			const setter =
+				type === 'like' ? setLikeCount : type === 'love' ? setLoveCount : setAngryCount;
+			setter((count) => Math.max(0, count + delta));
+		};
+
 		if (instantReact === reactionType) {
+			// Tapping the active reaction again removes it.
+			adjustCount(reactionType, -1);
 			setInstantReact(null);
 		} else {
+			// Switching reactions: drop the previous one (if any) before adding the new,
+			// so only the currently active reaction's icon remains in the summary.
+			if (instantReact) {
+				adjustCount(instantReact, -1);
+			}
+			adjustCount(reactionType, 1);
 			setInstantReact(reactionType);
-		}
-
-		if (instantReact === reactionType) {
-			setReactionsAmount(reactionsAmount - 1);
-		} else if (!instantReact) {
-			setReactionsAmount(reactionsAmount + 1);
-		}
-
-		if (reactionType === 'like') {
-			if (instantReact === 'like') {
-				if (post.likes - 1 < 1) {
-					setIsLikeShown(false);
-				}
-			} else {
-				setIsLikeShown(true);
-			}
-		} else {
-			if (instantReact === 'love') {
-				if (post.loves - 1 < 1) {
-					setIsLoveShown(false);
-				}
-			}
-			if (instantReact === 'angry') {
-				if (post.angry - 1 < 1) {
-					setIsAngryShown(false);
-				}
-			}
-		}
-
-		if (reactionType === 'love') {
-			if (instantReact === 'love') {
-				if (post.loves - 1 < 1) {
-					setIsLoveShown(false);
-				}
-			} else {
-				setIsLoveShown(true);
-			}
-		} else {
-			if (instantReact === 'like') {
-				if (post.likes - 1 < 1) {
-					setIsLikeShown(false);
-				}
-			}
-			if (instantReact === 'angry') {
-				if (post.angry - 1 < 1) {
-					setIsAngryShown(false);
-				}
-			}
-		}
-
-		if (reactionType === 'angry') {
-			if (instantReact === 'angry') {
-				if (post.angry - 1 < 1) {
-					setIsAngryShown(false);
-				}
-			} else {
-				setIsAngryShown(true);
-			}
-		} else {
-			if (instantReact === 'like') {
-				if (post.likes - 1 < 1) {
-					setIsLikeShown(false);
-				}
-			}
-			if (instantReact === 'love') {
-				if (post.loves - 1 < 1) {
-					setIsLoveShown(false);
-				}
-			}
 		}
 
 		dispatch(sendReactionData({ postId: post.id, userId: userId, reactionType }));
