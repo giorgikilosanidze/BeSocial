@@ -1,6 +1,6 @@
 ﻿import { useEffect } from 'react';
 
-type PreviewVariant = 'profile' | 'cover';
+type PreviewVariant = 'profile' | 'cover' | 'post';
 
 interface ImagePreviewModalProps {
 	imageSrc: string;

@@ -16,6 +16,8 @@ import { useAppDispatch, useAppSelector } from '@/hooks/reduxHooks';
 import { socket } from '@/socket';
 import type { ChatComponentProps, Message } from '@/types/chat';
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { Link } from 'react-router-dom';
+import routes from '@/constants/routes';
 import { v4 as uuidv4 } from 'uuid';
 
 interface NewMessageSocketPayload {
@@ -129,6 +131,21 @@ const ChatWidget = ({
 	} else if (effectiveLastSeenAt) {
 		activityLabel = `Last seen ${formatTimeAgo(effectiveLastSeenAt)}`;
 	}
+
+	useEffect(() => {
+		// On mobile the widget is a fullscreen overlay, so lock the page behind it
+		// to stop the feed/profile from scrolling underneath while the chat scrolls.
+		// On desktop the widget is a small floating panel — leave the page scrollable.
+		if (!chat?.id) return;
+		const isMobile = window.matchMedia('(max-width: 767px)').matches;
+		if (!isMobile) return;
+
+		const previousOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		return () => {
+			document.body.style.overflow = previousOverflow;
+		};
+	}, [chat?.id]);
 
 	useEffect(() => {
 		// Mark this chat as open while the widget is on screen so message toasts
@@ -414,14 +431,18 @@ const ChatWidget = ({
 			}
 		>
 			<div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10 rounded-2xl">
-				<div className="flex items-center gap-3 min-w-0">
+				<Link
+					to={routes.profile.replace(':userId', chat.id)}
+					onClick={onClose}
+					className="flex items-center gap-3 min-w-0 group"
+				>
 					<img
 						src={resolveChatAvatarSrc(chat.avatarUrl)}
 						alt={chat.username}
 						className="w-9 h-9 rounded-full object-cover"
 					/>
 					<div className="min-w-0">
-						<p className="text-sm font-semibold text-gray-900 truncate">
+						<p className="text-sm font-semibold text-gray-900 truncate group-hover:underline">
 							{chat.username}
 						</p>
 						<p
@@ -430,11 +451,11 @@ const ChatWidget = ({
 							{activityLabel}
 						</p>
 					</div>
-				</div>
+				</Link>
 				<div className="flex items-center gap-1 shrink-0">
 					<button
 						onClick={onMinimize}
-						className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+						className="hidden md:inline-flex p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
 						aria-label="Minimize chat"
 					>
 						<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -465,7 +486,7 @@ const ChatWidget = ({
 
 			<div
 				ref={messagesContainerRef}
-				className="flex-1 overflow-y-auto px-3 py-3 bg-gradient-to-b from-gray-50 to-white md:h-[300px] md:flex-none"
+				className="flex-1 overflow-y-auto overscroll-contain px-3 py-3 bg-gradient-to-b from-gray-50 to-white md:h-[300px] md:flex-none"
 			>
 				{showHistorySkeleton ? (
 					<div className="space-y-2 animate-pulse">

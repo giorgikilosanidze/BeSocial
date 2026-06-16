@@ -10,6 +10,7 @@ import Angry from '@/svg/Angry';
 import Comment from '@/components/Comment';
 import CommentInput from '@/components/CommentInput';
 import ReactionsModal from '@/components/ReactionsModal';
+import ImagePreviewModal from '@/components/ImagePreviewModal';
 import type { EditPostData, PostCardProps, ReactionTypes } from '@/types/feed';
 import { timeAgo } from '@/utils/formatTime';
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
@@ -33,11 +34,17 @@ const PostCard = ({ post }: PostCardProps) => {
 	const [visibleCommentsCount, setVisibleCommentsCount] = useState(3);
 	const [pendingComments, setPendingComments] = useState<PendingComment[]>([]);
 	const [isReactionsModalOpen, setIsReactionsModalOpen] = useState(false);
+	const [previewImageSrc, setPreviewImageSrc] = useState<string | null>(null);
 	const [isSavingPost, setIsSavingPost] = useState(false);
 	const [isDeletingPost, setIsDeletingPost] = useState(false);
 	const [isReactionPickerOpen, setIsReactionPickerOpen] = useState(false);
 	const threeDotsParentRef = useRef<HTMLDivElement>(null);
 	const reactionPickerParentRef = useRef<HTMLDivElement>(null);
+	// Long-press handling for the reaction button on touch devices.
+	const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	// Marks that a long-press already opened the picker, so the click event that
+	// fires right after the finger lifts doesn't also trigger a "like".
+	const longPressFiredRef = useRef(false);
 	const dispatch = useAppDispatch();
 
 	// On touch devices there's no hover, so the reaction picker must be opened by
@@ -121,6 +128,27 @@ const PostCard = ({ post }: PostCardProps) => {
 		}
 
 		dispatch(sendReactionData({ postId: post.id, userId: userId, reactionType }));
+	};
+
+	// Press-and-hold opens the reaction picker on touch devices. A quick tap
+	// falls through to onClick, which reacts with "like".
+	const LONG_PRESS_MS = 350;
+
+	const startLongPress = () => {
+		longPressFiredRef.current = false;
+		longPressTimerRef.current = setTimeout(() => {
+			longPressFiredRef.current = true;
+			setIsReactionPickerOpen(true);
+		}, LONG_PRESS_MS);
+	};
+
+	useEffect(() => () => cancelLongPress(), []);
+
+	const cancelLongPress = () => {
+		if (longPressTimerRef.current) {
+			clearTimeout(longPressTimerRef.current);
+			longPressTimerRef.current = null;
+		}
 	};
 
 	const toggleOptionsVisibility = () => {
@@ -340,7 +368,8 @@ const PostCard = ({ post }: PostCardProps) => {
 							src={resolveImageSrc(url, undefined, 1000)}
 							alt="Post"
 							loading="lazy"
-							className="w-full object-cover max-h-96"
+							onClick={() => setPreviewImageSrc(resolveImageSrc(url, undefined, 1000))}
+							className="w-full object-cover max-h-96 cursor-pointer"
 						/>
 					</div>
 				))}
@@ -378,9 +407,9 @@ const PostCard = ({ post }: PostCardProps) => {
 				<div className="relative group" ref={reactionPickerParentRef}>
 					{/* Reaction Picker - opens on hover (desktop) or tap (touch) */}
 					<div
-						className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200 ease-in-out group-hover:opacity-100 group-hover:visible ${
-							isReactionPickerOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
-						}`}
+						className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 transition-all duration-200 ease-in-out ${
+							isTouchDevice ? '' : 'group-hover:opacity-100 group-hover:visible'
+						} ${isReactionPickerOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`}
 					>
 						<div className="bg-white rounded-full shadow-lg border border-gray-200 px-5 py-3 flex items-center gap-4">
 							{/* Like Reaction */}
@@ -440,14 +469,19 @@ const PostCard = ({ post }: PostCardProps) => {
 					    Desktop: click reacts instantly (picker shows on hover).
 					    Touch: click opens the picker so Love/Angry are reachable. */}
 					<button
+						onPointerDown={isTouchDevice ? startLongPress : undefined}
+						onPointerUp={isTouchDevice ? cancelLongPress : undefined}
+						onPointerLeave={isTouchDevice ? cancelLongPress : undefined}
 						onClick={() => {
-							if (isTouchDevice) {
-								setIsReactionPickerOpen((prev) => !prev);
-							} else {
-								handleReaction(activeReaction ?? 'like');
+							// On touch, ignore the click that follows a long-press
+							// (the press already opened the picker).
+							if (isTouchDevice && longPressFiredRef.current) {
+								longPressFiredRef.current = false;
+								return;
 							}
+							handleReaction(activeReaction ?? 'like');
 						}}
-						className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+						className={`select-none flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
 							isLike
 								? 'text-blue-600'
 								: isLove
@@ -556,6 +590,15 @@ const PostCard = ({ post }: PostCardProps) => {
 
 			{isReactionsModalOpen && (
 				<ReactionsModal setIsModalOpen={setIsReactionsModalOpen} postId={post.id} />
+			)}
+
+			{previewImageSrc && (
+				<ImagePreviewModal
+					imageSrc={previewImageSrc}
+					imageAlt="Post image preview"
+					variant="post"
+					onClose={() => setPreviewImageSrc(null)}
+				/>
 			)}
 		</div>
 	);
