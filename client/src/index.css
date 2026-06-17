@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Prevent horizontal scroll from off-screen elements (e.g. toasts that
+   animate in from translateX(120%)). iOS Safari expands the scrollable
+   width for off-canvas content; this guard clips it on every page. */
+html,
+body {
+	overflow-x: hidden;
+	max-width: 100%;
+}
+
 /* Toast notification animations */
 @keyframes toast-slide-in {
 	0% {
