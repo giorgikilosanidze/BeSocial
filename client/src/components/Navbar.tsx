@@ -858,7 +858,7 @@ const Navbar = () => {
 				onClose={handleCloseAllChats}
 				onOpenChat={handleOpenChat}
 			/>
-			<div className="fixed right-4 bottom-24 z-[140] flex flex-col gap-2 pointer-events-none">
+			<div className="fixed inset-x-0 bottom-24 z-[140] flex flex-col items-end gap-2 px-4 pointer-events-none overflow-hidden">
 				{chatToasts.map((toast) => (
 					<button
 						key={toast.id}
