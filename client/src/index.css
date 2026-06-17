@@ -2,13 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent horizontal scroll from off-screen elements (e.g. toasts that
-   animate in from translateX(120%)). iOS Safari expands the scrollable
-   width for off-canvas content; this guard clips it on every page. */
-html,
-body {
-	overflow-x: hidden;
-	max-width: 100%;
+/* iOS Safari auto-zooms the whole page in whenever a focused input,
+   textarea, or select has a font-size below 16px. That zoom made the
+   layout appear too wide and forced horizontal scrolling on iPhone
+   (desktop/Android never do this). Forcing 16px on mobile prevents it. */
+@media (max-width: 767px) {
+	input,
+	textarea,
+	select {
+		font-size: 16px !important;
+	}
 }
 
 /* Toast notification animations */
